@@ -412,8 +412,12 @@ img { display: block; }
 
 /* ---------------------------  Page actions footer  --------------------------- */
 .pageactions {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
   background: var(--white);
   border-top: 1px solid var(--gray-200);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
   padding: 16px 96px;
 }
 .pageactions__inner {
