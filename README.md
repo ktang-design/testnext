@@ -102,9 +102,25 @@ reference implementation remains in `UserRepository.js` for tests.
 
 ## Deploy a UAT environment on Render
 
-Config lives in [`render.yaml`](render.yaml). The app needs a **persistent disk**
-(so accounts/sessions survive deploys) — that requires Render's Starter plan or
-higher; the free plan has no disk and would reset the database on each deploy.
+Config lives in [`render.yaml`](render.yaml). It currently targets the **free
+plan** (no card required), so the SQLite database is **ephemeral** — it resets on
+each deploy and when the free service sleeps. The demo account is seeded
+(`SEED_DEMO_USER=true`) so there's always a login after a reset.
+
+To make accounts **persist**, switch to a paid instance: set `plan: starter` and
+add a disk, then point the DB at it:
+
+```yaml
+    plan: starter
+    envVars:
+      - key: DATABASE_FILE
+        value: /data/stacksnext.db
+      # remove SEED_DEMO_USER for a private UAT
+    disk:
+      name: sn-data
+      mountPath: /data
+      sizeGB: 1
+```
 
 1. **Push to GitHub** (Render deploys from a repo).
 2. In Render: **New → Blueprint**, connect the repo. Render reads `render.yaml`
