@@ -114,11 +114,15 @@ img { display: block; }
   flex: 1;
   display: flex;
   align-items: stretch;
-  min-height: 0;
 }
 
 /* ---------------------------  Side navigation  --------------------------- */
 .sidenav {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;          /* don't stretch — needed for sticky height */
+  height: 100vh;                   /* fill the viewport; divider runs full height */
+  overflow-y: auto;                /* scroll the nav internally if it ever overflows */
   width: 288px;
   flex-shrink: 0;
   padding: 16px 8px;
