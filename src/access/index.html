@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Access — StacksNext</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../components/navigation/navigation.css" />
+  <link rel="stylesheet" href="access.css" />
+</head>
+<body>
+  <!-- ============ Top navigation ============ -->
+  <header class="topnav" data-node-id="1:140">
+    <div class="topnav__left">
+      <a class="topnav__logo" href="#" aria-label="Stacks home">
+        <img src="assets/stacks-logo.svg" alt="Stacks" width="127" height="24" />
+      </a>
+      <nav class="topnav__menu" aria-label="Primary">
+        <button type="button" class="navpill" data-node-id="1:37">
+          <img class="navpill__icon" src="assets/layers.svg" alt="" aria-hidden="true" />
+          <span class="navpill__label">Website</span>
+        </button>
+        <button type="button" class="navpill" data-node-id="1:156">
+          <img class="navpill__icon" src="assets/box-circle-check.svg" alt="" aria-hidden="true" />
+          <span class="navpill__label">Features</span>
+        </button>
+        <button type="button" class="navpill navpill--active" aria-current="page" data-node-id="1:157">
+          <img class="navpill__icon" src="assets/screwdriver-wrench.svg" alt="" aria-hidden="true" />
+          <span class="navpill__label">Platform</span>
+        </button>
+      </nav>
+    </div>
+    <button type="button" class="usermenu" data-node-id="1:120" aria-label="User menu" aria-haspopup="true">
+      <img class="usermenu__avatar" src="assets/user-avatar.svg" alt="" aria-hidden="true" />
+      <img class="usermenu__caret" src="assets/caret-down.svg" alt="" aria-hidden="true" />
+    </button>
+  </header>
+
+  <div class="layout">
+    <!-- ============ Side navigation ============ -->
+    <aside class="sidenav" data-node-id="1:1285">
+      <nav aria-label="Settings">
+        <ul class="sidenav__list">
+          <li>
+            <a class="nav-item nav-item--interactive" href="../site-details/index.html">
+              <span class="nav-item__icon"><img src="assets/table-columns.svg" alt="" aria-hidden="true" /></span>
+              <span class="nav-item__label">Site details</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-item nav-item--interactive" href="../branding/index.html">
+              <span class="nav-item__icon"><img src="assets/swatchbook.svg" alt="" aria-hidden="true" /></span>
+              <span class="nav-item__label">Branding</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-item nav-item--interactive is-active" href="#" aria-current="page">
+              <span class="nav-item__icon"><img src="assets/shield-check.svg" alt="" aria-hidden="true" /></span>
+              <span class="nav-item__label">Access</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- ============ Main content ============ -->
+    <div class="content">
+      <main class="access" data-node-id="1:1286">
+        <!-- Section heading -->
+        <div class="section-heading" data-node-id="1:1287">
+          <div class="section-heading__text">
+            <h1 class="section-heading__title">Access</h1>
+            <p class="section-heading__desc">Control how users access and authenticate into your website.</p>
+          </div>
+        </div>
+
+        <!-- Access level options -->
+        <fieldset class="fields" data-node-id="1:1288">
+          <legend class="sr-only">Website access level</legend>
+
+          <label class="radio-box radio-box--selected" data-node-id="1:1289">
+            <input type="radio" name="access-level" value="public" checked />
+            <span class="radio-box__control" aria-hidden="true"></span>
+            <span class="radio-box__content">
+              <span class="radio-box__title">Public</span>
+              <span class="radio-box__desc">Anyone can view and browse the website. No sign-in or user accounts are available.</span>
+            </span>
+          </label>
+
+          <label class="radio-box radio-box--readonly" data-node-id="1:1290">
+            <input type="radio" name="access-level" value="optional-signin" disabled />
+            <span class="radio-box__control" aria-hidden="true"></span>
+            <span class="radio-box__content">
+              <span class="radio-box__title">Public with optional sign-in</span>
+              <span class="radio-box__desc">Anyone can browse the website without signing in. Users may optionally log in to access account features such as saved items and preferences. Some features may require sign-in.</span>
+            </span>
+          </label>
+
+          <label class="radio-box radio-box--readonly" data-node-id="1:1291">
+            <input type="radio" name="access-level" value="restricted" disabled />
+            <span class="radio-box__control" aria-hidden="true"></span>
+            <span class="radio-box__content">
+              <span class="radio-box__title">Restricted</span>
+              <span class="radio-box__desc">Only authenticated users with valid credentials can access the website.</span>
+            </span>
+          </label>
+        </fieldset>
+      </main>
+
+      <!-- ============ Page actions ============ -->
+      <footer class="pageactions" data-node-id="1:1284">
+        <div class="pageactions__inner">
+          <button type="button" class="btn btn--disabled" data-action="save" disabled>Save</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <div class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="../shared/auth-client.js"></script>
+  <script src="access.js"></script>
+</body>
+</html>

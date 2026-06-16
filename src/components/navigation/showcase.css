@@ -1,0 +1,92 @@
+/* ===========================================================================
+   Showcase-only scaffolding for the navigation component reference page.
+   (The reusable component styles live in navigation.css.)
+   =========================================================================== */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+  color: #3d3f42;
+  background: #fbfbfc;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The assembled side-nav container (carded in the showcase) */
+.sidenav {
+  width: 288px;
+  padding: 16px 8px 0;
+  background: #ffffff;
+  border: 1px solid #d7d8da;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.showcase {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 32px 80px;
+}
+.showcase__title {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #3d3f42;
+}
+.showcase__lead {
+  margin: 0 0 32px;
+  font-size: 15px;
+  color: #55585d;
+}
+.showcase__section { margin-top: 40px; }
+.showcase__section > h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #3d3f42;
+}
+.showcase__section > p {
+  margin: 0 0 20px;
+  font-size: 14px;
+  color: #55585d;
+}
+
+/* States grid */
+.states {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+.state-card {
+  border: 1px solid #ececee;
+  border-radius: 8px;
+  padding: 16px;
+  background: #ffffff;
+}
+.state-card__name {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3d3f42;
+}
+.state-card__meta {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #8d9095;
+}
+.state-card--secondary .nav-item { background: #fcfcfd; }
+
+/* Side-by-side sidebar variants */
+.variants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  align-items: flex-start;
+}
+.variant figcaption {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3d3f42;
+}
+.variant .sidenav { min-height: 320px; }

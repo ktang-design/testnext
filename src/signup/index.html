@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create account — StacksNext</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../login/login.css" />
+</head>
+<body>
+  <main class="auth">
+    <form class="auth-card" id="signup-form" novalidate>
+      <img class="auth-card__logo" src="../site-details/assets/stacks-logo.svg" alt="Stacks" width="127" height="24" />
+      <h1 class="auth-card__title">Create your account</h1>
+      <p class="auth-card__subtitle">Set up access to StacksNext.</p>
+
+      <div class="auth-alert" id="form-error" role="alert" hidden></div>
+
+      <div class="field">
+        <label class="field__label" for="name">Name</label>
+        <input class="field__input" id="name" name="name" type="text" autocomplete="name"
+               required aria-describedby="name-error" />
+        <p class="field__error" id="name-error" hidden>Enter your name.</p>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="email">Email</label>
+        <input class="field__input" id="email" name="email" type="email" autocomplete="username"
+               inputmode="email" required aria-describedby="email-error" />
+        <p class="field__error" id="email-error" hidden>Enter a valid email address.</p>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="password">Password</label>
+        <input class="field__input" id="password" name="password" type="password"
+               autocomplete="new-password" required aria-describedby="password-hint password-error" />
+        <p class="field__hint-text" id="password-hint">At least 8 characters, including a letter and a number.</p>
+        <p class="field__error" id="password-error" hidden>Password does not meet the requirements.</p>
+      </div>
+
+      <button class="auth-submit" id="submit" type="submit">
+        <span class="auth-submit__label">Create account</span>
+        <span class="auth-submit__spinner" aria-hidden="true"></span>
+      </button>
+
+      <p class="auth-alt">Already have an account? <a href="/login/">Sign in</a></p>
+    </form>
+  </main>
+
+  <script src="signup.js"></script>
+</body>
+</html>

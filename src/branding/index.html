@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Branding — StacksNext</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../components/navigation/navigation.css" />
+  <link rel="stylesheet" href="branding.css" />
+</head>
+<body>
+  <!-- ============ Top navigation ============ -->
+  <header class="topnav" data-node-id="1:140">
+    <div class="topnav__left">
+      <a class="topnav__logo" href="#" aria-label="Stacks home">
+        <img src="assets/stacks-logo.svg" alt="Stacks" width="127" height="24" />
+      </a>
+      <nav class="topnav__menu" aria-label="Primary">
+        <button type="button" class="navpill" data-node-id="1:37">
+          <span class="navpill__label">Website</span>
+          <img class="navpill__caret" src="assets/chevron-down.svg" alt="" aria-hidden="true" />
+        </button>
+        <button type="button" class="navpill" data-node-id="1:156">
+          <img class="navpill__icon" src="assets/box-circle-check.svg" alt="" aria-hidden="true" />
+          <span class="navpill__label">Features</span>
+        </button>
+        <button type="button" class="navpill navpill--active" aria-current="page" data-node-id="1:157">
+          <img class="navpill__icon" src="assets/screwdriver-wrench.svg" alt="" aria-hidden="true" />
+          <span class="navpill__label">Platform</span>
+        </button>
+      </nav>
+    </div>
+    <button type="button" class="usermenu" data-node-id="1:120" aria-label="User menu" aria-haspopup="true">
+      <img class="usermenu__avatar" src="assets/user-avatar.svg" alt="" aria-hidden="true" />
+      <img class="usermenu__caret" src="assets/caret-down.svg" alt="" aria-hidden="true" />
+    </button>
+  </header>
+
+  <div class="layout">
+    <!-- ============ Side navigation ============ -->
+    <aside class="sidenav" data-node-id="1:1275">
+      <nav aria-label="Settings">
+        <ul class="sidenav__list">
+          <li>
+            <a class="nav-item nav-item--interactive" href="../site-details/index.html">
+              <span class="nav-item__icon"><img src="assets/table-columns.svg" alt="" aria-hidden="true" /></span>
+              <span class="nav-item__label">Site details</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-item nav-item--interactive is-active" href="#" aria-current="page">
+              <span class="nav-item__icon"><img src="assets/swatchbook.svg" alt="" aria-hidden="true" /></span>
+              <span class="nav-item__label">Branding</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-item nav-item--interactive" href="../access/index.html">
+              <span class="nav-item__icon"><img src="assets/shield-check.svg" alt="" aria-hidden="true" /></span>
+              <span class="nav-item__label">Access</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- ============ Main content ============ -->
+    <div class="content">
+      <main class="branding" data-node-id="1:1276">
+        <!-- Section heading -->
+        <div class="section-heading" data-node-id="1:1277">
+          <div class="section-heading__text">
+            <h1 class="section-heading__title">Branding</h1>
+            <p class="section-heading__desc">Define your visual identity with colors, logo, and favicon for a consistent website experience.</p>
+          </div>
+          <button type="button" class="btn btn--secondary" data-action="reset">Reset to default</button>
+        </div>
+
+        <div class="fields">
+          <!-- Colors -->
+          <section class="field" data-node-id="1:1279">
+            <h2 class="field__label">Colors</h2>
+            <p class="field__hint">Choose colors that reflect your brand.</p>
+            <div class="field__body">
+              <div class="color-card">
+                <div class="color-card__text">
+                  <p class="color-card__name">Primary</p>
+                  <p class="color-card__desc">For key actions, highlights, and core interactive elements.</p>
+                </div>
+                <div class="color-card__value">
+                  <label class="swatch" style="--swatch:#255096">
+                    <span class="swatch__chip"></span>
+                    <input type="color" value="#255096" aria-label="Primary color" />
+                  </label>
+                  <span class="color-card__hex">#255096</span>
+                  <span class="color-card__opacity">100%</span>
+                </div>
+              </div>
+              <div class="color-card">
+                <div class="color-card__text">
+                  <p class="color-card__name">Secondary</p>
+                  <p class="color-card__desc">For alternative actions, supporting components, and secondary emphasis.</p>
+                </div>
+                <div class="color-card__value">
+                  <label class="swatch" style="--swatch:#3D3F42">
+                    <span class="swatch__chip"></span>
+                    <input type="color" value="#3D3F42" aria-label="Secondary color" />
+                  </label>
+                  <span class="color-card__hex">#3D3F42</span>
+                  <span class="color-card__opacity">100%</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Logo -->
+          <section class="field" data-node-id="1:1280">
+            <h2 class="field__label">Logo</h2>
+            <p class="field__hint">Choose a logo to make your website experience unique for your users. This will be displayed at the top of your website and appear within the footer.</p>
+            <div class="field__body">
+              <button type="button" class="btn btn--secondary" data-action="upload-logo">Choose an image</button>
+              <input type="file" accept="image/*" hidden data-input="logo" />
+            </div>
+          </section>
+
+          <!-- Favicon -->
+          <section class="field" data-node-id="1:1281">
+            <h2 class="field__label">Favicon</h2>
+            <p class="field__hint">Upload a 64 x 64 pixel icon to display in browser tabs and bookmarks for your site.</p>
+            <div class="field__body">
+              <div class="favicon-preview" data-node-id="1:1219">
+                <!-- Browser mock -->
+                <div class="browser" data-node-id="1:1220">
+                  <div class="browser__tabs">
+                    <img class="browser__controls" src="assets/windows-controls.svg" alt="" aria-hidden="true" />
+                    <div class="browser__tab">
+                      <img class="browser__favicon" src="assets/placeholder-favicon.png" alt="" aria-hidden="true" />
+                      <span class="browser__title">StacksNext | The world&rsquo;s most powerful and accessible library website builder.</span>
+                      <span class="browser__fade" aria-hidden="true"></span>
+                      <img class="browser__close" src="assets/close.svg" alt="" aria-hidden="true" />
+                    </div>
+                    <img class="browser__plus" src="assets/plus.svg" alt="" aria-hidden="true" />
+                  </div>
+                  <div class="browser__toolbar">
+                    <img src="assets/arrow-left.svg" alt="" aria-hidden="true" />
+                    <img src="assets/arrow-right.svg" alt="" aria-hidden="true" />
+                    <img src="assets/arrow-clockwise.svg" alt="" aria-hidden="true" />
+                    <div class="browser__url">
+                      <img class="browser__lock" src="assets/lock.svg" alt="" aria-hidden="true" />
+                      <span>site.stacks.com</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button type="button" class="btn btn--secondary" data-action="upload-favicon">Replace favicon</button>
+              <input type="file" accept="image/png,image/x-icon,image/svg+xml" hidden data-input="favicon" />
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <!-- ============ Page actions ============ -->
+      <footer class="pageactions" data-node-id="1:501">
+        <div class="pageactions__inner">
+          <button type="button" class="btn btn--text" data-action="save-secondary" hidden>Save</button>
+          <button type="button" class="btn btn--primary" data-action="save">Save</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <div class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="../shared/auth-client.js"></script>
+  <script src="branding.js"></script>
+</body>
+</html>

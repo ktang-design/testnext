@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Site details — StacksNext</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../components/navigation/navigation.css" />
+  <link rel="stylesheet" href="site-details.css" />
+</head>
+<body>
+  <!-- ============ Top navigation ============ -->
+  <header class="topnav" data-node-id="1:140">
+    <div class="topnav__left">
+      <a class="topnav__logo" href="#" aria-label="Stacks home">
+        <img src="assets/stacks-logo.svg" alt="Stacks" width="127" height="24" />
+      </a>
+      <nav class="topnav__menu" aria-label="Primary">
+        <button type="button" class="navpill" data-node-id="1:37">
+          <img class="navpill__icon" src="assets/layers.svg" alt="" aria-hidden="true" />
+          <span class="navpill__label">Website</span>
+        </button>
+        <button type="button" class="navpill" data-node-id="1:156">
+          <img class="navpill__icon" src="assets/box-circle-check.svg" alt="" aria-hidden="true" />
+          <span class="navpill__label">Features</span>
+        </button>
+        <button type="button" class="navpill navpill--active" aria-current="page" data-node-id="1:157">
+          <img class="navpill__icon" src="assets/screwdriver-wrench.svg" alt="" aria-hidden="true" />
+          <span class="navpill__label">Platform</span>
+        </button>
+      </nav>
+    </div>
+    <button type="button" class="usermenu" data-node-id="1:120" aria-label="User menu" aria-haspopup="true">
+      <img class="usermenu__avatar" src="assets/user-avatar.svg" alt="" aria-hidden="true" />
+      <img class="usermenu__caret" src="assets/caret-down.svg" alt="" aria-hidden="true" />
+    </button>
+  </header>
+
+  <div class="layout">
+    <!-- ============ Side navigation ============ -->
+    <aside class="sidenav" data-node-id="1:616">
+      <nav aria-label="Settings">
+        <ul class="sidenav__list">
+          <li>
+            <a class="nav-item nav-item--interactive is-active" href="#" aria-current="page">
+              <span class="nav-item__icon"><img src="assets/table-columns-active.svg" alt="" aria-hidden="true" /></span>
+              <span class="nav-item__label">Site details</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-item nav-item--interactive" href="../branding/index.html">
+              <span class="nav-item__icon"><img src="assets/swatchbook.svg" alt="" aria-hidden="true" /></span>
+              <span class="nav-item__label">Branding</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-item nav-item--interactive" href="../access/index.html">
+              <span class="nav-item__icon"><img src="assets/shield-check.svg" alt="" aria-hidden="true" /></span>
+              <span class="nav-item__label">Access</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- ============ Main content ============ -->
+    <div class="content">
+      <main class="site-details" data-node-id="1:1265">
+        <!-- Section heading -->
+        <div class="section-heading" data-node-id="1:1266">
+          <div class="section-heading__text">
+            <h1 class="section-heading__title">Site details</h1>
+            <p class="section-heading__desc">Manage your website&rsquo;s name, description, and URL.</p>
+          </div>
+          <button type="button" class="btn btn--secondary" data-action="reset">Reset to default</button>
+        </div>
+
+        <form class="fields" data-node-id="1:1267">
+          <!-- Site name -->
+          <div class="field" data-node-id="1:1268">
+            <label class="field__label" for="site-name">Site name</label>
+            <div class="field__control">
+              <input class="input" id="site-name" type="text" maxlength="100" value="StacksNext" />
+            </div>
+            <p class="field__count"><span data-count-for="site-name">10</span>/100</p>
+          </div>
+
+          <!-- Site description -->
+          <div class="field" data-node-id="1:1269">
+            <label class="field__label" for="site-description">Site description</label>
+            <p class="field__hint">A brief description of your website that may be used by search engines and shared links.</p>
+            <div class="field__control">
+              <textarea class="input input--textarea" id="site-description" maxlength="300" rows="3">The world&rsquo;s most powerful and accessible library website builder.</textarea>
+            </div>
+            <p class="field__count"><span data-count-for="site-description">66</span>/300</p>
+          </div>
+
+          <!-- Site URL (read-only) -->
+          <div class="field" data-node-id="1:1270">
+            <label class="field__label" for="site-url">Site URL</label>
+            <p class="field__hint">The primary web address visitors use to access your website.</p>
+            <div class="field__control">
+              <input class="input input--readonly" id="site-url" type="text" value="site.stacks.com" readonly />
+            </div>
+          </div>
+
+          <!-- Search engine preview -->
+          <div class="field" data-node-id="1:1271">
+            <p class="field__label">Preview</p>
+            <div class="preview">
+              <p class="preview__url" data-preview="url">site.stacks.com</p>
+              <p class="preview__title" data-preview="title">StacksNext</p>
+              <p class="preview__desc" data-preview="desc">The world&rsquo;s most powerful and accessible library website builder.</p>
+            </div>
+          </div>
+        </form>
+      </main>
+
+      <!-- ============ Page actions ============ -->
+      <footer class="pageactions" data-node-id="1:501">
+        <div class="pageactions__inner">
+          <button type="button" class="btn btn--primary" data-action="save">Save</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <div class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="../shared/auth-client.js"></script>
+  <script src="site-details.js"></script>
+</body>
+</html>

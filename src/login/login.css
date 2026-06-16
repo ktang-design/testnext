@@ -1,0 +1,166 @@
+/* Login page — visual system shared with the StacksNext settings pages. */
+:root {
+  --gray-200: #d7d8da;
+  --gray-400: #8d9095;
+  --gray-500: #6e7277;
+  --gray-600: #55585d;
+  --gray-700: #3d3f42;
+  --blue-500: #3e75cf;
+  --blue-700: #255096;
+  --red-50: #fdecec;
+  --red-600: #c0322b;
+  --white: #ffffff;
+  --radius-sm: 4px;
+  --shadow-button: 0 2px 4px 0 rgba(0, 0, 0, 0.15);
+  --font: "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font);
+  color: var(--gray-700);
+  background: #f3f5f8;
+  -webkit-font-smoothing: antialiased;
+}
+
+.auth {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 32px;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+}
+.auth-card__logo { display: block; height: 24px; width: auto; margin-bottom: 4px; }
+.auth-card__title { margin: 0; font-size: 22px; font-weight: 600; color: var(--gray-700); }
+.auth-card__subtitle { margin: -8px 0 0; font-size: 14px; color: var(--gray-600); }
+
+/* Alert (form-level errors) */
+.auth-alert {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--red-50);
+  border: 1px solid #f0b6b2;
+  border-radius: var(--radius-sm);
+  color: var(--red-600);
+  font-size: 14px;
+  line-height: 20px;
+}
+.auth-alert[hidden] { display: none; }
+
+/* Fields */
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field__label { font-size: 14px; font-weight: 600; color: var(--gray-600); }
+.field__input {
+  width: 100%;
+  padding: 8px 10px;
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--gray-700);
+  background: var(--white);
+  border: 1px solid var(--gray-400);
+  border-radius: var(--radius-sm);
+}
+.field__input:focus {
+  outline: none;
+  border-color: var(--blue-500);
+  box-shadow: 0 0 0 1px var(--blue-500);
+}
+.field--invalid .field__input {
+  border-color: var(--red-600);
+  box-shadow: 0 0 0 1px var(--red-600);
+}
+.field__error {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--red-600);
+}
+.field__error[hidden] { display: none; }
+.field__hint-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--gray-500);
+}
+
+/* "Already have an account? / Don't have one?" link row */
+.auth-alt {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--gray-600);
+  text-align: center;
+}
+.auth-alt a {
+  color: var(--blue-700);
+  font-weight: 600;
+  text-decoration: none;
+}
+.auth-alt a:hover { text-decoration: underline; }
+
+/* Submit button with loading state */
+.auth-submit {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 9px 16px;
+  background: var(--blue-500);
+  border: 0;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-button);
+  color: var(--white);
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 21px;
+  cursor: pointer;
+}
+.auth-submit:hover { background: #356bc4; }
+.auth-submit:disabled { opacity: 0.7; cursor: progress; }
+.auth-submit__spinner { display: none; }
+.auth-submit.is-loading .auth-submit__spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-top-color: var(--white);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.auth-hint {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--gray-500);
+  text-align: center;
+}
+.auth-hint code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: var(--gray-600);
+}
+
+:where(input, button):focus-visible {
+  outline: 2px solid var(--blue-500);
+  outline-offset: 2px;
+}

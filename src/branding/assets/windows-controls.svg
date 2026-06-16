@@ -1,0 +1,16 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 64 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="windows">
+<g id="close">
+<circle cx="8" cy="8" r="8" fill="var(--fill-0, #FF3B47)"/>
+<circle cx="8" cy="8" r="7.25" stroke="var(--stroke-0, black)" stroke-opacity="0.1" stroke-width="1.5"/>
+</g>
+<g id="minimize">
+<circle cx="32" cy="8" r="8" fill="var(--fill-0, #FFBD00)"/>
+<circle cx="32" cy="8" r="7.25" stroke="var(--stroke-0, black)" stroke-opacity="0.1" stroke-width="1.5"/>
+</g>
+<g id="expand">
+<circle cx="56" cy="8" r="8" fill="var(--fill-0, #00D641)"/>
+<circle cx="56" cy="8" r="7.25" stroke="var(--stroke-0, black)" stroke-opacity="0.1" stroke-width="1.5"/>
+</g>
+</g>
+</svg>

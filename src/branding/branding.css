@@ -1,0 +1,456 @@
+/* ===========================================================================
+   Branding settings page — implemented from Figma node 1:1272
+   Design tokens mirror the Figma variable definitions.
+   =========================================================================== */
+:root {
+  /* Primary colors */
+  --gray-50: #fafafa;
+  --gray-200: #d7d8da;
+  --gray-400: #8d9095;
+  --gray-600: #55585d;
+  --gray-700: #3d3f42;
+  --blue-50: #e9effa;
+  --blue-500: #3e75cf;
+  --blue-700: #255096;
+  --white: #ffffff;
+
+  /* Radius / spacing */
+  --radius-sm: 4px;
+  --space-8: 16px;
+
+  /* Effects */
+  --shadow-button: 0 2px 4px 0 rgba(0, 0, 0, 0.15);
+
+  --font: "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--gray-700);
+  background: var(--white);
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+img { display: block; }
+
+/* ===========================  Top navigation  =========================== */
+.topnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.topnav__left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.topnav__logo {
+  display: flex;
+  align-items: center;
+}
+.topnav__logo img { width: 126.857px; height: 24px; }
+
+.topnav__menu {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.navpill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px 8px;
+  background: var(--white);
+  border: 0;
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--gray-700);
+  cursor: pointer;
+}
+.navpill__icon { width: 16px; height: 16px; }
+.navpill__caret { width: 12px; height: 12px; }
+.navpill:hover { background: #f4f5f7; }
+.navpill--active {
+  background: var(--blue-50);
+  color: var(--blue-700);
+}
+
+.usermenu {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 8px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.usermenu__avatar { width: 24px; height: 24px; }
+.usermenu__caret { width: 16px; height: 16px; }
+.usermenu:hover { background: #f4f5f7; }
+
+/* ===========================  Layout  =========================== */
+.layout {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  min-height: 0;
+}
+
+/* ---------------------------  Side navigation  --------------------------- */
+.sidenav {
+  width: 288px;
+  flex-shrink: 0;
+  padding: 16px 8px;
+  background: var(--white);
+  border-right: 1px solid var(--gray-200);
+}
+
+/* Sidebar nav items use the shared navigation component
+   (../components/navigation/navigation.css): .nav-item + .is-active etc. */
+
+/* ---------------------------  Content column  --------------------------- */
+.content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.branding {
+  flex: 1;
+  padding: 48px 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+  max-width: 1152px;
+}
+
+/* limit the inner column to the 960px design width */
+.section-heading,
+.fields { width: 100%; max-width: 960px; }
+
+/* ---------------------------  Section heading  --------------------------- */
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.section-heading__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--gray-700);
+}
+.section-heading__title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 26px;
+}
+.section-heading__desc {
+  margin: 0;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+/* ---------------------------  Fields  --------------------------- */
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+.field__label {
+  margin: 0;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--gray-600);
+}
+.field__hint {
+  margin: 0;
+  padding: 4px 0;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 19.5px;
+  color: var(--gray-600);
+}
+.field__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+/* ---------------------------  Color cards  --------------------------- */
+.color-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  padding: var(--space-8);
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+}
+.color-card__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--gray-600);
+  font-size: 16px;
+  line-height: 24px;
+}
+.color-card__name { margin: 0; font-weight: 600; }
+.color-card__desc { margin: 0; font-weight: 400; }
+.color-card__value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.color-card__hex,
+.color-card__opacity {
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--gray-600);
+  white-space: nowrap;
+}
+
+/* Color swatch built on a real <input type=color> for native picking */
+.swatch {
+  position: relative;
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+}
+.swatch__chip {
+  display: block;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  background: var(--swatch);
+}
+.swatch input[type="color"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* ---------------------------  Buttons  --------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 21px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn--secondary {
+  padding: 7px 12px 8px;
+  background: var(--white);
+  border: 1px solid var(--gray-400);
+  color: var(--gray-600);
+}
+.btn--secondary:hover { background: #f4f5f7; }
+.btn--primary {
+  padding: 7px 16px 8px;
+  background: var(--blue-500);
+  border: 0;
+  color: var(--white);
+  box-shadow: var(--shadow-button);
+}
+.btn--primary:hover { background: #356bc4; }
+.btn--text {
+  padding: 7px 16px 8px;
+  background: transparent;
+  border: 0;
+  color: #2d62b7;
+}
+.btn--text:hover { background: var(--blue-50); }
+
+/* ---------------------------  Favicon preview / browser mock  ------------ */
+.favicon-preview {
+  width: 100%;
+  min-width: 509px;
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gray-50);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.browser {
+  width: 460px;
+  display: flex;
+  flex-direction: column;
+  padding-top: 10px;
+  background: #dee1e7;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.browser__tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 16px;
+}
+.browser__controls { width: 64px; height: 16px; flex-shrink: 0; }
+
+.browser__tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 280px;
+  padding: 8px 10px 8px 12px;
+  background: var(--white);
+  border-radius: 9.367px;
+  overflow: hidden;
+}
+.browser__favicon { width: 20px; height: 20px; flex-shrink: 0; object-fit: cover; }
+.browser__title {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  font-family: -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.24px;
+  color: #202124;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.browser__fade {
+  position: absolute;
+  top: 8px;
+  right: 38px;
+  width: 60px;
+  height: 24px;
+  background: linear-gradient(-90deg, #ffffff 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+}
+.browser__close { width: 16px; height: 16px; flex-shrink: 0; }
+.browser__plus { width: 16px; height: 16px; flex-shrink: 0; }
+
+.browser__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 0 4px 16px;
+  background: var(--white);
+}
+.browser__toolbar > img { width: 16px; height: 16px; }
+.browser__url {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 4px 16px;
+  background: #f1f3f4;
+  border-radius: 100px 0 0 100px;
+}
+.browser__lock { width: 16px; height: 16px; }
+.browser__url span {
+  font-family: -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.24px;
+  color: #202124;
+}
+
+/* ---------------------------  Page actions footer  --------------------------- */
+.pageactions {
+  background: var(--white);
+  border-top: 1px solid var(--gray-200);
+  padding: 16px 96px;
+}
+.pageactions__inner {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  max-width: 960px;
+}
+
+/* ---------------------------  Toast  --------------------------- */
+.toast {
+  position: fixed;
+  bottom: 88px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 16px;
+  background: var(--gray-700);
+  color: var(--white);
+  font-size: 14px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-button);
+  z-index: 50;
+}
+.toast[hidden] { display: none; }
+
+/* ---------------------------  Focus visibility  --------------------------- */
+:where(a, button, input, label.swatch):focus-visible {
+  outline: 2px solid var(--blue-500);
+  outline-offset: 2px;
+}
+
+/* ---------------------------  Responsive niceties  --------------------------- */
+@media (max-width: 880px) {
+  .branding { padding: 32px 24px; }
+  .pageactions { padding: 16px 24px; }
+  .sidenav { width: 220px; }
+  .color-card { gap: 24px; }
+  .favicon-preview { min-width: 0; }
+}

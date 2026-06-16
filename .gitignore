@@ -1,0 +1,10 @@
+node_modules/
+.env
+npm-debug.log*
+.DS_Store
+
+# SQLite database (created at runtime)
+data/
+
+# Large Figma API dump (contains AWS presigned-URL keys) — keep local only
+src/scripts/figma-a11y-test/wcag_report.txt

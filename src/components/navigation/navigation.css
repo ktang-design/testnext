@@ -1,0 +1,128 @@
+/* ===========================================================================
+   Navigation component — shared, canonical styling.
+   Implemented from Figma:
+     - nav-item state sheet            (node 11:548)
+     - navigation_side Phase 1/2       (node 11:593)
+
+   This is the single source of truth for the sidebar navigation item used by
+   the Site details / Branding / Access pages AND the component showcase.
+   It defines ONLY the component (no page <body>, no showcase scaffolding) so
+   it can be linked safely into any page.
+   =========================================================================== */
+:root {
+  --nav-gray-100: #f5f5f5;
+  --nav-gray-200: #d7d8da;
+  --nav-gray-700: #3d3f42;
+  --nav-blue-500: #3e75cf;
+  --nav-blue-700: #255096;
+  --nav-white: #ffffff;
+  --nav-radius: 4px;
+  --nav-font: "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ----- A single navigation item ---------------------------------------- */
+.nav-item {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 286px;
+  padding: 10px 8px;
+  border: 0;
+  border-radius: var(--nav-radius);
+  background: var(--nav-white);
+  font-family: var(--nav-font);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--nav-gray-700);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Icon slot (20px box holding a 16px glyph) */
+.nav-item__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.nav-item__icon img { display: block; width: 16px; height: 16px; }
+
+/* Optional blue (active/focus) glyph, swapped in via CSS. */
+.nav-item__icon .icon--active { display: none; }
+
+.nav-item__label {
+  flex: 1 1 0;
+  min-width: 0;
+  word-break: break-word;
+}
+
+/* Dropdown chevron slot for parent (expandable) items */
+.nav-item__chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.nav-item__chevron img { display: block; width: 14px; height: 14px; }
+.nav-item__chevron .chevron--up { display: none; }
+
+/* ----- States ----------------------------------------------------------- */
+
+/* Hover (only live/interactive instances react to the pointer; pinned
+   documentation states use the .is-hover modifier instead) */
+.nav-item--interactive:hover,
+.nav-item.is-hover { background: var(--nav-gray-100); }
+
+/* Focus — 2px blue ring + blue label/icon */
+.nav-item:focus-visible,
+.nav-item.is-focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--nav-blue-500);
+  color: var(--nav-blue-700);
+}
+.nav-item:focus-visible .icon--default,
+.nav-item.is-focus .icon--default { display: none; }
+.nav-item:focus-visible .icon--active,
+.nav-item.is-focus .icon--active { display: block; }
+
+/* Active (current page) — white bg, blue underlined label, blue icon */
+.nav-item.is-active {
+  background: var(--nav-white);
+  color: var(--nav-blue-700);
+}
+.nav-item.is-active .nav-item__label { text-decoration: underline; }
+.nav-item.is-active .icon--default { display: none; }
+.nav-item.is-active .icon--active { display: block; }
+
+/* Open (expanded parent) — chevron points up */
+.nav-item.is-open .nav-item__chevron .chevron--down { display: none; }
+.nav-item.is-open .nav-item__chevron .chevron--up { display: block; }
+
+/* ----- Secondary level (indented sub-item, no icon) --------------------- */
+.nav-item--secondary {
+  gap: 0;
+  padding: 10px 16px 10px 36px;
+}
+
+/* ----- Assembled side navigation helpers -------------------------------- */
+.sidenav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+/* Inside an assembled sidenav, items span the full width. */
+.sidenav .nav-item { width: 100%; }
+
+/* Sub-items collapse/expand under their parent */
+.sidenav__group { display: contents; }
+.sidenav__subitem[hidden] { display: none; }

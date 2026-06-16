@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Navigation component — StacksNext design system</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="navigation.css" />
+  <link rel="stylesheet" href="showcase.css" />
+</head>
+<body>
+  <div class="showcase">
+    <h1 class="showcase__title">Navigation</h1>
+    <p class="showcase__lead">
+      The sidebar navigation item and its assembled side-nav, with every state from Figma
+      (nodes <code>11:548</code> and <code>11:593</code>). The Site&nbsp;details / Branding / Access
+      pages consume this component.
+    </p>
+
+    <!-- ================= Nav item — Primary states ================= -->
+    <section class="showcase__section">
+      <h2>Nav item · Primary</h2>
+      <p>Icon + label, optionally with an expand chevron. States: Default, Hover, Focus, Active, and the open (expanded) variants.</p>
+      <div class="states">
+
+        <div class="state-card">
+          <p class="state-card__name">Default</p>
+          <p class="state-card__meta">white bg · gray label &amp; icon</p>
+          <div class="nav-item">
+            <span class="nav-item__icon">
+              <img class="icon--default" src="assets/table-columns.svg" alt="" aria-hidden="true" />
+              <img class="icon--active" src="assets/table-columns-active.svg" alt="" aria-hidden="true" />
+            </span>
+            <span class="nav-item__label">Site details</span>
+          </div>
+        </div>
+
+        <div class="state-card">
+          <p class="state-card__name">Hover</p>
+          <p class="state-card__meta">gray-100 bg</p>
+          <div class="nav-item is-hover">
+            <span class="nav-item__icon">
+              <img class="icon--default" src="assets/table-columns.svg" alt="" aria-hidden="true" />
+              <img class="icon--active" src="assets/table-columns-active.svg" alt="" aria-hidden="true" />
+            </span>
+            <span class="nav-item__label">Site details</span>
+          </div>
+        </div>
+
+        <div class="state-card">
+          <p class="state-card__name">Focus</p>
+          <p class="state-card__meta">2px blue ring · blue label &amp; icon</p>
+          <div class="nav-item is-focus">
+            <span class="nav-item__icon">
+              <img class="icon--default" src="assets/table-columns.svg" alt="" aria-hidden="true" />
+              <img class="icon--active" src="assets/table-columns-active.svg" alt="" aria-hidden="true" />
+            </span>
+            <span class="nav-item__label">Site details</span>
+          </div>
+        </div>
+
+        <div class="state-card">
+          <p class="state-card__name">Active</p>
+          <p class="state-card__meta">blue underlined label · blue icon</p>
+          <div class="nav-item is-active">
+            <span class="nav-item__icon">
+              <img class="icon--default" src="assets/table-columns.svg" alt="" aria-hidden="true" />
+              <img class="icon--active" src="assets/table-columns-active.svg" alt="" aria-hidden="true" />
+            </span>
+            <span class="nav-item__label">Site details</span>
+          </div>
+        </div>
+
+        <div class="state-card">
+          <p class="state-card__name">Default (open)</p>
+          <p class="state-card__meta">parent item · chevron up</p>
+          <div class="nav-item is-open">
+            <span class="nav-item__icon">
+              <img class="icon--default" src="assets/table-columns.svg" alt="" aria-hidden="true" />
+              <img class="icon--active" src="assets/table-columns-active.svg" alt="" aria-hidden="true" />
+            </span>
+            <span class="nav-item__label">Site details</span>
+            <span class="nav-item__chevron">
+              <img class="chevron--down" src="assets/chevron-down.svg" alt="" aria-hidden="true" />
+              <img class="chevron--up" src="assets/chevron-up.svg" alt="" aria-hidden="true" />
+            </span>
+          </div>
+        </div>
+
+        <div class="state-card">
+          <p class="state-card__name">Hover (open)</p>
+          <p class="state-card__meta">gray-100 bg · chevron up</p>
+          <div class="nav-item is-hover is-open">
+            <span class="nav-item__icon">
+              <img class="icon--default" src="assets/table-columns.svg" alt="" aria-hidden="true" />
+              <img class="icon--active" src="assets/table-columns-active.svg" alt="" aria-hidden="true" />
+            </span>
+            <span class="nav-item__label">Site details</span>
+            <span class="nav-item__chevron">
+              <img class="chevron--down" src="assets/chevron-down.svg" alt="" aria-hidden="true" />
+              <img class="chevron--up" src="assets/chevron-up.svg" alt="" aria-hidden="true" />
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= Nav item — Secondary states ================= -->
+    <section class="showcase__section">
+      <h2>Nav item · Secondary (sub-item)</h2>
+      <p>Indented, no icon — used for children of an expanded parent. States: Default, Hover, Focus, Active.</p>
+      <div class="states">
+
+        <div class="state-card state-card--secondary">
+          <p class="state-card__name">Default</p>
+          <p class="state-card__meta">indented · gray label</p>
+          <div class="nav-item nav-item--secondary">
+            <span class="nav-item__label">Site details</span>
+          </div>
+        </div>
+
+        <div class="state-card state-card--secondary">
+          <p class="state-card__name">Hover</p>
+          <p class="state-card__meta">gray-100 bg</p>
+          <div class="nav-item nav-item--secondary is-hover">
+            <span class="nav-item__label">Site details</span>
+          </div>
+        </div>
+
+        <div class="state-card state-card--secondary">
+          <p class="state-card__name">Focus</p>
+          <p class="state-card__meta">2px blue ring · blue label</p>
+          <div class="nav-item nav-item--secondary is-focus">
+            <span class="nav-item__label">Site details</span>
+          </div>
+        </div>
+
+        <div class="state-card state-card--secondary">
+          <p class="state-card__name">Active</p>
+          <p class="state-card__meta">blue underlined label</p>
+          <div class="nav-item nav-item--secondary is-active">
+            <span class="nav-item__label">Site details</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= Assembled side-nav variants ================= -->
+    <section class="showcase__section">
+      <h2>Side navigation</h2>
+      <p>The assembled component. <strong>Phase&nbsp;1</strong> is what the live pages use today; <strong>Phase&nbsp;2</strong> is the expanded set with groups and sub-items. Items are interactive — hover and tab through them; expandable groups toggle.</p>
+      <div class="variants">
+
+        <!-- Phase 1 -->
+        <figure class="variant">
+          <figcaption>Phase 1</figcaption>
+          <nav class="sidenav" aria-label="Settings (Phase 1)">
+            <ul class="sidenav__list">
+              <li>
+                <a class="nav-item nav-item--interactive is-active" href="../../site-details/index.html" aria-current="page">
+                  <span class="nav-item__icon">
+                    <img class="icon--default" src="assets/table-columns.svg" alt="" aria-hidden="true" />
+                    <img class="icon--active" src="assets/table-columns-active.svg" alt="" aria-hidden="true" />
+                  </span>
+                  <span class="nav-item__label">Site details</span>
+                </a>
+              </li>
+              <li>
+                <a class="nav-item nav-item--interactive" href="../../branding/index.html">
+                  <span class="nav-item__icon"><img src="assets/swatchbook.svg" alt="" aria-hidden="true" /></span>
+                  <span class="nav-item__label">Branding</span>
+                </a>
+              </li>
+              <li>
+                <a class="nav-item nav-item--interactive" href="../../access/index.html">
+                  <span class="nav-item__icon"><img src="assets/shield-check.svg" alt="" aria-hidden="true" /></span>
+                  <span class="nav-item__label">Access</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </figure>
+
+        <!-- Phase 2 -->
+        <figure class="variant">
+          <figcaption>Phase 2</figcaption>
+          <nav class="sidenav" aria-label="Settings (Phase 2)">
+            <ul class="sidenav__list">
+              <li>
+                <a class="nav-item nav-item--interactive is-active" href="../../site-details/index.html" aria-current="page">
+                  <span class="nav-item__icon">
+                    <img class="icon--default" src="assets/table-columns.svg" alt="" aria-hidden="true" />
+                    <img class="icon--active" src="assets/table-columns-active.svg" alt="" aria-hidden="true" />
+                  </span>
+                  <span class="nav-item__label">Site details</span>
+                </a>
+              </li>
+              <li>
+                <a class="nav-item nav-item--interactive" href="../../branding/index.html">
+                  <span class="nav-item__icon"><img src="assets/swatchbook.svg" alt="" aria-hidden="true" /></span>
+                  <span class="nav-item__label">Branding</span>
+                </a>
+              </li>
+              <li>
+                <a class="nav-item nav-item--interactive" href="#">
+                  <span class="nav-item__icon"><img src="assets/globe.svg" alt="" aria-hidden="true" /></span>
+                  <span class="nav-item__label">Language and region</span>
+                </a>
+              </li>
+              <li>
+                <a class="nav-item nav-item--interactive" href="#">
+                  <span class="nav-item__icon"><img src="assets/envelope.svg" alt="" aria-hidden="true" /></span>
+                  <span class="nav-item__label">Communication</span>
+                </a>
+              </li>
+              <li>
+                <a class="nav-item nav-item--interactive" href="../../access/index.html">
+                  <span class="nav-item__icon"><img src="assets/shield-check.svg" alt="" aria-hidden="true" /></span>
+                  <span class="nav-item__label">Access</span>
+                </a>
+              </li>
+
+              <!-- Expandable group: Users and permissions -->
+              <li class="sidenav__group">
+                <button class="nav-item nav-item--interactive is-open" type="button" aria-expanded="true" data-toggle="users-group">
+                  <span class="nav-item__icon"><img src="assets/user-avatar.svg" alt="" aria-hidden="true" /></span>
+                  <span class="nav-item__label">Users and permissions</span>
+                  <span class="nav-item__chevron">
+                    <img class="chevron--down" src="assets/chevron-down.svg" alt="" aria-hidden="true" />
+                    <img class="chevron--up" src="assets/chevron-up.svg" alt="" aria-hidden="true" />
+                  </span>
+                </button>
+              </li>
+              <li class="sidenav__subitem" data-group="users-group">
+                <a class="nav-item nav-item--interactive nav-item--secondary" href="#">
+                  <span class="nav-item__label">Administrators</span>
+                </a>
+              </li>
+              <li class="sidenav__subitem" data-group="users-group">
+                <a class="nav-item nav-item--interactive nav-item--secondary" href="#">
+                  <span class="nav-item__label">Users</span>
+                </a>
+              </li>
+
+              <!-- Expandable group: Integrations -->
+              <li class="sidenav__group">
+                <button class="nav-item nav-item--interactive is-open" type="button" aria-expanded="true" data-toggle="integrations-group">
+                  <span class="nav-item__icon"><img src="assets/plug.svg" alt="" aria-hidden="true" /></span>
+                  <span class="nav-item__label">Integrations</span>
+                  <span class="nav-item__chevron">
+                    <img class="chevron--down" src="assets/chevron-down.svg" alt="" aria-hidden="true" />
+                    <img class="chevron--up" src="assets/chevron-up.svg" alt="" aria-hidden="true" />
+                  </span>
+                </button>
+              </li>
+              <li class="sidenav__subitem" data-group="integrations-group">
+                <a class="nav-item nav-item--interactive nav-item--secondary" href="#">
+                  <span class="nav-item__label">Analytics</span>
+                </a>
+              </li>
+
+              <li>
+                <a class="nav-item nav-item--interactive" href="#">
+                  <span class="nav-item__icon"><img src="assets/activity-log.svg" alt="" aria-hidden="true" /></span>
+                  <span class="nav-item__label">Activity log</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </figure>
+
+      </div>
+    </section>
+  </div>
+
+  <script src="navigation.js"></script>
+</body>
+</html>

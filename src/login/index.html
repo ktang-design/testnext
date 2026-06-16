@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign in — StacksNext</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="login.css" />
+</head>
+<body>
+  <main class="auth">
+    <form class="auth-card" id="login-form" novalidate>
+      <img class="auth-card__logo" src="../site-details/assets/stacks-logo.svg" alt="Stacks" width="127" height="24" />
+      <h1 class="auth-card__title">Sign in</h1>
+      <p class="auth-card__subtitle">Access your StacksNext settings.</p>
+
+      <!-- Form-level error (invalid credentials, locked, server/network) -->
+      <div class="auth-alert" id="form-error" role="alert" hidden></div>
+
+      <div class="field">
+        <label class="field__label" for="email">Email</label>
+        <input class="field__input" id="email" name="email" type="email" autocomplete="username"
+               inputmode="email" required aria-describedby="email-error" />
+        <p class="field__error" id="email-error" hidden>Enter your email address.</p>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="password">Password</label>
+        <input class="field__input" id="password" name="password" type="password"
+               autocomplete="current-password" required aria-describedby="password-error" />
+        <p class="field__error" id="password-error" hidden>Enter your password.</p>
+      </div>
+
+      <button class="auth-submit" id="submit" type="submit">
+        <span class="auth-submit__label">Sign in</span>
+        <span class="auth-submit__spinner" aria-hidden="true"></span>
+      </button>
+
+      <p class="auth-alt">New to StacksNext? <a href="/signup/">Create an account</a></p>
+
+      <p class="auth-hint">
+        Demo account: <code>demo@stacksnext.com</code> / <code>Password123!</code>
+      </p>
+    </form>
+  </main>
+
+  <script src="login.js"></script>
+</body>
+</html>
