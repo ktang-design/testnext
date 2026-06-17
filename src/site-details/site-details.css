@@ -5,6 +5,7 @@
 :root {
   /* Primary colors */
   --gray-50: #fafafa;
+  --gray-100: #f5f5f5;
   --gray-200: #d7d8da;
   --gray-400: #8d9095;
   --gray-500: #6e7277;
@@ -253,6 +254,12 @@ img { display: block; }
   color: var(--gray-600);
 }
 .btn--secondary:hover { background: #f4f5f7; }
+.btn--secondary:disabled {
+  background: var(--gray-100);
+  border-color: var(--gray-200);
+  color: var(--gray-500);
+  cursor: not-allowed;
+}
 .btn--primary {
   padding: 7px 16px 8px;
   background: var(--blue-500);
@@ -261,6 +268,43 @@ img { display: block; }
   box-shadow: var(--shadow-button);
 }
 .btn--primary:hover { background: #356bc4; }
+/* Disabled Save (pristine / just-saved) */
+.btn--primary:disabled {
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  color: var(--gray-500);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+/* Saving state stays blue (overrides the disabled greys) + shows a spinner */
+.btn--primary.is-saving,
+.btn--primary.is-saving:disabled {
+  background: var(--blue-500);
+  border: 0;
+  color: var(--white);
+  box-shadow: var(--shadow-button);
+  cursor: progress;
+}
+.btn__spinner { display: none; }
+.btn--primary.is-saving .btn__spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-top-color: var(--white);
+  border-radius: 50%;
+  animation: btn-spin 0.7s linear infinite;
+}
+@keyframes btn-spin { to { transform: rotate(360deg); } }
+
+/* "Unsaved changes" / "Saved!" text beside the Save button */
+.save-status {
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--gray-600);
+  white-space: nowrap;
+}
+.save-status[hidden] { display: none; }
 
 /* ---------------------------  Page actions footer  --------------------------- */
 .pageactions {
@@ -276,7 +320,7 @@ img { display: block; }
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 16px;
   max-width: 960px;
 }
 

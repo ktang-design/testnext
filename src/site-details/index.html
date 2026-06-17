@@ -74,7 +74,7 @@
             <h1 class="section-heading__title">Site details</h1>
             <p class="section-heading__desc">Manage your website&rsquo;s name, description, and URL.</p>
           </div>
-          <button type="button" class="btn btn--secondary" data-action="reset">Reset to default</button>
+          <button type="button" class="btn btn--secondary" data-action="reset" disabled>Reset to default</button>
         </div>
 
         <form class="fields" data-node-id="1:1267">
@@ -121,7 +121,11 @@
       <!-- ============ Page actions ============ -->
       <footer class="pageactions" data-node-id="1:501">
         <div class="pageactions__inner">
-          <button type="button" class="btn btn--primary" data-action="save">Save</button>
+          <span class="save-status" data-save-status role="status" aria-live="polite" hidden>Unsaved changes</span>
+          <button type="button" class="btn btn--primary" data-action="save" disabled>
+            <span class="btn__spinner" aria-hidden="true"></span>
+            <span class="btn__label">Save</span>
+          </button>
         </div>
       </footer>
     </div>
