@@ -177,10 +177,13 @@ img { display: block; }
   font-weight: 400;
   font-size: 16px;
   line-height: 24px;
-  color: var(--gray-500);
+  color: var(--gray-700);          /* entered text reads as filled, not muted */
   background: var(--white);
   border: 1px solid var(--gray-400);
   border-radius: var(--radius-sm);
+}
+.input::placeholder {              /* empty state looks like a placeholder */
+  color: var(--gray-400);
 }
 .input:focus {
   outline: none;
@@ -304,6 +307,7 @@ img { display: block; }
   color: var(--gray-600);
   white-space: nowrap;
 }
+.save-status--error { color: #c0322b; }
 .save-status[hidden] { display: none; }
 
 /* ---------------------------  Page actions footer  --------------------------- */

@@ -38,6 +38,13 @@ db.exec(`
     expires INTEGER NOT NULL
   );
   CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires);
+
+  CREATE TABLE IF NOT EXISTS site_settings (
+    user_id     TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    name        TEXT NOT NULL,
+    description TEXT NOT NULL,
+    updated_at  TEXT NOT NULL
+  );
 `);
 
 module.exports = { db, dbFile };

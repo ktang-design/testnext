@@ -30,6 +30,9 @@ app.use(sessionMiddleware);
 // ---- Auth API -------------------------------------------------------------
 app.use('/api/auth', authRoutes);
 
+// ---- Site settings API (per-user) -----------------------------------------
+app.use('/api/site-settings', require('./routes/settings'));
+
 // ---- Page protection ------------------------------------------------------
 // The HTML entry points for these sections require a session. Their CSS/JS/
 // assets stay public (harmless), which keeps the pages' relative paths working.

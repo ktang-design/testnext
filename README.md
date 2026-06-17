@@ -13,8 +13,12 @@ src/
     index.js              # app: static serving, page protection, wiring
     config.js             # env-driven config (secrets, lockout policy, seed user)
     seed.js               # seeds a demo user for local dev
-    db/database.js        # node:sqlite connection + schema (users, sessions)
+    db/database.js        # node:sqlite connection + schema (users, sessions, site_settings)
     routes/auth.js        # POST /api/auth/register | /login | /logout, GET /me
+    routes/settings.js    # GET/PUT /api/site-settings (per-user Site details)
+    settings/
+      defaults.js               # factory Site-details defaults (reset target)
+      SiteSettingsRepository.js  # per-user persistence (node:sqlite)
     auth/
       UserRepository.js       # in-memory reference impl + repo interface contract
       SqliteUserRepository.js # persistent impl (node:sqlite) — the active one

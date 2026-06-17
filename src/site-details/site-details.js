@@ -1,16 +1,13 @@
-// Site details — Save / Reset-to-default / Unsaved-changes interaction logic.
-// Implemented from Figma "FY26Q4_E1499_StacksNext-Designs" nodes:
-//   4:1008 (pristine), 341:1065 (editing), 341:2262 (saving),
-//   341:2439 (saved), 341:1410 (after reset → "Undo reset").
+// Site details — Save / Reset-to-default / Unsaved-changes logic, persisted to
+// the signed-in user's account via /api/site-settings.
 //
 // Model:
-//   DEFAULT  – the factory values the inputs ship with.
-//   saved    – the last persisted values (starts equal to DEFAULT).
+//   DEFAULT  – factory values (from the server; the "Reset to default" target).
+//   saved    – the user's last persisted values (null → never saved → DEFAULT).
 //   current  – the live input values.
-//   dirty       = current !== saved          → Save enabled, "Unsaved changes".
-//   resettable  = saved   !== DEFAULT         → Reset to default enabled (set per save).
-// The reset button flips to "Undo reset" once you've reset to default but not
-// yet saved (current === DEFAULT while saved differs).
+//   dirty       = current !== saved   → Save enabled, "Unsaved changes".
+//   resettable  = saved   !== DEFAULT → "Reset to default" enabled.
+// "Reset to default" flips to "Undo reset" once reset-but-unsaved.
 document.addEventListener('DOMContentLoaded', () => {
   const nameInput = document.getElementById('site-name');
   const descInput = document.getElementById('site-description');
@@ -23,11 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveLabel = saveBtn.querySelector('.btn__label');
   const statusEl = document.querySelector('[data-save-status]');
 
-  // Factory defaults = whatever the inputs render with on load.
-  const DEFAULT = { name: nameInput.value, description: descInput.value };
+  // Fallback factory defaults (the inputs' shipped values) until the server
+  // responds with the authoritative ones.
+  let DEFAULT = { name: nameInput.value, description: descInput.value };
   let saved = { ...DEFAULT };
   let saving = false;
   let justSaved = false;
+  let saveError = null;
 
   const current = () => ({ name: nameInput.value, description: descInput.value });
   const eq = (a, b) => a.name === b.name && a.description === b.description;
@@ -35,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const isResettable = () => !eq(saved, DEFAULT);
   const currentIsDefault = () => eq(current(), DEFAULT);
 
-  // Live-derived UI: char counters + search-engine preview.
   function refreshDerived() {
     if (nameCount) nameCount.textContent = String(nameInput.value.length);
     if (descCount) descCount.textContent = String(descInput.value.length);
@@ -43,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
     previewDesc.textContent = descInput.value;
   }
 
-  // Render the action bar (Save + status + Reset) from current state.
   function render() {
     const dirty = isDirty();
 
@@ -52,12 +49,15 @@ document.addEventListener('DOMContentLoaded', () => {
     saveLabel.textContent = saving ? 'Saving' : 'Save';
 
     let status = '';
+    let isError = false;
     if (!saving) {
-      if (dirty) status = 'Unsaved changes';
+      if (saveError) { status = saveError; isError = true; }
+      else if (dirty) status = 'Unsaved changes';
       else if (justSaved) status = 'Saved!';
     }
     statusEl.textContent = status;
     statusEl.hidden = status === '';
+    statusEl.classList.toggle('save-status--error', isError);
 
     resetBtn.disabled = saving || !isResettable();
     resetBtn.textContent =
@@ -70,9 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
     refreshDerived();
   }
 
-  // Typing in either field.
   function handleInput() {
-    justSaved = false; // any edit clears the "Saved!" confirmation
+    justSaved = false;
+    saveError = null;
     refreshDerived();
     render();
   }
@@ -82,30 +82,62 @@ document.addEventListener('DOMContentLoaded', () => {
   // Reset to default ⇄ Undo reset.
   resetBtn.addEventListener('click', () => {
     if (resetBtn.disabled) return;
-    if (currentIsDefault() && isResettable()) {
-      setInputs(saved); // Undo reset → restore the last saved values
-    } else {
-      setInputs(DEFAULT); // Reset to default
-    }
+    setInputs(currentIsDefault() && isResettable() ? saved : DEFAULT);
     justSaved = false;
+    saveError = null;
     render();
   });
 
-  // Save (simulated async persistence to show the "Saving" state; the saved
-  // baseline lives client-side for this interaction demo).
-  saveBtn.addEventListener('click', () => {
+  // Save → persist to the user's account.
+  saveBtn.addEventListener('click', async () => {
     if (saveBtn.disabled || saving) return;
+    if (!nameInput.value.trim()) {
+      saveError = 'Site name is required.';
+      render();
+      return;
+    }
     saving = true;
     justSaved = false;
+    saveError = null;
     render();
-    setTimeout(() => {
-      saved = current();
-      saving = false;
+    try {
+      const res = await fetch('/api/site-settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(current()),
+      });
+      if (!res.ok) {
+        let msg = 'Couldn’t save. Try again.';
+        try { const d = await res.json(); if (d.message) msg = d.message; } catch (_) {}
+        throw new Error(msg);
+      }
+      const data = await res.json();
+      saved = data.saved || current();
       justSaved = true;
+    } catch (err) {
+      saveError = err.message || 'Couldn’t save. Try again.';
+    } finally {
+      saving = false;
       render();
-    }, 800);
+    }
   });
 
+  // Initial paint from the fallback, then hydrate from the server.
   refreshDerived();
   render();
+
+  (async () => {
+    try {
+      const res = await fetch('/api/site-settings', { credentials: 'include' });
+      if (!res.ok) return; // not signed in / offline → keep fallback defaults
+      const data = await res.json();
+      if (data.defaults) DEFAULT = data.defaults;
+      saved = data.saved || { ...DEFAULT };
+      setInputs(saved);
+      render();
+    } catch (_) {
+      /* keep fallback */
+    }
+  })();
 });
