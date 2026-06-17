@@ -31,8 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const current = () => ({ name: nameInput.value, description: descInput.value });
   const eq = (a, b) => a.name === b.name && a.description === b.description;
   const isDirty = () => !eq(current(), saved);
+  // Reset is offered once a non-default value has been saved (per Figma).
   const isResettable = () => !eq(saved, DEFAULT);
-  const currentIsDefault = () => eq(current(), DEFAULT);
 
   function refreshDerived() {
     if (nameCount) nameCount.textContent = String(nameInput.value.length);
@@ -60,8 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     statusEl.classList.toggle('save-status--error', isError);
 
     resetBtn.disabled = saving || !isResettable();
-    resetBtn.textContent =
-      currentIsDefault() && isResettable() ? 'Undo reset' : 'Reset to default';
+    resetBtn.textContent = 'Reset to default';
   }
 
   function setInputs(values) {
@@ -79,10 +78,10 @@ document.addEventListener('DOMContentLoaded', () => {
   nameInput.addEventListener('input', handleInput);
   descInput.addEventListener('input', handleInput);
 
-  // Reset to default ⇄ Undo reset.
+  // Reset to default → discard unsaved edits, restoring the last saved inputs.
   resetBtn.addEventListener('click', () => {
     if (resetBtn.disabled) return;
-    setInputs(currentIsDefault() && isResettable() ? saved : DEFAULT);
+    setInputs(saved);
     justSaved = false;
     saveError = null;
     render();
