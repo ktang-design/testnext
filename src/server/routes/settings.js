@@ -21,7 +21,10 @@ router.put('/', requireApiAuth, (req, res) => {
   const description = typeof body.description === 'string' ? body.description : '';
 
   if (!name.trim()) {
-    return res.status(400).json({ error: 'NAME_REQUIRED', message: 'Site name is required.' });
+    return res.status(400).json({ error: 'NAME_REQUIRED', message: 'Site name cannot be empty.' });
+  }
+  if (!description.trim()) {
+    return res.status(400).json({ error: 'DESCRIPTION_REQUIRED', message: 'Site description cannot be empty.' });
   }
   if (name.length > NAME_MAX || description.length > DESCRIPTION_MAX) {
     return res.status(400).json({

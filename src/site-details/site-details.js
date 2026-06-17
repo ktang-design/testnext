@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveBtn = document.querySelector('[data-action="save"]');
   const saveLabel = saveBtn.querySelector('.btn__label');
   const statusEl = document.querySelector('[data-save-status]');
+  const nameError = document.querySelector('[data-error-for="site-name"]');
+  const descError = document.querySelector('[data-error-for="site-description"]');
 
   // The "default state" = the last saved values (server-backed). Until the
   // server responds, fall back to whatever the inputs render with.
@@ -36,11 +38,31 @@ document.addEventListener('DOMContentLoaded', () => {
   const eq = (a, b) => a.name === b.name && a.description === b.description;
   const isDirty = () => !eq(current(), saved); // differs from the default state
 
+  const isEmpty = (v) => v.trim() === '';
+
+  // Live inline validation: each field is required (cannot be empty).
+  function updateValidation() {
+    const nameBad = isEmpty(nameInput.value);
+    const descBad = isEmpty(descInput.value);
+    nameError.hidden = !nameBad;
+    descError.hidden = !descBad;
+    nameInput.setAttribute('aria-invalid', nameBad ? 'true' : 'false');
+    descInput.setAttribute('aria-invalid', descBad ? 'true' : 'false');
+    return !nameBad && !descBad;
+  }
+
   function refreshDerived() {
     if (nameCount) nameCount.textContent = String(nameInput.value.length);
     if (descCount) descCount.textContent = String(descInput.value.length);
-    previewTitle.textContent = nameInput.value || 'StacksNext';
-    previewDesc.textContent = descInput.value;
+
+    const nameEmpty = isEmpty(nameInput.value);
+    const descEmpty = isEmpty(descInput.value);
+    previewTitle.textContent = nameEmpty ? 'Your site name will appear here' : nameInput.value;
+    previewTitle.classList.toggle('preview__title--placeholder', nameEmpty);
+    previewDesc.textContent = descEmpty ? 'Your site description will appear here' : descInput.value;
+    previewDesc.classList.toggle('preview__desc--placeholder', descEmpty);
+
+    updateValidation(); // keep error messages live with every change
   }
 
   function render() {
@@ -108,9 +130,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Save → persist to the user's account.
   saveBtn.addEventListener('click', async () => {
     if (saveBtn.disabled || saving) return;
-    if (!nameInput.value.trim()) {
-      saveError = 'Site name is required.';
-      render();
+    if (!updateValidation()) {
+      // Block invalid saves; the inline errors are already shown live.
+      (isEmpty(nameInput.value) ? nameInput : descInput).focus();
       return;
     }
     saving = true;
