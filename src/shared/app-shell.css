@@ -155,19 +155,25 @@ body.is-locked { overflow: hidden; }
   line-height: 30px;
   color: var(--gray-700, #3d3f42);
 }
+/* Default: just a blue X. The bordered/ring treatment is the FOCUS state. */
 .modal__close {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 8px;
-  background: #fff;
-  border: 1px solid #3e75cf;
+  background: none;
+  border: 1px solid transparent; /* reserve space so focus doesn't shift layout */
   border-radius: 4px;
   cursor: pointer;
 }
 .modal__close img { width: 16px; height: 16px; display: block; }
-.modal__close:focus-visible { outline: 2px solid #3e75cf; outline-offset: 1px; }
+.modal__close:hover { background: var(--blue-50, #e9effa); }
+.modal__close:focus-visible {
+  outline: none;
+  border-color: #3e75cf;
+  box-shadow: 0 0 0 1px #3e75cf;
+}
 
 .modal__body { padding: 24px 32px; }
 .modal__text {
