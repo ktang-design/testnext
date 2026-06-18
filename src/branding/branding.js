@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // State machine baselines.
   let systemDefault = {
     primaryColor: '#255096', secondaryColor: '#3D3F42', logo: null,
-    showSiteName: false, decorative: false, altText: 'Logo', favicon: null,
+    showSiteName: false, decorative: false, altText: '', favicon: null,
   };
   let lastSaved = null;
   let mode = 'reset';

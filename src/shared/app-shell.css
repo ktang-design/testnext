@@ -24,8 +24,10 @@
 .pageactions { padding-left: 24px; padding-right: 24px; }
 .pageactions__inner { margin: 0 auto; }
 
-/* Collapse/expand button — injected into the panel, shown only on wide desktop. */
-.sidenav { position: relative; } /* anchor for the absolutely-placed button */
+/* Collapse/expand button — injected into the panel, shown only on wide desktop.
+   The panel's own `position: sticky` (set per page) already establishes the
+   containing block for this absolutely-placed button, so we must NOT override
+   it here (doing so broke the sticky sidebar). */
 .sidenav__collapse {
   display: none;
   position: absolute;

@@ -17,7 +17,7 @@ module.exports = {
     logo: null, // data URL or null
     showSiteName: false,
     decorative: false,
-    altText: 'Logo',
+    altText: '',
     favicon: null, // data URL or null
   },
   ALT_TEXT_MAX: 125,
