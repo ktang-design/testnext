@@ -50,6 +50,11 @@ body {
 .auth-card__title { margin: 0; font-size: 22px; font-weight: 600; color: var(--gray-700); }
 .auth-card__subtitle { margin: -8px 0 0; font-size: 14px; color: var(--gray-600); }
 
+@media (max-width: 480px) {
+  .auth { padding: 16px; }
+  .auth-card { padding: 24px; }
+}
+
 /* Alert (form-level errors) */
 .auth-alert {
   margin: 0;

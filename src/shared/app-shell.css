@@ -1,0 +1,209 @@
+/* ===========================================================================
+   App shell — shared responsive behaviour for the settings pages, plus the
+   unsaved-changes modal. Linked AFTER each page's own CSS so these rules win.
+
+   Breakpoints (from Figma): 1920 / 1366 / 1024 desktop · 768 sidebar collapses
+   to a drawer · 320 mobile (product nav → grid icon, heading stacks).
+   =========================================================================== */
+
+:root { --topnav-h: 64px; } /* measured & overwritten by app-shell.js */
+
+/* Buttons injected by app-shell.js — hidden on desktop. */
+.topnav__iconbtn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.topnav__iconbtn:hover { background: #f4f5f7; }
+.topnav__iconbtn img { width: 24px; height: 24px; display: block; }
+.topnav__hamburger.is-active { background: var(--blue-50, #e9effa); }
+
+/* Scrim behind the drawer / under the modal. */
+.app-scrim {
+  position: fixed;
+  inset: var(--topnav-h) 0 0 0;
+  background: rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease;
+  z-index: 40;
+}
+.app-scrim.is-open { opacity: 1; visibility: visible; }
+
+body.is-locked { overflow: hidden; }
+
+/* ===========================  Tablet & below (≤ 899px)  =================== */
+@media (max-width: 899px) {
+  .topnav {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+  }
+  .topnav__hamburger { display: inline-flex; }
+
+  /* Sidebar becomes an off-canvas drawer below the top nav. */
+  .sidenav {
+    position: fixed;
+    left: 0;
+    top: var(--topnav-h);
+    height: calc(100% - var(--topnav-h));
+    width: 288px;
+    max-width: 86vw;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    box-shadow: 2px 0 16px rgba(0, 0, 0, 0.12);
+    z-index: 50;
+  }
+  .sidenav.is-open { transform: translateX(0); }
+
+  /* Content fills the row once the sidebar is out of flow. */
+  .content { width: 100%; }
+
+  /* Trim the generous desktop padding. */
+  .branding,
+  .access,
+  .site-details { padding: 32px 24px; }
+  .pageactions { padding: 16px 24px; }
+}
+
+/* ===========================  Mobile (≤ 599px)  =========================== */
+@media (max-width: 599px) {
+  /* Product nav (Website / Features / Platform) collapses to a grid icon. */
+  .topnav__menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    min-width: 200px;
+    padding: 6px;
+    background: #fff;
+    border: 1px solid var(--gray-200, #d7d8da);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    z-index: 70;
+  }
+  .topnav__menu.is-open { display: flex; }
+  .topnav__menu .navpill { justify-content: flex-start; width: 100%; }
+  .topnav__apps { display: inline-flex; }
+
+  /* Section heading + action button stack. */
+  .section-heading { flex-direction: column; align-items: stretch; gap: 16px; }
+  .section-heading .btn { align-self: flex-start; }
+
+  .branding,
+  .access,
+  .site-details { padding: 24px 20px; gap: 28px; }
+  .pageactions { padding: 16px 20px; }
+  .pageactions__inner { gap: 12px; }
+
+  /* Branding-page bits that need to shrink on mobile. */
+  .color-card { gap: 24px; }
+  .favicon-preview { min-width: 0; overflow: auto; }
+}
+
+/* ===========================================================================
+   Unsaved-changes modal (Figma 341:10987 / 345:11894)
+   =========================================================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  z-index: 100;
+}
+.modal-overlay[hidden] { display: none; }
+
+.modal {
+  width: min(640px, 100%);
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 4px 3px 4px rgba(22, 23, 24, 0.2);
+  overflow: hidden;
+  animation: modal-in 0.16s ease-out;
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.99); }
+  to { opacity: 1; transform: none; }
+}
+
+.modal__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 24px 32px;
+  background: #f5f5f5;
+}
+.modal__title {
+  flex: 1 1 auto;
+  margin: 0;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 30px;
+  color: var(--gray-700, #3d3f42);
+}
+.modal__close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid #3e75cf;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.modal__close img { width: 16px; height: 16px; display: block; }
+.modal__close:focus-visible { outline: 2px solid #3e75cf; outline-offset: 1px; }
+
+.modal__body { padding: 24px 32px; }
+.modal__text {
+  margin: 0;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--gray-700, #3d3f42);
+}
+
+.modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 24px 32px;
+}
+.modal__btn {
+  padding: 7px 16px 8px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 21px;
+  color: #2d62b7;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.modal__btn--discard { background: none; border: 0; }
+.modal__btn--discard:hover { background: var(--blue-50, #e9effa); }
+.modal__btn--keep { background: #fff; border: 1px solid #6591d9; }
+.modal__btn--keep:hover { background: var(--blue-50, #e9effa); }
+
+@media (max-width: 599px) {
+  .modal__header,
+  .modal__body,
+  .modal__footer { padding-left: 20px; padding-right: 20px; }
+  .modal__footer { flex-wrap: wrap; }
+}

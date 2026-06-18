@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../components/navigation/navigation.css" />
   <link rel="stylesheet" href="site-details.css" />
+  <link rel="stylesheet" href="../shared/app-shell.css" />
 </head>
 <body>
   <!-- ============ Top navigation ============ -->
@@ -145,6 +146,26 @@
 
   <div class="toast" role="status" aria-live="polite" hidden></div>
 
+  <!-- Unsaved-changes confirmation (shown on navigation away while dirty) -->
+  <div class="modal-overlay" data-modal="unsaved" role="dialog" aria-modal="true" aria-labelledby="unsaved-title" hidden>
+    <div class="modal">
+      <div class="modal__header">
+        <h2 class="modal__title" id="unsaved-title">Unsaved changes</h2>
+        <button type="button" class="modal__close" data-modal-close aria-label="Close dialog">
+          <img src="../shared/close.svg" alt="" />
+        </button>
+      </div>
+      <div class="modal__body">
+        <p class="modal__text">You have unsaved changes that will be lost if you leave this page. Do you want to continue?</p>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="modal__btn modal__btn--discard" data-modal-discard>Discard changes</button>
+        <button type="button" class="modal__btn modal__btn--keep" data-modal-keep>Keep editing</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../shared/app-shell.js"></script>
   <script src="../shared/auth-client.js"></script>
   <script src="site-details.js"></script>
 </body>

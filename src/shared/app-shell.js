@@ -1,0 +1,103 @@
+// App shell — shared responsive chrome for the settings pages.
+// Injects the hamburger (sidebar drawer) and the mobile product-nav grid
+// toggle, and keeps the --topnav-h variable in sync. No-ops on pages without
+// a top nav (login / signup).
+(function () {
+  const topnav = document.querySelector('.topnav');
+  if (!topnav) return;
+
+  const left = topnav.querySelector('.topnav__left');
+  const menu = topnav.querySelector('.topnav__menu');
+  const usermenu = topnav.querySelector('.usermenu');
+  const sidenav = document.querySelector('.sidenav');
+
+  // Keep the drawer/scrim offset correct under the (variable-height) top nav.
+  function syncTopnavHeight() {
+    document.documentElement.style.setProperty('--topnav-h', `${topnav.offsetHeight}px`);
+  }
+
+  // ---- Scrim (shared by the drawer) ----
+  const scrim = document.createElement('div');
+  scrim.className = 'app-scrim';
+  document.body.appendChild(scrim);
+
+  // ---- Hamburger → sidebar drawer ----
+  let hamburger = null;
+  if (sidenav && left) {
+    hamburger = document.createElement('button');
+    hamburger.type = 'button';
+    hamburger.className = 'topnav__iconbtn topnav__hamburger';
+    hamburger.setAttribute('aria-label', 'Toggle navigation');
+    hamburger.setAttribute('aria-expanded', 'false');
+    hamburger.innerHTML = '<img src="../shared/menu.svg" alt="" />';
+    left.insertBefore(hamburger, left.firstChild);
+    hamburger.addEventListener('click', () => (sidenav.classList.contains('is-open') ? closeDrawer() : openDrawer()));
+  }
+
+  function openDrawer() {
+    if (!sidenav) return;
+    sidenav.classList.add('is-open');
+    scrim.classList.add('is-open');
+    hamburger && (hamburger.classList.add('is-active'), hamburger.setAttribute('aria-expanded', 'true'));
+    document.body.classList.add('is-locked');
+  }
+  function closeDrawer() {
+    if (!sidenav) return;
+    sidenav.classList.remove('is-open');
+    scrim.classList.remove('is-open');
+    hamburger && (hamburger.classList.remove('is-active'), hamburger.setAttribute('aria-expanded', 'false'));
+    document.body.classList.remove('is-locked');
+  }
+
+  scrim.addEventListener('click', closeDrawer);
+  // Close the drawer when a nav item inside it is activated.
+  sidenav && sidenav.addEventListener('click', (e) => { if (e.target.closest('a,button')) closeDrawer(); });
+
+  // ---- Grid icon → mobile product-nav dropdown ----
+  let apps = null;
+  if (menu && usermenu) {
+    apps = document.createElement('button');
+    apps.type = 'button';
+    apps.className = 'topnav__iconbtn topnav__apps';
+    apps.setAttribute('aria-label', 'Product menu');
+    apps.setAttribute('aria-expanded', 'false');
+    apps.innerHTML = '<img src="../shared/grid.svg" alt="" />';
+    usermenu.parentNode.insertBefore(apps, usermenu);
+    apps.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = menu.classList.toggle('is-open');
+      apps.setAttribute('aria-expanded', String(open));
+    });
+    document.addEventListener('click', (e) => {
+      if (menu.classList.contains('is-open') && !menu.contains(e.target) && e.target !== apps) {
+        menu.classList.remove('is-open');
+        apps.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  // ---- Global key + resize handling ----
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeDrawer();
+      if (menu && menu.classList.contains('is-open')) {
+        menu.classList.remove('is-open');
+        apps && apps.setAttribute('aria-expanded', 'false');
+      }
+    }
+  });
+  let lastW = window.innerWidth;
+  window.addEventListener('resize', () => {
+    syncTopnavHeight();
+    // Leaving mobile/tablet: reset any open drawer/menu state.
+    if (window.innerWidth > 899 && lastW <= 899) closeDrawer();
+    if (window.innerWidth > 599 && menu) menu.classList.remove('is-open');
+    lastW = window.innerWidth;
+  });
+
+  syncTopnavHeight();
+  window.addEventListener('load', syncTopnavHeight);
+
+  // Expose a tiny API (used by the unsaved-changes nav guard).
+  window.AppShell = { closeDrawer };
+})();

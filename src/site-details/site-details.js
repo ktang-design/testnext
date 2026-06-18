@@ -182,4 +182,53 @@ document.addEventListener('DOMContentLoaded', () => {
       /* keep fallback */
     }
   })();
+
+  // ---- Unsaved-changes navigation guard --------------------------------
+  // Trigger a confirm modal on in-app navigation (and a native prompt on
+  // browser exit) while there are unsaved changes.
+  const modal = document.querySelector('[data-modal="unsaved"]');
+  let pendingHref = null;
+  let allowLeave = false;
+
+  function openModal() {
+    if (window.AppShell) window.AppShell.closeDrawer();
+    modal.hidden = false;
+    document.body.classList.add('is-locked');
+    const keep = modal.querySelector('[data-modal-keep]');
+    if (keep) keep.focus();
+  }
+  function closeModal() {
+    modal.hidden = true;
+    document.body.classList.remove('is-locked');
+    pendingHref = null;
+  }
+
+  // Intercept link clicks that would leave this page (capture phase, so it
+  // runs before the drawer's own click handling).
+  document.addEventListener('click', (e) => {
+    if (!isDirty()) return;
+    const link = e.target.closest('a[href]');
+    if (!link || link.target === '_blank') return;
+    const url = new URL(link.href, location.href);
+    if (url.origin === location.origin && url.pathname === location.pathname) return; // same page
+    e.preventDefault();
+    pendingHref = url.href;
+    openModal();
+  }, true);
+
+  modal.querySelector('[data-modal-keep]').addEventListener('click', closeModal);
+  modal.querySelector('[data-modal-close]').addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) closeModal(); });
+  modal.querySelector('[data-modal-discard]').addEventListener('click', () => {
+    allowLeave = true;
+    const href = pendingHref;
+    closeModal();
+    if (href) window.location.href = href;
+  });
+
+  // Browser-level exit (refresh / close / sign-out redirect) while dirty.
+  window.addEventListener('beforeunload', (e) => {
+    if (isDirty() && !allowLeave) { e.preventDefault(); e.returnValue = ''; }
+  });
 });

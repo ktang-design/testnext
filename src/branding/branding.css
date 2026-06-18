@@ -455,10 +455,4 @@ img { display: block; }
 }
 
 /* ---------------------------  Responsive niceties  --------------------------- */
-@media (max-width: 880px) {
-  .branding { padding: 32px 24px; }
-  .pageactions { padding: 16px 24px; }
-  .sidenav { width: 220px; }
-  .color-card { gap: 24px; }
-  .favicon-preview { min-width: 0; }
-}
+/* Responsive behaviour lives in ../shared/app-shell.css (linked last). */

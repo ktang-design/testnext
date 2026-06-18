@@ -389,8 +389,4 @@ img { display: block; }
 }
 
 /* ---------------------------  Responsive niceties  --------------------------- */
-@media (max-width: 880px) {
-  .site-details { padding: 32px 24px; }
-  .pageactions { padding: 16px 24px; }
-  .sidenav { width: 220px; }
-}
+/* Responsive behaviour lives in ../shared/app-shell.css (linked last). */
