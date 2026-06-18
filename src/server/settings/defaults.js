@@ -9,4 +9,16 @@ module.exports = {
   },
   NAME_MAX: 100,
   DESCRIPTION_MAX: 300,
+
+  // Factory defaults for the Branding page.
+  BRANDING_DEFAULTS: {
+    primaryColor: '#255096',
+    secondaryColor: '#3D3F42',
+    logo: null, // data URL or null
+    showSiteName: false,
+    decorative: false,
+    altText: 'Logo',
+    favicon: null, // data URL or null
+  },
+  ALT_TEXT_MAX: 125,
 };

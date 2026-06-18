@@ -45,6 +45,12 @@ db.exec(`
     description TEXT NOT NULL,
     updated_at  TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS branding_settings (
+    user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    data       TEXT NOT NULL,   -- JSON: colors, logo/favicon data URLs, options
+    updated_at TEXT NOT NULL
+  );
 `);
 
 module.exports = { db, dbFile };

@@ -20,18 +20,22 @@ const app = express();
 if (isProd) app.set('trust proxy', 1); // needed for secure cookies behind a proxy
 app.disable('x-powered-by');
 
-app.use(express.json({ limit: '10kb' }));
-
 // ---- Health check (public, no session) ------------------------------------
 app.get('/healthz', (req, res) => res.json({ ok: true }));
 
 app.use(sessionMiddleware);
 
-// ---- Auth API -------------------------------------------------------------
-app.use('/api/auth', authRoutes);
+// Body parsers are applied per-router: small for auth/settings, large for
+// branding (which carries logo/favicon image data URLs).
+const jsonSmall = express.json({ limit: '10kb' });
+const jsonLarge = express.json({ limit: '10mb' });
 
-// ---- Site settings API (per-user) -----------------------------------------
-app.use('/api/site-settings', require('./routes/settings'));
+// ---- Auth API -------------------------------------------------------------
+app.use('/api/auth', jsonSmall, authRoutes);
+
+// ---- Settings APIs (per-user) ---------------------------------------------
+app.use('/api/site-settings', jsonSmall, require('./routes/settings'));
+app.use('/api/branding', jsonLarge, require('./routes/branding'));
 
 // ---- Page protection ------------------------------------------------------
 // The HTML entry points for these sections require a session. Their CSS/JS/

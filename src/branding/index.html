@@ -75,7 +75,7 @@
             <h1 class="section-heading__title">Branding</h1>
             <p class="section-heading__desc">Define your visual identity with colors, logo, and favicon for a consistent website experience.</p>
           </div>
-          <button type="button" class="btn btn--secondary" data-action="reset">Reset to default</button>
+          <button type="button" class="btn btn--secondary" data-action="reset" disabled>Reset to default</button>
         </div>
 
         <div class="fields">
@@ -118,17 +118,53 @@
           <!-- Logo -->
           <section class="field" data-node-id="1:1280">
             <h2 class="field__label">Logo</h2>
-            <p class="field__hint">Choose a logo to make your website experience unique for your users. This will be displayed at the top of your website and appear within the footer.</p>
+            <p class="field__hint">Choose a logo to make your website experience unique for your users. This will be displayed at the top of your website and appear within the footer. Maximum file size: 5 MB.</p>
             <div class="field__body">
-              <button type="button" class="btn btn--secondary" data-action="upload-logo">Choose an image</button>
+              <button type="button" class="btn btn--secondary" data-action="upload-logo" data-logo-empty>Choose an image</button>
+              <div class="logo-preview" data-logo-preview hidden>
+                <img alt="" data-logo-img />
+              </div>
+              <div class="logo-actions" data-logo-actions hidden>
+                <button type="button" class="btn btn--secondary" data-action="upload-logo">Replace image</button>
+                <button type="button" class="btn btn--link" data-action="remove-logo">Remove</button>
+              </div>
+              <p class="field__error" data-error="logo" role="alert" hidden>
+                <img class="field__error-icon" src="../shared/error.svg" alt="" aria-hidden="true" />
+                <span class="field__error-text"></span>
+              </p>
               <input type="file" accept="image/*" hidden data-input="logo" />
+            </div>
+
+            <!-- Logo options (shown once a logo is present) -->
+            <div class="logo-options" data-logo-options hidden>
+              <p class="field__label">Logo options</p>
+              <label class="checkbox">
+                <input type="checkbox" data-opt="showSiteName" />
+                <span class="checkbox__box" aria-hidden="true"></span>
+                <span class="checkbox__label">Show site name beside logo</span>
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" data-opt="decorative" />
+                <span class="checkbox__box" aria-hidden="true"></span>
+                <span class="checkbox__label">Decorative image (alt text not required)</span>
+              </label>
+              <div class="field" data-alt-field>
+                <label class="field__label" for="logo-alt">Alternative text</label>
+                <p class="field__hint">Short description of the logo used by screen readers and displayed when the image is not loaded.</p>
+                <div class="field__control">
+                  <input class="input" id="logo-alt" type="text" maxlength="125" value="Logo" />
+                </div>
+                <div class="field__footer">
+                  <p class="field__count"><span data-count-for="logo-alt">4</span>/125</p>
+                </div>
+              </div>
             </div>
           </section>
 
           <!-- Favicon -->
           <section class="field" data-node-id="1:1281">
             <h2 class="field__label">Favicon</h2>
-            <p class="field__hint">Upload a 64 x 64 pixel icon to display in browser tabs and bookmarks for your site.</p>
+            <p class="field__hint">Upload a 64 x 64 pixel icon to display in browser tabs and bookmarks for your site. Maximum file size: 1 MB.</p>
             <div class="field__body">
               <div class="favicon-preview" data-node-id="1:1219">
                 <!-- Browser mock -->
@@ -154,7 +190,14 @@
                   </div>
                 </div>
               </div>
-              <button type="button" class="btn btn--secondary" data-action="upload-favicon">Replace favicon</button>
+              <div class="logo-actions">
+                <button type="button" class="btn btn--secondary" data-action="upload-favicon">Replace favicon</button>
+                <button type="button" class="btn btn--link" data-action="remove-favicon" data-favicon-remove hidden>Remove</button>
+              </div>
+              <p class="field__error" data-error="favicon" role="alert" hidden>
+                <img class="field__error-icon" src="../shared/error.svg" alt="" aria-hidden="true" />
+                <span class="field__error-text"></span>
+              </p>
               <input type="file" accept="image/png,image/x-icon,image/svg+xml" hidden data-input="favicon" />
             </div>
           </section>
@@ -164,14 +207,36 @@
       <!-- ============ Page actions ============ -->
       <footer class="pageactions" data-node-id="1:501">
         <div class="pageactions__inner">
-          <button type="button" class="btn btn--text" data-action="save-secondary" hidden>Save</button>
-          <button type="button" class="btn btn--primary" data-action="save">Save</button>
+          <span class="save-status" data-save-status role="status" aria-live="polite" hidden>Unsaved changes</span>
+          <button type="button" class="btn btn--primary" data-action="save" disabled>
+            <span class="btn__spinner" aria-hidden="true"></span>
+            <span class="btn__label">Save</span>
+          </button>
         </div>
       </footer>
     </div>
   </div>
 
   <div class="toast" role="status" aria-live="polite" hidden></div>
+
+  <!-- Unsaved-changes confirmation (shown on navigation away while dirty) -->
+  <div class="modal-overlay" data-modal="unsaved" role="dialog" aria-modal="true" aria-labelledby="unsaved-title" hidden>
+    <div class="modal">
+      <div class="modal__header">
+        <h2 class="modal__title" id="unsaved-title">Unsaved changes</h2>
+        <button type="button" class="modal__close" data-modal-close aria-label="Close dialog">
+          <img src="../shared/close.svg" alt="" />
+        </button>
+      </div>
+      <div class="modal__body">
+        <p class="modal__text">You have unsaved changes that will be lost if you leave this page. Do you want to continue?</p>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="modal__btn modal__btn--discard" data-modal-discard>Discard changes</button>
+        <button type="button" class="modal__btn modal__btn--keep" data-modal-keep>Keep editing</button>
+      </div>
+    </div>
+  </div>
 
   <script src="../shared/app-shell.js"></script>
   <script src="../shared/auth-client.js"></script>
