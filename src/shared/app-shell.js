@@ -50,8 +50,35 @@
   }
 
   scrim.addEventListener('click', closeDrawer);
-  // Close the drawer when a nav item inside it is activated.
-  sidenav && sidenav.addEventListener('click', (e) => { if (e.target.closest('a,button')) closeDrawer(); });
+  // Close the drawer when a nav *link* inside it is activated (not the
+  // collapse button, which is a <button>).
+  sidenav && sidenav.addEventListener('click', (e) => { if (e.target.closest('a')) closeDrawer(); });
+
+  // ---- Collapse / expand the docked panel (wide desktop, >1024px) ----
+  if (sidenav) {
+    const collapseBtn = document.createElement('button');
+    collapseBtn.type = 'button';
+    collapseBtn.className = 'sidenav__collapse';
+    collapseBtn.innerHTML = '<img src="../shared/chevron-left.svg" alt="" />';
+    sidenav.appendChild(collapseBtn);
+
+    try {
+      if (localStorage.getItem('sn.sidenav') === 'collapsed') sidenav.classList.add('sidenav--collapsed');
+    } catch (_) { /* storage unavailable */ }
+
+    const syncCollapse = () => {
+      const collapsed = sidenav.classList.contains('sidenav--collapsed');
+      collapseBtn.setAttribute('aria-label', collapsed ? 'Expand navigation panel' : 'Collapse navigation panel');
+      collapseBtn.setAttribute('aria-expanded', String(!collapsed));
+    };
+    syncCollapse();
+
+    collapseBtn.addEventListener('click', () => {
+      const collapsed = sidenav.classList.toggle('sidenav--collapsed');
+      try { localStorage.setItem('sn.sidenav', collapsed ? 'collapsed' : 'expanded'); } catch (_) {}
+      syncCollapse();
+    });
+  }
 
   // ---- Grid icon → mobile product-nav dropdown ----
   let apps = null;

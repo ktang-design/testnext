@@ -8,6 +8,54 @@
 
 :root { --topnav-h: 64px; } /* measured & overwritten by app-shell.js */
 
+/* ===========================================================================
+   Centered content + collapsible side panel
+   =========================================================================== */
+
+/* Center the form column within the area next to the panel (was left-aligned). */
+.branding,
+.access,
+.site-details {
+  max-width: none;
+  width: 100%;
+  padding: 48px 24px;
+  align-items: center;
+}
+.pageactions { padding-left: 24px; padding-right: 24px; }
+.pageactions__inner { margin: 0 auto; }
+
+/* Collapse/expand button — injected into the panel, shown only on wide desktop. */
+.sidenav { position: relative; } /* anchor for the absolutely-placed button */
+.sidenav__collapse {
+  display: none;
+  position: absolute;
+  right: -12px;
+  top: 18px;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: #fff;
+  border: 1px solid var(--gray-200, #d7d8da);
+  border-radius: 50%;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  z-index: 5;
+}
+.sidenav__collapse img { width: 16px; height: 16px; display: block; transition: transform 0.2s ease; }
+
+/* Above 1024px the panel can collapse to an icon-only rail. */
+@media (min-width: 1024px) {
+  .sidenav { overflow: visible; }          /* don't clip the edge button */
+  .sidenav__collapse { display: inline-flex; }
+
+  .sidenav--collapsed { width: 64px; }
+  .sidenav--collapsed .nav-item { justify-content: center; padding: 10px 0; gap: 0; }
+  .sidenav--collapsed .nav-item__label { display: none; }
+  .sidenav--collapsed .sidenav__collapse img { transform: rotate(180deg); }
+}
+
 /* Buttons injected by app-shell.js — hidden on desktop. */
 .topnav__iconbtn {
   display: none;
