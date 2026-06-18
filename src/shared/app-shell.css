@@ -45,10 +45,17 @@
 }
 .sidenav__collapse img { width: 16px; height: 16px; display: block; transition: transform 0.2s ease; }
 
-/* Above 1024px the panel can collapse to an icon-only rail. */
+/* Above 1024px the panel can collapse to an icon-only rail. The toggle only
+   appears on hover of the panel (or keyboard focus). */
 @media (min-width: 1024px) {
   .sidenav { overflow: visible; }          /* don't clip the edge button */
-  .sidenav__collapse { display: inline-flex; }
+  .sidenav__collapse {
+    display: inline-flex;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .sidenav:hover .sidenav__collapse,
+  .sidenav__collapse:focus-visible { opacity: 1; }
 
   .sidenav--collapsed { width: 64px; }
   .sidenav--collapsed .nav-item { justify-content: center; padding: 10px 0; gap: 0; }
