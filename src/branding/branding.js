@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const altCount = $('[data-count-for="logo-alt"]');
   // Favicon
   const faviconInput = $('[data-input="favicon"]');
+  const browserMock = $('.browser');
   const faviconImg = $('.browser__favicon');
   const faviconRemove = $('[data-favicon-remove]');
   const faviconError = $('[data-error="favicon"]');
@@ -75,9 +76,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const hexLabel = input.closest('.color-card__value').querySelector('.color-card__hex');
     if (hexLabel) hexLabel.textContent = hex.toUpperCase();
   }
+  // Detect whether an image is light/white (so a white logo/favicon would be
+  // invisible on a white background) by averaging the luminance of its opaque
+  // pixels on a small canvas. Calls cb(true) when light.
+  function detectLight(dataUrl, cb) {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const c = document.createElement('canvas');
+        const w = (c.width = 40), h = (c.height = 40);
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const data = ctx.getImageData(0, 0, w, h).data;
+        let lum = 0, alpha = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          const a = data[i + 3] / 255;
+          if (a < 0.1) continue;
+          lum += (0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]) * a;
+          alpha += a;
+        }
+        cb(alpha > 0 && lum / alpha > 160); // light if avg luminance > ~63%
+      } catch (_) { cb(false); }
+    };
+    img.onerror = () => cb(false);
+    img.src = dataUrl;
+  }
+
   function renderLogo() {
     const has = !!logoData;
-    if (has) logoImg.src = logoData;
+    if (has) {
+      logoImg.src = logoData;
+      detectLight(logoData, (light) => logoPreview.classList.toggle('logo-preview--dark', light));
+    } else {
+      logoPreview.classList.remove('logo-preview--dark');
+    }
     logoEmptyBtn.hidden = has;
     logoPreview.hidden = !has;
     logoActions.hidden = !has;
@@ -86,6 +118,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderFavicon() {
     faviconImg.src = faviconData || PLACEHOLDER_FAVICON;
     faviconRemove.hidden = !faviconData;
+    if (faviconData) {
+      detectLight(faviconData, (light) => browserMock.classList.toggle('browser--dark', light));
+    } else {
+      browserMock.classList.remove('browser--dark'); // placeholder is colorful
+    }
   }
   function renderAltField() {
     // Alt text is hidden (not required) for decorative images.

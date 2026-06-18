@@ -535,6 +535,22 @@ img { display: block; }
 }
 .logo-preview[hidden] { display: none; }
 .logo-preview img { max-height: 100%; max-width: 100%; width: auto; object-fit: contain; display: block; }
+/* Auto dark-mode when the logo is light/white (so it stays visible). */
+.logo-preview--dark { background: #1f2225; border-color: #44484d; }
+
+/* Auto dark-mode for the browser-tab favicon preview when the favicon is light. */
+.browser--dark { background: #202124; border-color: #3c4043; }
+.browser--dark .browser__tab { background: #3c4043; }
+.browser--dark .browser__title { color: #e8eaed; }
+.browser--dark .browser__fade { background: linear-gradient(-90deg, #3c4043 0%, rgba(60, 64, 67, 0) 100%); }
+.browser--dark .browser__toolbar { background: #292a2d; }
+.browser--dark .browser__url { background: #3c4043; }
+.browser--dark .browser__url span { color: #e8eaed; }
+/* Lighten the monochrome UI icons (not the colored traffic lights or favicon). */
+.browser--dark .browser__toolbar > img,
+.browser--dark .browser__lock,
+.browser--dark .browser__plus,
+.browser--dark .browser__close { filter: brightness(0) invert(0.75); }
 
 .logo-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .logo-actions[hidden] { display: none; }
