@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
           lum += (0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]) * a;
           alpha += a;
         }
-        cb(alpha > 0 && lum / alpha > 160); // light if avg luminance > ~63%
+        cb(alpha > 0 && lum / alpha > 150); // light if the average opaque pixel is brighter than mid-gray
       } catch (_) { cb(false); }
     };
     img.onerror = () => cb(false);
