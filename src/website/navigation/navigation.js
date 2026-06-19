@@ -28,7 +28,6 @@
       pageId: it.type === 'page' ? it.pageId : null,
       url: it.type === 'custom' ? it.url : null,
       label: it.label,
-      home: it.type === 'page' && it.home === true,
       children: strip(it.children || []),
     }));
   }
@@ -67,21 +66,10 @@
 
   function renderContent(item) {
     const wrap = document.createElement('span');
-    wrap.className = 'navtree__content-inner';
     const label = document.createElement('span');
     label.className = 'navtree__label';
     label.textContent = item.label;
     wrap.appendChild(label);
-    if (item.home) {
-      // The star marks the homepage (exactly one, undeletable).
-      const star = svgIcon('<path d="M8 1.2l1.96 3.97 4.38.64-3.17 3.09.75 4.36L8 11.66 3.08 13.25l.75-4.36L.66 5.8l4.38-.64L8 1.2Z"/>');
-      star.classList.add('navtree__star');
-      const sr = document.createElement('span');
-      sr.className = 'sr-only';
-      sr.textContent = ' (Homepage)';
-      wrap.appendChild(star);
-      wrap.appendChild(sr);
-    }
     if (item.type === 'page' && item.available === false) {
       const tipId = 'tip-' + item.id;
       const tip = document.createElement('span');
@@ -103,17 +91,10 @@
     btn.appendChild(svgIcon('<circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/>'));
     window.Popover.attach(
       btn,
-      () => {
-        const actions = [{ label: 'Edit', onSelect: () => editItem(item.id) }];
-        // The starred homepage can be relabelled but not deleted, and isn't
-        // offered "Set as homepage" (it already is). Any other *page* can be
-        // made the homepage, which moves the star.
-        if (!item.home) {
-          if (item.type === 'page') actions.push({ label: 'Set page as homepage', onSelect: () => setHomepage(item.id) });
-          actions.push({ label: 'Delete', danger: true, onSelect: () => deleteItem(item.id) });
-        }
-        return actions;
-      },
+      () => [
+        { label: 'Edit', onSelect: () => editItem(item.id) },
+        { label: 'Delete', danger: true, onSelect: () => deleteItem(item.id) },
+      ],
       { align: 'right', label: `Actions for ${item.label}` }
     );
     return btn;
@@ -174,20 +155,11 @@
     commit(items);
   }
   function deleteItem(id) {
-    const item = findById(tree.getItems(), id);
-    if (!item || item.home) return; // the homepage can't be deleted
     commit(removeById(tree.getItems(), id));
   }
   function updateItem(id, patch) {
     const items = tree.getItems();
     Object.assign(findById(items, id), patch);
-    commit(items);
-  }
-  // Move the star: exactly one item is the homepage.
-  function setHomepage(id) {
-    const items = tree.getItems();
-    const walk = (arr) => arr.forEach((it) => { it.home = it.id === id; walk(it.children || []); });
-    walk(items);
     commit(items);
   }
 
@@ -216,9 +188,12 @@
     addItem({ id: uid(), type: 'page', pageId: values.pageId, url: null, label, available: true, pageTitle: page ? page.title : null, children: [] });
   }
 
-  async function openAddCustom() {
+  // `title` lets the no-published-pages path reuse this custom-link form while
+  // presenting as "Add page" (the only way to add an entry when there are no
+  // pages to link).
+  async function openAddCustom(title) {
     const values = await window.Modal.form({
-      title: 'Add custom link',
+      title: title || 'Add custom link',
       submitLabel: 'Add',
       fields: [
         { name: 'url', label: 'URL', type: 'url', placeholder: 'https://', required: true },
@@ -347,7 +322,9 @@
           { align: 'right', label: 'Add navigation item' }
         );
       } else {
-        addBtn.addEventListener('click', openAddCustom);
+        // No pages to link → a "Page" can't be added, so the + opens the
+        // custom-link form presented as "Add page".
+        addBtn.addEventListener('click', () => openAddCustom('Add page'));
       }
     })
     .catch(() => {

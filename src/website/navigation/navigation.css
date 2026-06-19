@@ -141,13 +141,10 @@ img { display: block; }
 .navtree__handle:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); color: var(--blue-700); }
 
 .navtree__content { flex: 1; min-width: 0; }
-.navtree__content-inner { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
 .navtree__label {
   font-size: 14px; line-height: 21px; color: var(--gray-700);
   word-break: break-word;
 }
-/* Star marks the homepage (exactly one). */
-.navtree__star { width: 14px; height: 14px; flex-shrink: 0; display: block; fill: #e8a72e; }
 .navtree__actions { flex-shrink: 0; }
 
 .navtree__kebab {

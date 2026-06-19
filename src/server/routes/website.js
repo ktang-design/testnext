@@ -14,32 +14,7 @@ const { LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH } = require('../website/default
 
 const router = express.Router();
 
-const HOME_PAGE_ID = 'page-home';
-const HOME_ITEM = () => ({ id: 'nav-home', type: 'page', pageId: HOME_PAGE_ID, url: null, label: 'Homepage', children: [], home: true });
-
 const str = (v) => (typeof v === 'string' ? v : '');
-
-function flattenItems(items, out) {
-  out = out || [];
-  (items || []).forEach((it) => { out.push(it); flattenItems(it.children, out); });
-  return out;
-}
-
-// Exactly one item is the homepage (the "star"). Enforce that invariant: keep
-// the first starred item, clear any extras, and if none is starred, designate
-// one — preferring an existing Homepage page, otherwise prepending a new one.
-function ensureOneHome(items) {
-  const flat = flattenItems(items);
-  const starred = flat.filter((it) => it.home === true);
-  if (starred.length === 1) return items;
-  if (starred.length > 1) {
-    starred.slice(1).forEach((it) => { it.home = false; });
-    return items;
-  }
-  const existing = flat.find((it) => it.type === 'page' && it.pageId === HOME_PAGE_ID);
-  if (existing) { existing.home = true; return items; }
-  return [HOME_ITEM(), ...items];
-}
 
 // A custom link may be an absolute http(s) URL, a root-relative path, an
 // anchor, or a mailto/tel link. Keep it permissive but bounded.
@@ -69,14 +44,12 @@ function sanitize(items, userId, depth, counter) {
     if (!label) throw new ValidationError('Every item needs a label.');
     if (label.length > LABEL_MAX) throw new ValidationError(`Labels must be ${LABEL_MAX} characters or fewer.`);
 
-    const item = { id: str(raw.id) || null, type, pageId: null, url: null, label, children: [], home: false };
+    const item = { id: str(raw.id) || null, type, pageId: null, url: null, label, children: [] };
 
     if (type === 'page') {
       const page = pagesRepository.getById(userId, str(raw.pageId));
       if (!page) throw new ValidationError('A linked page no longer exists.');
       item.pageId = page.id;
-      // Only a page can be the homepage (the star).
-      item.home = raw.home === true;
     } else {
       if (!validUrl(raw.url)) throw new ValidationError('Enter a valid URL for the custom link.');
       item.url = str(raw.url).trim();
@@ -102,16 +75,13 @@ function annotate(items, userId) {
     } else {
       out.available = true;
     }
-    // The starred homepage item (undeletable; the client moves the star).
-    out.home = it.home === true;
     return out;
   });
 }
 
 router.get('/navigation', requireApiAuth, (req, res) => {
   const userId = req.session.userId;
-  pagesRepository.ensureHome(userId);
-  const saved = ensureOneHome(navigationRepository.get(userId) || []);
+  const saved = navigationRepository.get(userId) || [];
   res.json({
     navigation: annotate(saved, userId),
     publishedPages: pagesRepository.listPublished(userId).map((p) => ({ id: p.id, title: p.title })),
@@ -120,7 +90,6 @@ router.get('/navigation', requireApiAuth, (req, res) => {
 
 router.put('/navigation', requireApiAuth, (req, res) => {
   const userId = req.session.userId;
-  pagesRepository.ensureHome(userId);
   let clean;
   try {
     clean = sanitize((req.body || {}).items, userId, 0, { n: 0 });
@@ -130,7 +99,7 @@ router.put('/navigation', requireApiAuth, (req, res) => {
     }
     throw err;
   }
-  navigationRepository.save(userId, ensureOneHome(clean));
+  navigationRepository.save(userId, clean);
   res.json({ saved: annotate(navigationRepository.get(userId), userId) });
 });
 
