@@ -1,0 +1,33 @@
+/* ===========================================================================
+   Website layer — Typography page specifics. Shared chrome is in ../website.css.
+   =========================================================================== */
+
+.typo-field { margin-top: 18px; }
+.typo-field:first-of-type { margin-top: 16px; }
+.typo-label {
+  display: block; margin-bottom: 8px;
+  font-size: 14px; font-weight: 600; color: var(--gray-700);
+}
+
+.typo-input,
+.typo-select {
+  width: 100%;
+  font: 400 14px/21px var(--font); color: var(--gray-700);
+  background: #fff; border: 1px solid var(--gray-200); border-radius: 4px;
+}
+.typo-input { padding: 9px 12px; }
+.typo-input:focus-visible,
+.typo-select:focus-visible { outline: none; border-color: var(--blue-500); box-shadow: 0 0 0 2px var(--blue-50); }
+
+/* Native select restyled with a custom chevron. */
+.typo-selectwrap { position: relative; }
+.typo-select {
+  padding: 9px 36px 9px 12px;
+  appearance: none; -webkit-appearance: none; cursor: pointer;
+}
+.typo-selectwrap::after {
+  content: ""; position: absolute; right: 12px; top: 50%;
+  width: 14px; height: 14px; transform: translateY(-50%);
+  background: url(/shared/chevron-down.svg) center / contain no-repeat;
+  pointer-events: none;
+}

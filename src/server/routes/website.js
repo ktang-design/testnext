@@ -12,7 +12,11 @@ const { pagesRepository } = require('../website/PagesRepository');
 const { navigationRepository } = require('../website/NavigationRepository');
 const { headerRepository } = require('../website/HeaderRepository');
 const { footerRepository } = require('../website/FooterRepository');
-const { LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH, HEADER_DEFAULTS, FOOTER_DEFAULTS } = require('../website/defaults');
+const { typographyRepository } = require('../website/TypographyRepository');
+const {
+  LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH,
+  HEADER_DEFAULTS, FOOTER_DEFAULTS, TYPOGRAPHY_DEFAULTS, TYPOGRAPHY_OPTIONS,
+} = require('../website/defaults');
 
 const router = express.Router();
 
@@ -157,6 +161,30 @@ router.put('/footer', requireApiAuth, (req, res) => {
   }
   const config = { showLogo: !!b.showLogo, showNavigation: !!b.showNavigation, links };
   res.json({ saved: footerRepository.save(req.session.userId, config) });
+});
+
+// ---------------------------------------------------------------------------
+// Typography configuration
+// ---------------------------------------------------------------------------
+function pick(value, allowed, fallback) {
+  return allowed.includes(value) ? value : fallback;
+}
+
+router.get('/typography', requireApiAuth, (req, res) => {
+  res.json({ defaults: TYPOGRAPHY_DEFAULTS, saved: typographyRepository.get(req.session.userId) });
+});
+
+router.put('/typography', requireApiAuth, (req, res) => {
+  const b = req.body || {};
+  const family = str(b.fontFamily).trim().slice(0, 60) || TYPOGRAPHY_DEFAULTS.fontFamily;
+  const config = {
+    fontFamily: family,
+    headingSize: pick(str(b.headingSize), TYPOGRAPHY_OPTIONS.headingSize, 'default'),
+    headingWeight: pick(str(b.headingWeight), TYPOGRAPHY_OPTIONS.headingWeight, 'default'),
+    bodySize: pick(str(b.bodySize), TYPOGRAPHY_OPTIONS.bodySize, 'default'),
+    bodyWeight: pick(str(b.bodyWeight), TYPOGRAPHY_OPTIONS.bodyWeight, 'default'),
+  };
+  res.json({ saved: typographyRepository.save(req.session.userId, config) });
 });
 
 module.exports = router;

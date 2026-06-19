@@ -43,7 +43,7 @@ app.use('/api/website', jsonSmall, require('./routes/website'));
 // assets stay public (harmless), which keeps the pages' relative paths working.
 const PROTECTED_SECTIONS = new Set([
   '/site-details', '/branding', '/access',
-  '/website/navigation', '/website/header', '/website/footer',
+  '/website/navigation', '/website/header', '/website/footer', '/website/typography',
 ]);
 
 function sectionOf(reqPath) {

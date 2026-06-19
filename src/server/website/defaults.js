@@ -38,4 +38,23 @@ const FOOTER_DEFAULTS = {
   links: [],
 };
 
-module.exports = { DEMO_PAGES, LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH, HEADER_DEFAULTS, FOOTER_DEFAULTS };
+// Typography: font family + heading/body size & weight. Each select's value is
+// 'default' or one of the explicit option values below.
+const TYPOGRAPHY_DEFAULTS = {
+  fontFamily: 'Inter',
+  headingSize: 'default',
+  headingWeight: 'default',
+  bodySize: 'default',
+  bodyWeight: 'default',
+};
+const TYPOGRAPHY_OPTIONS = {
+  headingSize: ['default', '20', '28', '32', '36', '40'],
+  headingWeight: ['default', '400', '500', '600', '700'],
+  bodySize: ['default', '14', '18', '20'],
+  bodyWeight: ['default', '400', '500', '600', '700'],
+};
+
+module.exports = {
+  DEMO_PAGES, LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH,
+  HEADER_DEFAULTS, FOOTER_DEFAULTS, TYPOGRAPHY_DEFAULTS, TYPOGRAPHY_OPTIONS,
+};

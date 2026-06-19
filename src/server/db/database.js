@@ -86,6 +86,13 @@ db.exec(`
     data       TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
+
+  -- Website typography configuration (font family + heading/body size & weight).
+  CREATE TABLE IF NOT EXISTS website_typography (
+    user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    data       TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
 `);
 
 module.exports = { db, dbFile };

@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Footer — StacksNext</title>
+  <title>Typography — StacksNext</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/components/navigation/navigation.css" />
   <link rel="stylesheet" href="../website.css" />
-  <link rel="stylesheet" href="/shared/sortable-tree.css" />
-  <link rel="stylesheet" href="footer.css" />
+  <link rel="stylesheet" href="typography.css" />
   <link rel="stylesheet" href="/shared/app-shell.css" />
 </head>
 <body>
@@ -63,13 +62,13 @@
             </a>
           </li>
           <li>
-            <a class="nav-item nav-item--interactive is-active" href="#" aria-current="page">
+            <a class="nav-item nav-item--interactive" href="/website/footer/">
               <span class="nav-item__icon"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="2.6" width="12.4" height="10.8" rx="1.5"/><path d="M1.8 9.8h12.4"/></svg></span>
               <span class="nav-item__label">Footer</span>
             </a>
           </li>
           <li>
-            <a class="nav-item nav-item--interactive" href="/website/typography/">
+            <a class="nav-item nav-item--interactive is-active" href="#" aria-current="page">
               <span class="nav-item__icon"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.2h10M8 4.2v8.6"/></svg></span>
               <span class="nav-item__label">Typography</span>
             </a>
@@ -92,38 +91,70 @@
 
     <div class="content">
       <div class="navworkspace">
-        <section class="navpanel" aria-labelledby="ftr-title">
-          <div class="navpanel__head">
-            <h1 class="navpanel__title" id="ftr-title">Footer</h1>
-            <button type="button" class="navpanel__add" data-add aria-label="Add custom link" title="Add custom link">
-              <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
-            </button>
-          </div>
-          <p class="navpanel__desc">Manage footer content displayed across your website.</p>
+        <section class="navpanel" aria-labelledby="typo-title">
+          <h1 class="navpanel__title" id="typo-title">Typography</h1>
+          <p class="navpanel__desc">Configure the typography used across all pages and content.</p>
 
-          <div class="ftr-elements" role="group" aria-label="Elements">
-            <span class="ftr-elements__label" aria-hidden="true">Elements</span>
-            <label class="checkbox">
-              <input type="checkbox" data-el="logo" />
-              <span class="checkbox__box" aria-hidden="true"></span>
-              <span class="checkbox__label">Logo</span>
-            </label>
-            <label class="checkbox">
-              <input type="checkbox" data-el="navigation" />
-              <span class="checkbox__box" aria-hidden="true"></span>
-              <span class="checkbox__label">Navigation</span>
-            </label>
+          <div class="typo-field">
+            <label class="typo-label" for="font-family">Font family</label>
+            <input class="typo-input" type="text" id="font-family" data-field="fontFamily" value="Inter" spellcheck="false" autocomplete="off" />
           </div>
 
-          <hr class="ftr-divider" data-links-divider hidden />
-          <div class="ftr-links" data-tree></div>
+          <div class="typo-field">
+            <label class="typo-label" for="heading-size">Heading font size</label>
+            <div class="typo-selectwrap">
+              <select class="typo-select" id="heading-size" data-field="headingSize">
+                <option value="default">Default (24px)</option>
+                <option value="20">20px</option>
+                <option value="28">28px</option>
+                <option value="32">32px</option>
+                <option value="36">36px</option>
+                <option value="40">40px</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="typo-field">
+            <label class="typo-label" for="heading-weight">Heading font weight</label>
+            <div class="typo-selectwrap">
+              <select class="typo-select" id="heading-weight" data-field="headingWeight">
+                <option value="default">Default (Semibold)</option>
+                <option value="400">Regular (400)</option>
+                <option value="500">Medium (500)</option>
+                <option value="600">Semibold (600)</option>
+                <option value="700">Bold (700)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="typo-field">
+            <label class="typo-label" for="body-size">Body font size</label>
+            <div class="typo-selectwrap">
+              <select class="typo-select" id="body-size" data-field="bodySize">
+                <option value="default">Default (16px)</option>
+                <option value="14">14px</option>
+                <option value="18">18px</option>
+                <option value="20">20px</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="typo-field">
+            <label class="typo-label" for="body-weight">Body font weight</label>
+            <div class="typo-selectwrap">
+              <select class="typo-select" id="body-weight" data-field="bodyWeight">
+                <option value="default">Default (Regular)</option>
+                <option value="400">Regular (400)</option>
+                <option value="500">Medium (500)</option>
+                <option value="600">Semibold (600)</option>
+                <option value="700">Bold (700)</option>
+              </select>
+            </div>
+          </div>
         </section>
 
-        <div class="navpreview" role="img" aria-label="Live footer preview">
-          <div class="sitepreview" aria-hidden="true">
-            <div class="sitepreview__body"></div>
-            <footer class="sitefooter" data-sitefooter></footer>
-          </div>
+        <div class="navpreview" role="img" aria-label="Website preview">
+          <span class="navpreview__hint">Preview</span>
         </div>
       </div>
 
@@ -159,9 +190,6 @@
 
   <script src="/shared/app-shell.js"></script>
   <script src="/shared/auth-client.js"></script>
-  <script src="/shared/popover.js"></script>
-  <script src="/shared/modal.js"></script>
-  <script src="/shared/sortable-tree.js"></script>
-  <script src="footer.js"></script>
+  <script src="typography.js"></script>
 </body>
 </html>
