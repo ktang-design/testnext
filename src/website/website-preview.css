@@ -1,0 +1,40 @@
+/* Shared website preview (website-preview.js). Sits inside .navpreview. */
+.wsprev {
+  width: 100%; align-self: stretch;
+  display: flex; flex-direction: column;
+  background: #fff; border: 1px solid var(--gray-200); border-radius: 8px;
+  overflow: hidden; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Header / navigation bar */
+.wsprev__header { display: flex; align-items: center; gap: 24px; padding: 18px 28px; }
+.wsprev__header--inline { justify-content: space-between; }
+.wsprev__header--stacked { flex-direction: column; align-items: stretch; gap: 14px; }
+.wsprev__logo { display: inline-flex; align-items: center; }
+.wsprev__logoimg { width: 100px; height: 19px; display: block; }
+.wsprev__logoimg--custom { width: auto; height: 24px; max-width: 150px; object-fit: contain; }
+.wsprev__nav { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
+.wsprev__navlink { font-weight: 600; font-size: 14px; white-space: nowrap; }
+
+/* Body */
+.wsprev__body {
+  flex: 1; min-height: 120px; padding: 30px 28px;
+  display: flex; flex-direction: column; gap: 14px; align-items: flex-start;
+}
+.wsprev__heading { margin: 0; line-height: 1.2; }
+.wsprev__text { margin: 0; line-height: 1.5; max-width: 520px; }
+.wsprev__link { text-decoration: underline; }
+.wsprev__btn { display: inline-block; padding: 9px 18px; border-radius: 6px; color: #fff; font-weight: 600; font-size: 14px; }
+
+/* Footer */
+.wsprev__footer {
+  border-top: 1px solid var(--gray-200); background: #fafbfc;
+  padding: 24px 28px 18px; display: flex; flex-direction: column; gap: 16px;
+}
+.wsprev__fmain { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.wsprev__flogo { display: inline-flex; }
+.wsprev__flogo .wsprev__logoimg { width: 90px; height: 17px; }
+.wsprev__flogo .wsprev__logoimg--custom { width: auto; height: 22px; }
+.wsprev__flinks { display: flex; flex-wrap: wrap; gap: 10px 22px; }
+.wsprev__flink { font-size: 13px; color: var(--gray-600); white-space: nowrap; }
+.wsprev__copyright { border-top: 1px solid var(--gray-200); padding-top: 14px; font-size: 12px; color: var(--gray-500); }

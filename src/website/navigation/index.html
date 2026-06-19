@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/components/navigation/navigation.css" />
   <link rel="stylesheet" href="../website.css" />
+  <link rel="stylesheet" href="../website-preview.css" />
   <link rel="stylesheet" href="/shared/sortable-tree.css" />
   <link rel="stylesheet" href="/shared/app-shell.css" />
 </head>
@@ -114,8 +115,8 @@
           </p>
         </section>
 
-        <div class="navpreview" role="img" aria-label="Website preview">
-          <span class="navpreview__hint">Preview</span>
+        <div class="navpreview" role="img" aria-label="Live website preview">
+          <div data-website-preview></div>
         </div>
       </div>
 
@@ -156,6 +157,7 @@
   <script src="/shared/popover.js"></script>
   <script src="/shared/modal.js"></script>
   <script src="/shared/sortable-tree.js"></script>
+  <script src="../website-preview.js"></script>
   <script src="navigation.js"></script>
 </body>
 </html>

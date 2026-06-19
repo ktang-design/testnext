@@ -17,11 +17,15 @@
 
   function applyToControls() {
     fields.forEach((el) => { const k = el.dataset.field; if (config[k] != null) el.value = config[k]; });
+    pushPreview();
   }
+
+  const preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'));
+  const pushPreview = () => { if (config) preview.update({ typography: config }); };
 
   fields.forEach((el) => {
     const evt = el.tagName === 'SELECT' ? 'change' : 'input';
-    el.addEventListener(evt, () => { config[el.dataset.field] = el.value; saveError = null; updateSaveBar(); });
+    el.addEventListener(evt, () => { config[el.dataset.field] = el.value; saveError = null; pushPreview(); updateSaveBar(); });
   });
 
   function updateSaveBar() {

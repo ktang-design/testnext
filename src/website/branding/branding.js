@@ -26,6 +26,7 @@
   let baseline = '';
   let saving = false;
   let saveError = null;
+  let preview = null;
   const colorSetters = {};
 
   const clone = (x) => JSON.parse(JSON.stringify(x));
@@ -34,7 +35,8 @@
   const show = (el) => { el.hidden = false; };
   const hide = (el) => { el.hidden = true; };
 
-  function onChange() { saveError = null; updateSaveBar(); }
+  function onChange() { saveError = null; pushPreview(); updateSaveBar(); }
+  const pushPreview = () => { if (config && preview) preview.update({ branding: config }); };
 
   // ---------- colour rows (shared .colorrow component) ----------
   function buildColorRows() {
@@ -103,6 +105,7 @@
   function applyToControls() {
     renderLogo();
     COLORS.forEach((c) => colorSetters[c.key] && colorSetters[c.key]());
+    pushPreview();
   }
   function updateSaveBar() {
     const dirty = isDirty();
@@ -167,6 +170,7 @@
   }
 
   // ---------- boot ----------
+  preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'));
   saveBtn.addEventListener('click', save);
   buildColorRows();
   setupNavGuard();

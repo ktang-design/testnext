@@ -43,32 +43,5 @@
 }
 .seg__opt:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); }
 
-/* Colour rows use the shared .colorrow component in ../website.css. */
-
-/* ---------------------------  Realistic header preview (main area)  --------- */
-/* A modern navigation bar rendered with the design system. Only the header is
-   built — the page body below it is intentionally left blank for now. */
-.sitepreview {
-  width: 100%; align-self: stretch;
-  display: flex; flex-direction: column;
-  background: #fff; border: 1px solid var(--gray-200); border-radius: 8px;
-  overflow: hidden; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-}
-.siteheader {
-  display: flex; align-items: center; gap: 28px;
-  padding: 20px 32px;
-}
-.siteheader.is-inline { justify-content: space-between; }
-.siteheader.is-stacked { flex-direction: column; align-items: stretch; gap: 16px; }
-.siteheader__logo { display: inline-flex; align-items: center; }
-/* Fixed dimensions at the logo's true ratio (126.857:24) — the SVG has
-   preserveAspectRatio="none". */
-.siteheader__logo img { width: 106px; height: 20px; display: block; }
-/* An uploaded brand logo has a real aspect ratio — size by height. */
-.siteheader__logo img.is-custom { width: auto; height: 26px; max-width: 200px; object-fit: contain; }
-.siteheader__nav { display: flex; flex-wrap: wrap; align-items: center; gap: 28px; }
-.siteheader__link {
-  font: 600 14px/21px var(--font); color: #3d3f42;
-  text-decoration: none; white-space: nowrap;
-}
-.sitepreview__body { flex: 1; min-height: 180px; background: #fff; }
+/* Colour rows use the shared .colorrow component in ../website.css.
+   The main-area preview is the shared website preview (../website-preview.*). */

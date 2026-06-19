@@ -8,13 +8,9 @@
   const logoImg = bar.querySelector('.hdr-preview__logo');
   const navEl = $('[data-preview-nav]');
   const navSecond = $('[data-nav-second]');
-  // Realistic header preview in the main area.
-  const siteHeader = $('[data-siteheader]');
-  const siteLogo = siteHeader.querySelector('.siteheader__logo');
-  const siteLogoImg = siteLogo.querySelector('img');
-  const siteNav = $('[data-site-nav]');
-  const SAMPLE_LINKS = ['Home', 'About', 'Services', 'Pricing', 'Contact'];
   const DEFAULTS = { logo: 'left', nav: 'left', background: { color: '#FFFFFF', opacity: 100 }, links: { color: '#3D3F42', opacity: 100 } };
+  // Shared website preview in the main area (header + body + footer).
+  const preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'));
 
   let config = null;
   let baseline = '';
@@ -23,13 +19,6 @@
 
   const clone = (x) => JSON.parse(JSON.stringify(x));
   const isDirty = () => JSON.stringify(config) !== baseline;
-
-  function rgba(hex, opacityPercent) {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${opacityPercent / 100})`;
-  }
 
   // ---------- segmented controls ----------
   function setupSeg(name, onSelect) {
@@ -107,60 +96,18 @@
 
   function refresh() {
     navSecond.textContent = config.logo === 'left' ? 'Inline' : 'Center';
-    const L = layout();
-    updateMiniPreview(L);
-    updateSitePreview(L);
-    updateSaveBar();
-  }
-
-  // Shared placement maths for both previews. `inline` = logo left + nav
-  // aligned (one row); otherwise the logo/nav stack with their own alignment.
-  function layout() {
+    // Panel mini-preview reflects placement only (no colours / default logo).
     const inline = config.logo === 'left' && config.nav === 'aligned';
-    return {
-      inline,
-      logoAlign: config.logo === 'center' ? 'center' : 'flex-start',
-      navAlign: config.nav === 'aligned' ? 'center' : 'flex-start',
-    };
-  }
-  function applyLayout(barEl, logoEl, navE, L) {
-    barEl.classList.toggle('is-inline', L.inline);
-    barEl.classList.toggle('is-stacked', !L.inline);
-    if (L.inline) { logoEl.style.alignSelf = ''; navE.style.alignSelf = ''; }
-    else { logoEl.style.alignSelf = L.logoAlign; navE.style.alignSelf = L.navAlign; }
-  }
-
-  // Panel preview: placement only — colours do not affect it.
-  function updateMiniPreview(L) {
-    applyLayout(bar, logoImg, navEl, L);
-  }
-
-  // Realistic preview: placement + background and link colours.
-  function updateSitePreview(L) {
-    applyLayout(siteHeader, siteLogo, siteNav, L);
-    siteHeader.style.background = rgba(config.background.color, config.background.opacity);
-    const linkColor = config.links.opacity > 0 ? rgba(config.links.color, config.links.opacity) : '#3d3f42';
-    siteNav.querySelectorAll('.siteheader__link').forEach((a) => { a.style.color = linkColor; });
-  }
-
-  function buildSiteNav(labels) {
-    siteNav.innerHTML = '';
-    labels.forEach((t) => {
-      const el = document.createElement('span');
-      el.className = 'siteheader__link';
-      el.textContent = t;
-      siteNav.appendChild(el);
-    });
-  }
-
-  // The site logo is managed under Platform → Branding; reflect an uploaded
-  // logo in the realistic main preview only — the panel mini-preview keeps the
-  // default logo as a schematic. (`is-custom` switches to aspect-preserving
-  // sizing — the default Stacks SVG is percentage-sized and needs fixed dims.)
-  function applyBrandLogo(dataUrl) {
-    if (!dataUrl) return;
-    siteLogoImg.src = dataUrl;
-    siteLogoImg.classList.add('is-custom');
+    bar.classList.toggle('is-inline', inline);
+    bar.classList.toggle('is-stacked', !inline);
+    if (inline) { logoImg.style.alignSelf = ''; navEl.style.alignSelf = ''; }
+    else {
+      logoImg.style.alignSelf = config.logo === 'center' ? 'center' : 'flex-start';
+      navEl.style.alignSelf = config.nav === 'aligned' ? 'center' : 'flex-start';
+    }
+    // Main area: the shared website preview reflects the live header config.
+    if (preview) preview.update({ header: config });
+    updateSaveBar();
   }
 
   function updateSaveBar() {
@@ -233,23 +180,12 @@
   saveBtn.addEventListener('click', save);
   setupNavGuard();
 
-  Promise.all([
-    fetch('/api/website/header', { credentials: 'include' }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
-    fetch('/api/website/navigation', { credentials: 'include' }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
-    fetch('/api/branding', { credentials: 'include' }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
-  ]).then(([hdr, nav, brand]) => {
-    // Populate the realistic preview's links from the real navigation when it
-    // exists, otherwise show representative links.
-    const labels = nav && Array.isArray(nav.navigation) && nav.navigation.length
-      ? nav.navigation.map((i) => i.label)
-      : SAMPLE_LINKS;
-    buildSiteNav(labels);
-
-    // Reflect the logo uploaded under Platform → Branding.
-    applyBrandLogo(brand && brand.saved && brand.saved.logo);
-
-    config = clone((hdr && (hdr.saved || hdr.defaults)) || DEFAULTS);
-    baseline = JSON.stringify(config);
-    applyToControls();
-  });
+  fetch('/api/website/header', { credentials: 'include' })
+    .then((r) => (r.ok ? r.json() : null))
+    .catch(() => null)
+    .then((hdr) => {
+      config = clone((hdr && (hdr.saved || hdr.defaults)) || DEFAULTS);
+      baseline = JSON.stringify(config);
+      applyToControls();
+    });
 })();

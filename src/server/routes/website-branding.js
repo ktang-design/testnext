@@ -7,6 +7,7 @@
 const express = require('express');
 const { requireApiAuth } = require('../auth/authGuard');
 const { websiteBrandingRepository } = require('../website/WebsiteBrandingRepository');
+const { brandingRepository } = require('../settings/BrandingRepository');
 const { WEBSITE_BRANDING_DEFAULTS, WEBSITE_BRANDING_COLORS } = require('../website/defaults');
 
 const router = express.Router();
@@ -15,6 +16,23 @@ const HEX = /^#[0-9a-fA-F]{6}$/;
 const LOGO_MAX = Math.ceil(5 * 1024 * 1024 * 1.4); // ~5 MB image as a data URL
 
 const str = (v) => (typeof v === 'string' ? v : '');
+
+// Website branding inherits from Platform branding: the Platform primary /
+// secondary colours seed the Website palette, so configuring Platform flows
+// down as the Website defaults.
+function brandingDefaults(userId) {
+  const p = brandingRepository.get(userId) || {};
+  const primary = HEX.test(str(p.primaryColor)) ? p.primaryColor.toUpperCase() : WEBSITE_BRANDING_DEFAULTS.primary.color;
+  const secondary = HEX.test(str(p.secondaryColor)) ? p.secondaryColor.toUpperCase() : WEBSITE_BRANDING_DEFAULTS.secondary.color;
+  return {
+    logo: null,
+    primary: { color: primary, opacity: 100 },
+    secondary: { color: secondary, opacity: 100 },
+    heading: { color: secondary, opacity: 100 },
+    body: { color: WEBSITE_BRANDING_DEFAULTS.body.color, opacity: 100 },
+    link: { color: primary, opacity: 100 },
+  };
+}
 
 function cleanColor(raw, fallback) {
   const src = raw && typeof raw === 'object' ? raw : {};
@@ -26,7 +44,7 @@ function cleanColor(raw, fallback) {
 }
 
 router.get('/', requireApiAuth, (req, res) => {
-  res.json({ defaults: WEBSITE_BRANDING_DEFAULTS, saved: websiteBrandingRepository.get(req.session.userId) });
+  res.json({ defaults: brandingDefaults(req.session.userId), saved: websiteBrandingRepository.get(req.session.userId) });
 });
 
 router.put('/', requireApiAuth, (req, res) => {

@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/components/navigation/navigation.css" />
   <link rel="stylesheet" href="../website.css" />
+  <link rel="stylesheet" href="../website-preview.css" />
   <link rel="stylesheet" href="branding.css" />
   <link rel="stylesheet" href="/shared/app-shell.css" />
 </head>
@@ -117,8 +118,8 @@
           <p class="wb-note">Colors configured here are applied across the website and serve as the default color options for content elements. Individual elements can override these settings when needed.</p>
         </section>
 
-        <div class="navpreview" role="img" aria-label="Website preview">
-          <span class="navpreview__hint">Preview</span>
+        <div class="navpreview" role="img" aria-label="Live website preview">
+          <div data-website-preview></div>
         </div>
       </div>
 
@@ -154,6 +155,7 @@
 
   <script src="/shared/app-shell.js"></script>
   <script src="/shared/auth-client.js"></script>
+  <script src="../website-preview.js"></script>
   <script src="branding.js"></script>
 </body>
 </html>

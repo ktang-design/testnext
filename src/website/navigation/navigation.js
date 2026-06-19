@@ -122,6 +122,7 @@
   function refresh() {
     const count = tree ? tree.getItems().length : 0;
     emptyEl.hidden = count > 0;
+    if (preview) preview.update({ navigation: tree ? tree.getItems() : [] });
     updateSaveBar();
   }
 
@@ -301,6 +302,7 @@
   }
 
   // ---------- boot ----------
+  const preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'));
   saveBtn.addEventListener('click', save);
 
   fetch('/api/website/navigation', { credentials: 'include' })

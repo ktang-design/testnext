@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/components/navigation/navigation.css" />
   <link rel="stylesheet" href="../website.css" />
+  <link rel="stylesheet" href="../website-preview.css" />
   <link rel="stylesheet" href="header.css" />
   <link rel="stylesheet" href="/shared/app-shell.css" />
 </head>
@@ -152,14 +153,8 @@
           </div>
         </section>
 
-        <div class="navpreview" role="img" aria-label="Live header preview">
-          <div class="sitepreview" aria-hidden="true">
-            <header class="siteheader" data-siteheader>
-              <span class="siteheader__logo"><img src="../assets/stacks-logo.svg" alt="" /></span>
-              <nav class="siteheader__nav" data-site-nav></nav>
-            </header>
-            <div class="sitepreview__body"></div>
-          </div>
+        <div class="navpreview" role="img" aria-label="Live website preview">
+          <div data-website-preview></div>
         </div>
       </div>
 
@@ -195,6 +190,7 @@
 
   <script src="/shared/app-shell.js"></script>
   <script src="/shared/auth-client.js"></script>
+  <script src="../website-preview.js"></script>
   <script src="header.js"></script>
 </body>
 </html>
