@@ -79,6 +79,13 @@ db.exec(`
     data       TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
+
+  -- Website footer configuration (element toggles + custom links), JSON per user.
+  CREATE TABLE IF NOT EXISTS website_footer (
+    user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    data       TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
 `);
 
 module.exports = { db, dbFile };

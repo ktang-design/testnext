@@ -1,10 +1,8 @@
 /* ===========================================================================
-   Website layer — Navigation page specifics (the sortable tree).
-   Shared chrome (tokens, top nav, panel, preview, buttons, save bar) lives in
-   ../website.css.
+   Styles for the reusable sortable tree/list component (shared/sortable-tree.js).
+   Relies on the colour tokens defined by the host page (--gray-*, --blue-*,
+   --radius-sm), e.g. src/website/website.css.
    =========================================================================== */
-
-/* ===========================  Navigation tree  =========================== */
 .navtree { list-style: none; margin: 0; padding: 0; position: relative; }
 .navtree__children {
   list-style: none; margin: 0; padding-left: 28px; position: relative;
@@ -69,7 +67,7 @@
   width: 6px; height: 6px; border-radius: 50%; background: var(--blue-500);
 }
 
-/* Unavailable (linked page unpublished/missing): greyed + tooltip */
+/* Unavailable item (e.g. linked page unpublished/missing): greyed + tooltip */
 .navtree__item.is-unavailable > .navtree__row .navtree__label { color: var(--gray-400); }
 .navtree__tip {
   position: absolute; left: 28px; bottom: calc(100% + 6px); z-index: 30;

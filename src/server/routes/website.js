@@ -11,7 +11,8 @@ const { requireApiAuth } = require('../auth/authGuard');
 const { pagesRepository } = require('../website/PagesRepository');
 const { navigationRepository } = require('../website/NavigationRepository');
 const { headerRepository } = require('../website/HeaderRepository');
-const { LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH, HEADER_DEFAULTS } = require('../website/defaults');
+const { footerRepository } = require('../website/FooterRepository');
+const { LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH, HEADER_DEFAULTS, FOOTER_DEFAULTS } = require('../website/defaults');
 
 const router = express.Router();
 
@@ -130,6 +131,32 @@ router.put('/header', requireApiAuth, (req, res) => {
     links: cleanColor(b.links, HEADER_DEFAULTS.links),
   };
   res.json({ saved: headerRepository.save(req.session.userId, config) });
+});
+
+// ---------------------------------------------------------------------------
+// Footer configuration
+// ---------------------------------------------------------------------------
+router.get('/footer', requireApiAuth, (req, res) => {
+  res.json({ defaults: FOOTER_DEFAULTS, saved: footerRepository.get(req.session.userId) });
+});
+
+router.put('/footer', requireApiAuth, (req, res) => {
+  const b = req.body || {};
+  const rawLinks = Array.isArray(b.links) ? b.links : [];
+  if (rawLinks.length > MAX_ITEMS) {
+    return res.status(400).json({ error: 'TOO_MANY', message: 'Too many footer links.' });
+  }
+  const links = [];
+  for (const raw of rawLinks) {
+    if (!raw || typeof raw !== 'object') continue;
+    const label = str(raw.label).trim();
+    if (!label) return res.status(400).json({ error: 'INVALID_FOOTER', message: 'Every link needs a label.' });
+    if (label.length > LABEL_MAX) return res.status(400).json({ error: 'INVALID_FOOTER', message: `Labels must be ${LABEL_MAX} characters or fewer.` });
+    if (!validUrl(raw.url)) return res.status(400).json({ error: 'INVALID_FOOTER', message: 'Enter a valid URL for the custom link.' });
+    links.push({ id: str(raw.id) || null, url: str(raw.url).trim(), label });
+  }
+  const config = { showLogo: !!b.showLogo, showNavigation: !!b.showNavigation, links };
+  res.json({ saved: footerRepository.save(req.session.userId, config) });
 });
 
 module.exports = router;

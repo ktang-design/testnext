@@ -1,0 +1,32 @@
+/* ===========================================================================
+   Website layer — Footer page specifics. Shared chrome is in ../website.css;
+   the custom-links list reuses /shared/sortable-tree.css.
+   =========================================================================== */
+
+.ftr-elements { margin-top: 18px; }
+.ftr-elements__label {
+  display: block; margin-bottom: 8px;
+  font-size: 14px; font-weight: 600; color: var(--gray-700);
+}
+
+.ftr-check {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 0; font-size: 14px; color: var(--gray-700); cursor: pointer;
+}
+.ftr-check input[type="checkbox"] {
+  appearance: none; -webkit-appearance: none;
+  width: 16px; height: 16px; margin: 0; flex-shrink: 0;
+  border: 1.5px solid var(--gray-300); border-radius: 3px;
+  background: #fff; cursor: pointer; position: relative;
+}
+.ftr-check input[type="checkbox"]:checked { background: var(--blue-500); border-color: var(--blue-500); }
+.ftr-check input[type="checkbox"]:checked::after {
+  content: ""; position: absolute; left: 4.5px; top: 1.5px;
+  width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.ftr-check input[type="checkbox"]:focus-visible {
+  outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--blue-500);
+}
+
+.ftr-divider { border: 0; border-top: 1px solid var(--gray-200); margin: 14px 0 4px; }

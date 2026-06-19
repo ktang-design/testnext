@@ -31,4 +31,11 @@ const HEADER_DEFAULTS = {
   links: { color: '#3D3F42', opacity: 100 },
 };
 
-module.exports = { DEMO_PAGES, LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH, HEADER_DEFAULTS };
+// Footer: which standard elements show, plus an ordered list of custom links.
+const FOOTER_DEFAULTS = {
+  showLogo: false,
+  showNavigation: false,
+  links: [],
+};
+
+module.exports = { DEMO_PAGES, LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH, HEADER_DEFAULTS, FOOTER_DEFAULTS };
