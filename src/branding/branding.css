@@ -91,7 +91,6 @@ img { display: block; }
   cursor: pointer;
 }
 .navpill__icon { width: 16px; height: 16px; }
-.navpill__caret { width: 12px; height: 12px; }
 .navpill:hover { background: #f4f5f7; }
 .navpill--active {
   background: var(--blue-50);
