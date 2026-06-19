@@ -27,8 +27,8 @@ const MAX_DEPTH = 2; // parent + one level of subpages
 const HEADER_DEFAULTS = {
   logo: 'left',
   nav: 'left',
-  background: { color: '#FFFFFF', opacity: 0 },
-  links: { color: '#FFFFFF', opacity: 0 },
+  background: { color: '#FFFFFF', opacity: 100 },
+  links: { color: '#3D3F42', opacity: 100 },
 };
 
 module.exports = { DEMO_PAGES, LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH, HEADER_DEFAULTS };

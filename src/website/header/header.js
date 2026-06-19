@@ -14,7 +14,7 @@
   const siteLogoImg = siteLogo.querySelector('img');
   const siteNav = $('[data-site-nav]');
   const SAMPLE_LINKS = ['Home', 'About', 'Services', 'Pricing', 'Contact'];
-  const DEFAULTS = { logo: 'left', nav: 'left', background: { color: '#FFFFFF', opacity: 0 }, links: { color: '#FFFFFF', opacity: 0 } };
+  const DEFAULTS = { logo: 'left', nav: 'left', background: { color: '#FFFFFF', opacity: 100 }, links: { color: '#3D3F42', opacity: 100 } };
 
   let config = null;
   let baseline = '';
@@ -154,14 +154,13 @@
   }
 
   // The site logo is managed under Platform → Branding; reflect an uploaded
-  // logo here. (`is-custom` switches to aspect-preserving sizing — the default
-  // Stacks SVG is percentage-sized and needs fixed dimensions instead.)
+  // logo in the realistic main preview only — the panel mini-preview keeps the
+  // default logo as a schematic. (`is-custom` switches to aspect-preserving
+  // sizing — the default Stacks SVG is percentage-sized and needs fixed dims.)
   function applyBrandLogo(dataUrl) {
     if (!dataUrl) return;
-    [logoImg, siteLogoImg].forEach((img) => {
-      img.src = dataUrl;
-      img.classList.add('is-custom');
-    });
+    siteLogoImg.src = dataUrl;
+    siteLogoImg.classList.add('is-custom');
   }
 
   function updateSaveBar() {
