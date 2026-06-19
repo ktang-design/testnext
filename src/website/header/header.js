@@ -65,15 +65,21 @@
     const swatch = row.querySelector('[data-color-swatch]');
     const hex = row.querySelector('[data-color-hex]');
     const op = row.querySelector('[data-color-opacity]');
+    // Choosing a colour while it's fully transparent (the default) would show
+    // nothing — make it visible so the choice reflects in the preview.
+    const ensureVisible = () => {
+      if (config[key].opacity === 0) { config[key].opacity = 100; op.value = 100; }
+    };
     swatch.addEventListener('input', () => {
       config[key].color = swatch.value.toUpperCase();
       hex.value = config[key].color;
+      ensureVisible();
       refresh();
     });
     hex.addEventListener('input', () => {
       let v = hex.value.trim();
       if (v && !v.startsWith('#')) v = '#' + v;
-      if (/^#[0-9a-fA-F]{6}$/.test(v)) { config[key].color = v.toUpperCase(); swatch.value = config[key].color; refresh(); }
+      if (/^#[0-9a-fA-F]{6}$/.test(v)) { config[key].color = v.toUpperCase(); swatch.value = config[key].color; ensureVisible(); refresh(); }
     });
     hex.addEventListener('blur', () => { hex.value = config[key].color; });
     op.addEventListener('input', () => {
