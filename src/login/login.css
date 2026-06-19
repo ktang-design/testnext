@@ -46,7 +46,10 @@ body {
   border-radius: 8px;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
 }
-.auth-card__logo { display: block; height: 24px; width: auto; margin-bottom: 4px; }
+/* Fixed width, auto height — and align-self stops the flex column from
+   stretching the image to the card width (the logo SVG has
+   preserveAspectRatio="none", so a stretched box distorts it). */
+.auth-card__logo { display: block; width: 127px; height: auto; align-self: flex-start; margin-bottom: 4px; }
 .auth-card__title { margin: 0; font-size: 22px; font-weight: 600; color: var(--gray-700); }
 .auth-card__subtitle { margin: -8px 0 0; font-size: 14px; color: var(--gray-600); }
 

@@ -92,6 +92,12 @@
 /* Wraps the product menu + grid so the mobile dropdown anchors to the grid. */
 .topnav__navwrap { position: relative; display: flex; align-items: center; }
 
+/* User-menu chevron: points down at rest, flips up while interacted with. */
+.usermenu__caret { transition: transform 0.2s ease; }
+.usermenu:hover .usermenu__caret,
+.usermenu:focus-visible .usermenu__caret,
+.usermenu:active .usermenu__caret { transform: rotate(180deg); }
+
 /* Scrim behind the drawer / under the modal. */
 .app-scrim {
   position: fixed;
