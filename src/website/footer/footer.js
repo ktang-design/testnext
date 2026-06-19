@@ -9,6 +9,7 @@
   const statusEl = $('[data-save-status]');
   const logoCheck = $('[data-el="logo"]');
   const navCheck = $('[data-el="navigation"]');
+  const siteFooter = $('[data-sitefooter]');
 
   let showLogo = false;
   let showNavigation = false;
@@ -16,6 +17,8 @@
   let baseline = '';
   let saving = false;
   let saveError = null;
+  let navLabels = [];   // top-level navigation labels (for the preview)
+  let brandLogo = null; // uploaded logo from Platform → Branding
 
   const uid = () =>
     'ftr-' + (window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.floor(performance.now()));
@@ -77,7 +80,53 @@
   function refresh() {
     const count = tree ? tree.getItems().length : 0;
     divider.hidden = count === 0;
+    buildFooterPreview();
     updateSaveBar();
+  }
+
+  // Live, realistic footer preview reflecting the current configuration.
+  function buildFooterPreview() {
+    const links = stripLinks(tree ? tree.getItems() : []);
+    siteFooter.innerHTML = '';
+
+    const main = document.createElement('div');
+    main.className = 'sitefooter__main';
+
+    if (showLogo) {
+      const brand = document.createElement('div');
+      brand.className = 'sitefooter__brand';
+      const wrap = document.createElement('span');
+      wrap.className = 'sitefooter__logo';
+      const img = document.createElement('img');
+      img.alt = '';
+      if (brandLogo) { img.src = brandLogo; img.classList.add('is-custom'); }
+      else { img.src = '../assets/stacks-logo.svg'; }
+      wrap.appendChild(img);
+      brand.appendChild(wrap);
+      main.appendChild(brand);
+    }
+
+    const labels = [];
+    if (showNavigation) labels.push(...navLabels);
+    links.forEach((l) => labels.push(l.label));
+    if (labels.length) {
+      const nav = document.createElement('div');
+      nav.className = 'sitefooter__links';
+      labels.forEach((t) => {
+        const a = document.createElement('span');
+        a.className = 'sitefooter__link';
+        a.textContent = t;
+        nav.appendChild(a);
+      });
+      main.appendChild(nav);
+    }
+
+    if (main.children.length) siteFooter.appendChild(main);
+
+    const bottom = document.createElement('div');
+    bottom.className = 'sitefooter__bottom';
+    bottom.textContent = `© ${new Date().getFullYear()} Stacks. All rights reserved.`;
+    siteFooter.appendChild(bottom);
   }
 
   function updateSaveBar() {
@@ -202,15 +251,15 @@
   navCheck.addEventListener('change', () => { showNavigation = navCheck.checked; saveError = null; refresh(); });
   setupNavGuard();
 
-  fetch('/api/website/footer', { credentials: 'include' })
-    .then((r) => (r.ok ? r.json() : Promise.reject()))
-    .then((data) => {
-      applyConfig(data.saved || data.defaults);
-      baseline = serialize();
-      updateSaveBar();
-    })
-    .catch(() => {
-      applyConfig({ showLogo: false, showNavigation: false, links: [] });
-      baseline = serialize();
-    });
+  Promise.all([
+    fetch('/api/website/footer', { credentials: 'include' }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+    fetch('/api/website/navigation', { credentials: 'include' }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+    fetch('/api/branding', { credentials: 'include' }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+  ]).then(([ftr, nav, brand]) => {
+    navLabels = nav && Array.isArray(nav.navigation) ? nav.navigation.map((i) => i.label) : [];
+    brandLogo = (brand && brand.saved && brand.saved.logo) || null;
+    applyConfig((ftr && (ftr.saved || ftr.defaults)) || { showLogo: false, showNavigation: false, links: [] });
+    baseline = serialize();
+    updateSaveBar();
+  });
 })();

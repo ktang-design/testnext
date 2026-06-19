@@ -103,16 +103,27 @@
 
           <div class="ftr-elements" role="group" aria-label="Elements">
             <span class="ftr-elements__label" aria-hidden="true">Elements</span>
-            <label class="ftr-check"><input type="checkbox" data-el="logo" /><span>Logo</span></label>
-            <label class="ftr-check"><input type="checkbox" data-el="navigation" /><span>Navigation</span></label>
+            <label class="checkbox">
+              <input type="checkbox" data-el="logo" />
+              <span class="checkbox__box" aria-hidden="true"></span>
+              <span class="checkbox__label">Logo</span>
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" data-el="navigation" />
+              <span class="checkbox__box" aria-hidden="true"></span>
+              <span class="checkbox__label">Navigation</span>
+            </label>
           </div>
 
           <hr class="ftr-divider" data-links-divider hidden />
           <div class="ftr-links" data-tree></div>
         </section>
 
-        <div class="navpreview" role="img" aria-label="Website preview">
-          <span class="navpreview__hint">Preview</span>
+        <div class="navpreview" role="img" aria-label="Live footer preview">
+          <div class="sitepreview" aria-hidden="true">
+            <div class="sitepreview__body"></div>
+            <footer class="sitefooter" data-sitefooter></footer>
+          </div>
         </div>
       </div>
 
