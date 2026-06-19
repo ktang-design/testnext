@@ -88,21 +88,35 @@
     apps.className = 'topnav__iconbtn topnav__apps';
     apps.setAttribute('aria-label', 'Product menu');
     apps.setAttribute('aria-expanded', 'false');
-    apps.innerHTML = '<img src="../shared/grid.svg" alt="" />';
+    // Inline the grid glyph (instead of an <img>) so its colour follows
+    // currentColor — letting the open/active state turn it blue.
+    apps.innerHTML =
+      '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+      '<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/>' +
+      '<rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg>';
+
     // The grid icon is the collapsed form of the left-side product nav, so it
     // lives in the left group (after the logo) — keeping the hamburger, logo
     // and grid evenly spaced rather than stranding the grid on the right.
-    left.appendChild(apps);
+    // Wrap the menu + grid in a relatively-positioned box so the dropdown can
+    // anchor to (and right-align under) the grid icon.
+    const navwrap = document.createElement('div');
+    navwrap.className = 'topnav__navwrap';
+    left.insertBefore(navwrap, menu);
+    navwrap.appendChild(menu);
+    navwrap.appendChild(apps);
+
+    const setOpen = (open) => {
+      menu.classList.toggle('is-open', open);
+      apps.classList.toggle('is-active', open);
+      apps.setAttribute('aria-expanded', String(open));
+    };
     apps.addEventListener('click', (e) => {
       e.stopPropagation();
-      const open = menu.classList.toggle('is-open');
-      apps.setAttribute('aria-expanded', String(open));
+      setOpen(!menu.classList.contains('is-open'));
     });
     document.addEventListener('click', (e) => {
-      if (menu.classList.contains('is-open') && !menu.contains(e.target) && e.target !== apps) {
-        menu.classList.remove('is-open');
-        apps.setAttribute('aria-expanded', 'false');
-      }
+      if (menu.classList.contains('is-open') && !navwrap.contains(e.target)) setOpen(false);
     });
   }
 
@@ -112,7 +126,7 @@
       closeDrawer();
       if (menu && menu.classList.contains('is-open')) {
         menu.classList.remove('is-open');
-        apps && apps.setAttribute('aria-expanded', 'false');
+        if (apps) { apps.classList.remove('is-active'); apps.setAttribute('aria-expanded', 'false'); }
       }
     }
   });
@@ -121,7 +135,10 @@
     syncTopnavHeight();
     // Leaving mobile/tablet: reset any open drawer/menu state.
     if (window.innerWidth > 899 && lastW <= 899) closeDrawer();
-    if (window.innerWidth > 599 && menu) menu.classList.remove('is-open');
+    if (window.innerWidth > 599 && menu) {
+      menu.classList.remove('is-open');
+      if (apps) { apps.classList.remove('is-active'); apps.setAttribute('aria-expanded', 'false'); }
+    }
     lastW = window.innerWidth;
   });
 

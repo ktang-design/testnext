@@ -80,8 +80,17 @@
   flex-shrink: 0;
 }
 .topnav__iconbtn:hover { background: #f4f5f7; }
-.topnav__iconbtn img { width: 24px; height: 24px; display: block; }
+.topnav__iconbtn img,
+.topnav__iconbtn svg { width: 24px; height: 24px; display: block; }
 .topnav__hamburger.is-active { background: var(--blue-50, #e9effa); }
+
+/* Grid icon: grey by default, blue background + blue glyph when its menu is open. */
+.topnav__apps { color: #3d3f42; }
+.topnav__apps.is-active { background: var(--blue-50, #e9effa); color: var(--blue-700, #255096); }
+.topnav__apps.is-active:hover { background: var(--blue-50, #e9effa); }
+
+/* Wraps the product menu + grid so the mobile dropdown anchors to the grid. */
+.topnav__navwrap { position: relative; display: flex; align-items: center; }
 
 /* Scrim behind the drawer / under the modal. */
 .app-scrim {
@@ -138,7 +147,7 @@ body.is-locked { overflow: hidden; }
     display: none;
     position: absolute;
     top: calc(100% + 6px);
-    left: 12px;
+    right: 0;                 /* right-align the dropdown under the grid icon */
     flex-direction: column;
     align-items: stretch;
     gap: 2px;
