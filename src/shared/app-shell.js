@@ -120,6 +120,9 @@
     });
   }
 
+  // The account / sign-out dropdown itself lives in shared/auth-client.js;
+  // it toggles aria-expanded on .usermenu, which the caret CSS keys off of.
+
   // ---- Global key + resize handling ----
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {

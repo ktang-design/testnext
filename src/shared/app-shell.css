@@ -92,11 +92,11 @@
 /* Wraps the product menu + grid so the mobile dropdown anchors to the grid. */
 .topnav__navwrap { position: relative; display: flex; align-items: center; }
 
-/* User-menu chevron: points down at rest, flips up while interacted with. */
+/* User-menu chevron reflects the account dropdown's state only: up when the
+   menu is open, down when closed — no hover/focus changes. The dropdown
+   (shared/auth-client.js) toggles aria-expanded on the .usermenu button. */
 .usermenu__caret { transition: transform 0.2s ease; }
-.usermenu:hover .usermenu__caret,
-.usermenu:focus-visible .usermenu__caret,
-.usermenu:active .usermenu__caret { transform: rotate(180deg); }
+.usermenu[aria-expanded="true"] .usermenu__caret { transform: rotate(180deg); }
 
 /* Scrim behind the drawer / under the modal. */
 .app-scrim {
