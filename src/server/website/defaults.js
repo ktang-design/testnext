@@ -21,4 +21,14 @@ const URL_MAX = 2048;
 const MAX_ITEMS = 200; // total nodes, bounds the payload
 const MAX_DEPTH = 2; // parent + one level of subpages
 
-module.exports = { DEMO_PAGES, LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH };
+// Header configuration. `nav: 'aligned'` renders as "Inline" when the logo is
+// left, or "Center" when the logo is centered (the second toggle option tracks
+// the logo). Colours carry a 0–100 opacity.
+const HEADER_DEFAULTS = {
+  logo: 'left',
+  nav: 'left',
+  background: { color: '#FFFFFF', opacity: 0 },
+  links: { color: '#FFFFFF', opacity: 0 },
+};
+
+module.exports = { DEMO_PAGES, LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH, HEADER_DEFAULTS };

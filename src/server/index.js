@@ -42,7 +42,7 @@ app.use('/api/website', jsonSmall, require('./routes/website'));
 // The HTML entry points for these sections require a session. Their CSS/JS/
 // assets stay public (harmless), which keeps the pages' relative paths working.
 const PROTECTED_SECTIONS = new Set([
-  '/site-details', '/branding', '/access', '/website/navigation',
+  '/site-details', '/branding', '/access', '/website/navigation', '/website/header',
 ]);
 
 function sectionOf(reqPath) {

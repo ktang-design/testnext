@@ -10,11 +10,13 @@ const express = require('express');
 const { requireApiAuth } = require('../auth/authGuard');
 const { pagesRepository } = require('../website/PagesRepository');
 const { navigationRepository } = require('../website/NavigationRepository');
-const { LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH } = require('../website/defaults');
+const { headerRepository } = require('../website/HeaderRepository');
+const { LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH, HEADER_DEFAULTS } = require('../website/defaults');
 
 const router = express.Router();
 
 const str = (v) => (typeof v === 'string' ? v : '');
+const HEX = /^#[0-9a-fA-F]{6}$/;
 
 // A custom link may be an absolute http(s) URL, a root-relative path, an
 // anchor, or a mailto/tel link. Keep it permissive but bounded.
@@ -101,6 +103,33 @@ router.put('/navigation', requireApiAuth, (req, res) => {
   }
   navigationRepository.save(userId, clean);
   res.json({ saved: annotate(navigationRepository.get(userId), userId) });
+});
+
+// ---------------------------------------------------------------------------
+// Header configuration
+// ---------------------------------------------------------------------------
+function cleanColor(raw, fallback) {
+  const src = raw && typeof raw === 'object' ? raw : {};
+  const color = HEX.test(str(src.color)) ? str(src.color).toUpperCase() : fallback.color;
+  let opacity = Number(src.opacity);
+  if (!Number.isFinite(opacity)) opacity = fallback.opacity;
+  opacity = Math.max(0, Math.min(100, Math.round(opacity)));
+  return { color, opacity };
+}
+
+router.get('/header', requireApiAuth, (req, res) => {
+  res.json({ defaults: HEADER_DEFAULTS, saved: headerRepository.get(req.session.userId) });
+});
+
+router.put('/header', requireApiAuth, (req, res) => {
+  const b = req.body || {};
+  const config = {
+    logo: b.logo === 'center' ? 'center' : 'left',
+    nav: b.nav === 'aligned' ? 'aligned' : 'left',
+    background: cleanColor(b.background, HEADER_DEFAULTS.background),
+    links: cleanColor(b.links, HEADER_DEFAULTS.links),
+  };
+  res.json({ saved: headerRepository.save(req.session.userId, config) });
 });
 
 module.exports = router;

@@ -1,0 +1,75 @@
+/* ===========================================================================
+   Website layer — Header page specifics. Shared chrome is in ../website.css.
+   =========================================================================== */
+
+.hdr-field { margin-top: 18px; }
+.hdr-field__label {
+  display: block; margin-bottom: 8px;
+  font-size: 14px; font-weight: 600; color: var(--gray-700);
+}
+.hdr-divider { border: 0; border-top: 1px solid var(--gray-200); margin: 18px 0 6px; }
+
+/* ---------------------------  Preview mock  --------------------------- */
+.hdr-preview {
+  border: 1px solid var(--gray-200); border-radius: 6px;
+  overflow: hidden; background: #fff;
+}
+.hdr-preview__bar { display: flex; padding: 14px 16px; min-height: 44px; gap: 10px; }
+.hdr-preview__bar.is-inline { flex-direction: row; align-items: center; justify-content: space-between; }
+.hdr-preview__bar.is-stacked { flex-direction: column; }
+/* The logo SVG is percentage-sized with preserveAspectRatio="none" (no usable
+   intrinsic ratio), so set both dimensions explicitly at its true ratio
+   (126.857:24) to keep it small and undistorted. */
+.hdr-preview__logo { width: 85px; height: 16px; flex-shrink: 0; }
+.hdr-preview__nav { display: inline-flex; gap: 8px; }
+.hdr-preview__pill { display: block; width: 38px; height: 8px; border-radius: 4px; background: #cfd2d6; }
+
+/* ---------------------------  Segmented control  --------------------------- */
+.seg {
+  display: flex; width: 100%; gap: 2px; padding: 2px;
+  background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: 6px;
+}
+.seg__opt {
+  flex: 1 1 0; padding: 6px 12px;
+  background: transparent; border: 0; border-radius: 4px;
+  font: 600 14px/21px var(--font); color: var(--gray-600);
+  cursor: pointer; white-space: nowrap;
+}
+.seg__opt:hover { color: var(--gray-700); }
+.seg__opt[aria-checked="true"] {
+  background: #fff; color: var(--gray-700);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+.seg__opt:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); }
+
+/* ---------------------------  Colour rows  --------------------------- */
+.hdr-color {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 8px 0;
+}
+.hdr-color__label { font-size: 14px; color: var(--gray-700); }
+.hdr-color__controls { display: inline-flex; align-items: center; gap: 8px; }
+.hdr-color__swatch {
+  width: 20px; height: 20px; padding: 0; flex-shrink: 0;
+  border: 1px solid var(--gray-200); border-radius: 4px;
+  background: none; cursor: pointer;
+}
+.hdr-color__swatch::-webkit-color-swatch-wrapper { padding: 0; }
+.hdr-color__swatch::-webkit-color-swatch { border: none; border-radius: 3px; }
+.hdr-color__swatch::-moz-color-swatch { border: none; border-radius: 3px; }
+.hdr-color__hex {
+  width: 74px; padding: 3px 6px;
+  border: 1px solid transparent; border-radius: 4px; background: none;
+  font: 400 13px/19px var(--font); color: var(--gray-600); text-align: left;
+}
+.hdr-color__hex:focus { outline: none; border-color: var(--gray-200); }
+.hdr-color__opacity { display: inline-flex; align-items: center; gap: 1px; font-size: 13px; color: var(--gray-600); }
+.hdr-color__opacityval {
+  width: 38px; padding: 3px 2px 3px 6px;
+  border: 1px solid transparent; border-radius: 4px; background: none;
+  font: 400 13px/19px var(--font); color: var(--gray-600); text-align: right;
+  -moz-appearance: textfield;
+}
+.hdr-color__opacityval::-webkit-outer-spin-button,
+.hdr-color__opacityval::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.hdr-color__opacityval:focus { outline: none; border-color: var(--gray-200); }
