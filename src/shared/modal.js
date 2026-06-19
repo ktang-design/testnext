@@ -46,10 +46,13 @@
         '<button type="button" class="modal__close" aria-label="Close dialog"><img src="/shared/close.svg" alt="" /></button>';
       modal.appendChild(header);
 
-      // Body (form)
+      // Form wraps the body + footer as siblings, so the spacing around the
+      // actions matches the static dialogs (e.g. the unsaved-changes modal):
+      //   .modal > .modal__header + form( .modal__body + .modal__footer )
       const formEl = document.createElement('form');
-      formEl.className = 'modal__body';
       formEl.noValidate = true;
+      const body = document.createElement('div');
+      body.className = 'modal__body';
       const controls = {};
       (config.fields || []).forEach((f) => {
         const fid = `${f.name}-${uid}`;
@@ -94,7 +97,7 @@
         control.addEventListener('change', () => { values[f.name] = control.value; });
         controls[f.name] = control;
         field.appendChild(control);
-        formEl.appendChild(field);
+        body.appendChild(field);
       });
 
       const err = document.createElement('p');
@@ -102,16 +105,17 @@
       err.id = errId;
       err.setAttribute('role', 'alert');
       err.hidden = true;
-      formEl.appendChild(err);
-      modal.appendChild(formEl);
+      body.appendChild(err);
+      formEl.appendChild(body);
 
-      // Footer
+      // Footer (sibling of the body)
       const footer = document.createElement('div');
       footer.className = 'modal__footer';
       footer.innerHTML =
         '<button type="button" class="modal__btn modal__btn--cancel">Cancel</button>' +
         `<button type="submit" class="modal__btn modal__btn--primary">${escapeHtml(config.submitLabel || 'Add')}</button>`;
       formEl.appendChild(footer);
+      modal.appendChild(formEl);
 
       document.body.appendChild(overlay);
       document.body.classList.add('is-locked');

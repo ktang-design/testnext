@@ -91,10 +91,12 @@
     btn.appendChild(svgIcon('<circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/>'));
     window.Popover.attach(
       btn,
-      () => [
-        { label: 'Edit', onSelect: () => editItem(item.id) },
-        { label: 'Delete', danger: true, onSelect: () => deleteItem(item.id) },
-      ],
+      () => {
+        const actions = [{ label: 'Edit', onSelect: () => editItem(item.id) }];
+        // The Homepage is permanent — it can be relabelled but not deleted.
+        if (!item.home) actions.push({ label: 'Delete', danger: true, onSelect: () => deleteItem(item.id) });
+        return actions;
+      },
       { align: 'right', label: `Actions for ${item.label}` }
     );
     return btn;

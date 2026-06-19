@@ -2,7 +2,6 @@
 // One JSON navigation document per user (mirrors the branding repository shape).
 
 const { db } = require('../db/database');
-const { DEFAULT_NAV } = require('./defaults');
 
 class NavigationRepository {
   constructor(database) {
@@ -29,12 +28,6 @@ class NavigationRepository {
   save(userId, items) {
     this._upsert.run(userId, JSON.stringify(items), new Date().toISOString());
     return this.get(userId);
-  }
-
-  // Idempotent: only seeds when the user has no saved navigation yet.
-  seedDefault(userId) {
-    if (this._get.get(userId)) return;
-    this.save(userId, DEFAULT_NAV);
   }
 }
 

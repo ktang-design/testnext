@@ -41,6 +41,17 @@ class PagesRepository {
     const now = new Date().toISOString();
     DEMO_PAGES.forEach((p, i) => this._insert.run(p.id, userId, p.title, p.slug, p.status, i, now));
   }
+
+  // Guarantee a published Homepage exists (every user's navigation always has
+  // one). Returns the page row.
+  ensureHome(userId) {
+    let home = this.getById(userId, 'page-home');
+    if (!home) {
+      this._insert.run('page-home', userId, 'Homepage', '/', 'published', -1, new Date().toISOString());
+      home = this.getById(userId, 'page-home');
+    }
+    return home;
+  }
 }
 
 module.exports = { pagesRepository: new PagesRepository(db), PagesRepository };

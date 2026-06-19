@@ -56,15 +56,15 @@ db.exec(`
   -- 'published' renders its nav entry as disabled. (The full Pages builder is
   -- a separate layer; these rows stand in as its published output.)
   CREATE TABLE IF NOT EXISTS pages (
-    id         TEXT PRIMARY KEY,
+    id         TEXT NOT NULL,
     user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     title      TEXT NOT NULL,
     slug       TEXT NOT NULL,
     status     TEXT NOT NULL DEFAULT 'published',  -- 'published' | 'draft'
     sort       INTEGER NOT NULL DEFAULT 0,
-    updated_at TEXT NOT NULL
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, id)   -- ids (e.g. 'page-home') are unique per user
   );
-  CREATE INDEX IF NOT EXISTS idx_pages_user ON pages(user_id);
 
   -- The website navigation tree, stored as one JSON document per user.
   CREATE TABLE IF NOT EXISTS website_navigation (

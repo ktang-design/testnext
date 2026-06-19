@@ -14,7 +14,20 @@ const { LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH } = require('../website/default
 
 const router = express.Router();
 
+const HOME_PAGE_ID = 'page-home';
+const HOME_ITEM = () => ({ id: 'nav-home', type: 'page', pageId: HOME_PAGE_ID, url: null, label: 'Homepage', children: [] });
+
 const str = (v) => (typeof v === 'string' ? v : '');
+
+// The navigation always contains the Homepage. Prepend it when missing.
+function hasHome(items) {
+  return items.some(
+    (it) => it.id === 'nav-home' || it.pageId === HOME_PAGE_ID || hasHome(it.children || [])
+  );
+}
+function withHome(items) {
+  return hasHome(items) ? items : [HOME_ITEM(), ...items];
+}
 
 // A custom link may be an absolute http(s) URL, a root-relative path, an
 // anchor, or a mailto/tel link. Keep it permissive but bounded.
@@ -75,13 +88,16 @@ function annotate(items, userId) {
     } else {
       out.available = true;
     }
+    // Mark the permanent Homepage item so the client can keep it undeletable.
+    out.home = it.id === 'nav-home' || it.pageId === HOME_PAGE_ID;
     return out;
   });
 }
 
 router.get('/navigation', requireApiAuth, (req, res) => {
   const userId = req.session.userId;
-  const saved = navigationRepository.get(userId) || [];
+  pagesRepository.ensureHome(userId);
+  const saved = withHome(navigationRepository.get(userId) || []);
   res.json({
     navigation: annotate(saved, userId),
     publishedPages: pagesRepository.listPublished(userId).map((p) => ({ id: p.id, title: p.title })),
@@ -90,6 +106,7 @@ router.get('/navigation', requireApiAuth, (req, res) => {
 
 router.put('/navigation', requireApiAuth, (req, res) => {
   const userId = req.session.userId;
+  pagesRepository.ensureHome(userId);
   let clean;
   try {
     clean = sanitize((req.body || {}).items, userId, 0, { n: 0 });
@@ -99,7 +116,7 @@ router.put('/navigation', requireApiAuth, (req, res) => {
     }
     throw err;
   }
-  navigationRepository.save(userId, clean);
+  navigationRepository.save(userId, withHome(clean));
   res.json({ saved: annotate(navigationRepository.get(userId), userId) });
 });
 
