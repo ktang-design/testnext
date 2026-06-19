@@ -51,6 +51,27 @@ db.exec(`
     data       TEXT NOT NULL,   -- JSON: colors, logo/favicon data URLs, options
     updated_at TEXT NOT NULL
   );
+
+  -- Website pages. The navigation builder links to these; a page that is not
+  -- 'published' renders its nav entry as disabled. (The full Pages builder is
+  -- a separate layer; these rows stand in as its published output.)
+  CREATE TABLE IF NOT EXISTS pages (
+    id         TEXT PRIMARY KEY,
+    user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title      TEXT NOT NULL,
+    slug       TEXT NOT NULL,
+    status     TEXT NOT NULL DEFAULT 'published',  -- 'published' | 'draft'
+    sort       INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_pages_user ON pages(user_id);
+
+  -- The website navigation tree, stored as one JSON document per user.
+  CREATE TABLE IF NOT EXISTS website_navigation (
+    user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    data       TEXT NOT NULL,   -- JSON: ordered tree of page/custom-link items
+    updated_at TEXT NOT NULL
+  );
 `);
 
 module.exports = { db, dbFile };

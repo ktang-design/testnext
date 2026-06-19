@@ -29,7 +29,7 @@
     hamburger.className = 'topnav__iconbtn topnav__hamburger';
     hamburger.setAttribute('aria-label', 'Toggle navigation');
     hamburger.setAttribute('aria-expanded', 'false');
-    hamburger.innerHTML = '<img src="../shared/menu.svg" alt="" />';
+    hamburger.innerHTML = '<img src="/shared/menu.svg" alt="" />';
     left.insertBefore(hamburger, left.firstChild);
     hamburger.addEventListener('click', () => (sidenav.classList.contains('is-open') ? closeDrawer() : openDrawer()));
   }
@@ -59,7 +59,7 @@
     const collapseBtn = document.createElement('button');
     collapseBtn.type = 'button';
     collapseBtn.className = 'sidenav__collapse';
-    collapseBtn.innerHTML = '<img src="../shared/chevron-left.svg" alt="" />';
+    collapseBtn.innerHTML = '<img src="/shared/chevron-left.svg" alt="" />';
     sidenav.appendChild(collapseBtn);
 
     try {

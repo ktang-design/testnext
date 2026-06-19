@@ -36,11 +36,14 @@ app.use('/api/auth', jsonSmall, authRoutes);
 // ---- Settings APIs (per-user) ---------------------------------------------
 app.use('/api/site-settings', jsonSmall, require('./routes/settings'));
 app.use('/api/branding', jsonLarge, require('./routes/branding'));
+app.use('/api/website', jsonSmall, require('./routes/website'));
 
 // ---- Page protection ------------------------------------------------------
 // The HTML entry points for these sections require a session. Their CSS/JS/
 // assets stay public (harmless), which keeps the pages' relative paths working.
-const PROTECTED_SECTIONS = new Set(['/site-details', '/branding', '/access']);
+const PROTECTED_SECTIONS = new Set([
+  '/site-details', '/branding', '/access', '/website/navigation',
+]);
 
 function sectionOf(reqPath) {
   // Normalize "/branding", "/branding/", "/branding/index.html" -> "/branding"
