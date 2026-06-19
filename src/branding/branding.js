@@ -49,7 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   let lastSaved = null;
   let mode = 'reset';
-  let undoBuffer = null; // the inputs captured right before a "Reset to default"
   let saving = false, justSaved = false, saveError = null;
 
   const current = () => ({
@@ -156,13 +155,15 @@ document.addEventListener('DOMContentLoaded', () => {
     statusEl.classList.toggle('save-status--error', isError);
 
     if (mode === 'undo') {
-      // After a reset → restore the values that were there just before it.
+      // After a reset: offer to restore the last saved value. Disabled when
+      // there is nothing saved to restore (or it already matches the inputs).
       resetBtn.textContent = 'Undo reset';
-      resetBtn.disabled = saving || !undoBuffer || eq(undoBuffer, current());
+      resetBtn.disabled = saving || !lastSaved || eq(lastSaved, current());
     } else {
-      // Disabled until the inputs differ from the landing/saved state.
+      // "Reset to default" → revert to the system default; disabled when the
+      // inputs already match it.
       resetBtn.textContent = 'Reset to default';
-      resetBtn.disabled = saving || !isDirty();
+      resetBtn.disabled = saving || eq(current(), systemDefault);
     }
   }
 
@@ -184,7 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // A user change occurred → leave undo mode, clear transient status.
   function onChange() {
     mode = 'reset';
-    undoBuffer = null; // fresh edits supersede the undo buffer
     justSaved = false;
     saveError = null;
     render();
@@ -241,8 +241,8 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (action === 'remove-favicon') { faviconData = null; hide(faviconError); renderFavicon(); onChange(); }
     else if (action === 'reset') {
       if (resetBtn.disabled) return;
-      if (mode === 'undo') { applyConfig(undoBuffer); undoBuffer = null; mode = 'reset'; }
-      else { undoBuffer = current(); applyConfig(systemDefault); mode = 'undo'; }
+      if (mode === 'undo') { applyConfig(lastSaved); mode = 'reset'; }
+      else { applyConfig(systemDefault); mode = 'undo'; }
       justSaved = false; saveError = null; render();
     } else if (action === 'save') {
       if (saveBtn.disabled || saving) return;
@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       const data = await res.json();
       lastSaved = data.saved || current();
-      mode = 'reset'; undoBuffer = null; justSaved = true;
+      mode = 'reset'; justSaved = true;
     } catch (err) {
       saveError = err.message || 'Couldn’t save. Try again.';
     } finally {
@@ -284,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       systemDefault = data.defaults || systemDefault;
       lastSaved = data.saved || null;
-      mode = 'reset'; undoBuffer = null;
+      mode = 'reset';
       applyConfig(baseline());
       render();
     } catch (_) { /* keep fallback */ }
