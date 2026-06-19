@@ -89,7 +89,10 @@
     apps.setAttribute('aria-label', 'Product menu');
     apps.setAttribute('aria-expanded', 'false');
     apps.innerHTML = '<img src="../shared/grid.svg" alt="" />';
-    usermenu.parentNode.insertBefore(apps, usermenu);
+    // The grid icon is the collapsed form of the left-side product nav, so it
+    // lives in the left group (after the logo) — keeping the hamburger, logo
+    // and grid evenly spaced rather than stranding the grid on the right.
+    left.appendChild(apps);
     apps.addEventListener('click', (e) => {
       e.stopPropagation();
       const open = menu.classList.toggle('is-open');
