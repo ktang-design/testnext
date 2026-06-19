@@ -152,8 +152,14 @@
           </div>
         </section>
 
-        <div class="navpreview" role="img" aria-label="Website preview">
-          <span class="navpreview__hint">Preview</span>
+        <div class="navpreview" role="img" aria-label="Live header preview">
+          <div class="sitepreview" aria-hidden="true">
+            <header class="siteheader" data-siteheader>
+              <span class="siteheader__logo"><img src="../assets/stacks-logo.svg" alt="" /></span>
+              <nav class="siteheader__nav" data-site-nav></nav>
+            </header>
+            <div class="sitepreview__body"></div>
+          </div>
         </div>
       </div>
 

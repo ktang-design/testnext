@@ -7,8 +7,13 @@
   const bar = $('[data-preview-bar]');
   const logoImg = bar.querySelector('.hdr-preview__logo');
   const navEl = $('[data-preview-nav]');
-  const pills = Array.from(document.querySelectorAll('[data-preview-pill]'));
   const navSecond = $('[data-nav-second]');
+  // Realistic header preview in the main area.
+  const siteHeader = $('[data-siteheader]');
+  const siteLogo = siteHeader.querySelector('.siteheader__logo');
+  const siteNav = $('[data-site-nav]');
+  const SAMPLE_LINKS = ['Home', 'About', 'Services', 'Pricing', 'Contact'];
+  const DEFAULTS = { logo: 'left', nav: 'left', background: { color: '#FFFFFF', opacity: 0 }, links: { color: '#FFFFFF', opacity: 0 } };
 
   let config = null;
   let baseline = '';
@@ -95,23 +100,50 @@
 
   function refresh() {
     navSecond.textContent = config.logo === 'left' ? 'Inline' : 'Center';
-    updatePreview();
+    const L = layout();
+    updateMiniPreview(L);
+    updateSitePreview(L);
     updateSaveBar();
   }
 
-  function updatePreview() {
+  // Shared placement maths for both previews. `inline` = logo left + nav
+  // aligned (one row); otherwise the logo/nav stack with their own alignment.
+  function layout() {
     const inline = config.logo === 'left' && config.nav === 'aligned';
-    bar.className = 'hdr-preview__bar ' + (inline ? 'is-inline' : 'is-stacked');
-    if (inline) {
-      logoImg.style.alignSelf = '';
-      navEl.style.alignSelf = '';
-    } else {
-      logoImg.style.alignSelf = config.logo === 'center' ? 'center' : 'flex-start';
-      navEl.style.alignSelf = config.nav === 'aligned' ? 'center' : 'flex-start';
-    }
-    bar.style.background = rgba(config.background.color, config.background.opacity);
-    const pillBg = config.links.opacity > 0 ? rgba(config.links.color, config.links.opacity) : '#cfd2d6';
-    pills.forEach((p) => { p.style.background = pillBg; });
+    return {
+      inline,
+      logoAlign: config.logo === 'center' ? 'center' : 'flex-start',
+      navAlign: config.nav === 'aligned' ? 'center' : 'flex-start',
+    };
+  }
+  function applyLayout(barEl, logoEl, navE, L) {
+    barEl.classList.toggle('is-inline', L.inline);
+    barEl.classList.toggle('is-stacked', !L.inline);
+    if (L.inline) { logoEl.style.alignSelf = ''; navE.style.alignSelf = ''; }
+    else { logoEl.style.alignSelf = L.logoAlign; navE.style.alignSelf = L.navAlign; }
+  }
+
+  // Panel preview: placement only — colours do not affect it.
+  function updateMiniPreview(L) {
+    applyLayout(bar, logoImg, navEl, L);
+  }
+
+  // Realistic preview: placement + background and link colours.
+  function updateSitePreview(L) {
+    applyLayout(siteHeader, siteLogo, siteNav, L);
+    siteHeader.style.background = rgba(config.background.color, config.background.opacity);
+    const linkColor = config.links.opacity > 0 ? rgba(config.links.color, config.links.opacity) : '#3d3f42';
+    siteNav.querySelectorAll('.siteheader__link').forEach((a) => { a.style.color = linkColor; });
+  }
+
+  function buildSiteNav(labels) {
+    siteNav.innerHTML = '';
+    labels.forEach((t) => {
+      const el = document.createElement('span');
+      el.className = 'siteheader__link';
+      el.textContent = t;
+      siteNav.appendChild(el);
+    });
   }
 
   function updateSaveBar() {
@@ -184,17 +216,19 @@
   saveBtn.addEventListener('click', save);
   setupNavGuard();
 
-  fetch('/api/website/header', { credentials: 'include' })
-    .then((r) => (r.ok ? r.json() : Promise.reject()))
-    .then((data) => {
-      config = clone(data.saved || data.defaults);
-      baseline = JSON.stringify(config);
-      applyToControls();
-    })
-    .catch(() => {
-      // Fall back to sensible defaults so the page is still usable offline.
-      config = { logo: 'left', nav: 'left', background: { color: '#FFFFFF', opacity: 0 }, links: { color: '#FFFFFF', opacity: 0 } };
-      baseline = JSON.stringify(config);
-      applyToControls();
-    });
+  Promise.all([
+    fetch('/api/website/header', { credentials: 'include' }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+    fetch('/api/website/navigation', { credentials: 'include' }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+  ]).then(([hdr, nav]) => {
+    // Populate the realistic preview's links from the real navigation when it
+    // exists, otherwise show representative links.
+    const labels = nav && Array.isArray(nav.navigation) && nav.navigation.length
+      ? nav.navigation.map((i) => i.label)
+      : SAMPLE_LINKS;
+    buildSiteNav(labels);
+
+    config = clone((hdr && (hdr.saved || hdr.defaults)) || DEFAULTS);
+    baseline = JSON.stringify(config);
+    applyToControls();
+  });
 })();
