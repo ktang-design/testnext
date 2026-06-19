@@ -11,6 +11,7 @@
   // Realistic header preview in the main area.
   const siteHeader = $('[data-siteheader]');
   const siteLogo = siteHeader.querySelector('.siteheader__logo');
+  const siteLogoImg = siteLogo.querySelector('img');
   const siteNav = $('[data-site-nav]');
   const SAMPLE_LINKS = ['Home', 'About', 'Services', 'Pricing', 'Contact'];
   const DEFAULTS = { logo: 'left', nav: 'left', background: { color: '#FFFFFF', opacity: 0 }, links: { color: '#FFFFFF', opacity: 0 } };
@@ -152,6 +153,17 @@
     });
   }
 
+  // The site logo is managed under Platform → Branding; reflect an uploaded
+  // logo here. (`is-custom` switches to aspect-preserving sizing — the default
+  // Stacks SVG is percentage-sized and needs fixed dimensions instead.)
+  function applyBrandLogo(dataUrl) {
+    if (!dataUrl) return;
+    [logoImg, siteLogoImg].forEach((img) => {
+      img.src = dataUrl;
+      img.classList.add('is-custom');
+    });
+  }
+
   function updateSaveBar() {
     const dirty = isDirty();
     saveBtn.disabled = saving || !dirty;
@@ -225,13 +237,17 @@
   Promise.all([
     fetch('/api/website/header', { credentials: 'include' }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
     fetch('/api/website/navigation', { credentials: 'include' }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
-  ]).then(([hdr, nav]) => {
+    fetch('/api/branding', { credentials: 'include' }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+  ]).then(([hdr, nav, brand]) => {
     // Populate the realistic preview's links from the real navigation when it
     // exists, otherwise show representative links.
     const labels = nav && Array.isArray(nav.navigation) && nav.navigation.length
       ? nav.navigation.map((i) => i.label)
       : SAMPLE_LINKS;
     buildSiteNav(labels);
+
+    // Reflect the logo uploaded under Platform → Branding.
+    applyBrandLogo(brand && brand.saved && brand.saved.logo);
 
     config = clone((hdr && (hdr.saved || hdr.defaults)) || DEFAULTS);
     baseline = JSON.stringify(config);
