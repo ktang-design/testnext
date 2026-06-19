@@ -54,7 +54,20 @@ const TYPOGRAPHY_OPTIONS = {
   bodyWeight: ['default', '400', '500', '600', '700'],
 };
 
+// Website branding: a logo override plus the brand colour palette applied
+// across the site. Each colour carries a 0–100 opacity.
+const WEBSITE_BRANDING_DEFAULTS = {
+  logo: null,
+  primary: { color: '#255096', opacity: 100 },
+  secondary: { color: '#3D3F42', opacity: 100 },
+  heading: { color: '#3D3F42', opacity: 100 },
+  body: { color: '#55585D', opacity: 100 },
+  link: { color: '#255096', opacity: 100 },
+};
+const WEBSITE_BRANDING_COLORS = ['primary', 'secondary', 'heading', 'body', 'link'];
+
 module.exports = {
   DEMO_PAGES, LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH,
   HEADER_DEFAULTS, FOOTER_DEFAULTS, TYPOGRAPHY_DEFAULTS, TYPOGRAPHY_OPTIONS,
+  WEBSITE_BRANDING_DEFAULTS, WEBSITE_BRANDING_COLORS,
 };

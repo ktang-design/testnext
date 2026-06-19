@@ -43,37 +43,7 @@
 }
 .seg__opt:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); }
 
-/* ---------------------------  Colour rows  --------------------------- */
-.hdr-color {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 8px 0;
-}
-.hdr-color__label { font-size: 14px; color: var(--gray-700); }
-.hdr-color__controls { display: inline-flex; align-items: center; gap: 8px; }
-.hdr-color__swatch {
-  width: 20px; height: 20px; padding: 0; flex-shrink: 0;
-  border: 1px solid var(--gray-200); border-radius: 4px;
-  background: none; cursor: pointer;
-}
-.hdr-color__swatch::-webkit-color-swatch-wrapper { padding: 0; }
-.hdr-color__swatch::-webkit-color-swatch { border: none; border-radius: 3px; }
-.hdr-color__swatch::-moz-color-swatch { border: none; border-radius: 3px; }
-.hdr-color__hex {
-  width: 74px; padding: 3px 6px;
-  border: 1px solid transparent; border-radius: 4px; background: none;
-  font: 400 13px/19px var(--font); color: var(--gray-600); text-align: left;
-}
-.hdr-color__hex:focus { outline: none; border-color: var(--gray-200); }
-.hdr-color__opacity { display: inline-flex; align-items: center; gap: 1px; font-size: 13px; color: var(--gray-600); }
-.hdr-color__opacityval {
-  width: 38px; padding: 3px 2px 3px 6px;
-  border: 1px solid transparent; border-radius: 4px; background: none;
-  font: 400 13px/19px var(--font); color: var(--gray-600); text-align: right;
-  -moz-appearance: textfield;
-}
-.hdr-color__opacityval::-webkit-outer-spin-button,
-.hdr-color__opacityval::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.hdr-color__opacityval:focus { outline: none; border-color: var(--gray-200); }
+/* Colour rows use the shared .colorrow component in ../website.css. */
 
 /* ---------------------------  Realistic header preview (main area)  --------- */
 /* A modern navigation bar rendered with the design system. Only the header is

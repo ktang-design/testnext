@@ -1,0 +1,22 @@
+/* ===========================================================================
+   Website layer — Branding page specifics. Shared chrome + the .colorrow and
+   .checkbox components live in ../website.css.
+   =========================================================================== */
+
+.wb-field { margin-top: 18px; }
+.wb-label { display: block; font-size: 14px; font-weight: 600; color: var(--gray-700); }
+.wb-help { margin: 2px 0 10px; font-size: 13px; line-height: 19px; color: var(--gray-500); }
+.wb-error { margin: 8px 0 0; font-size: 13px; color: var(--error); }
+.wb-note { margin: 16px 0 0; font-size: 12px; line-height: 18px; color: var(--gray-500); }
+
+/* Logo preview + actions */
+.wb-logo__box {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 88px; padding: 16px;
+  border: 1px solid var(--gray-200); border-radius: 6px; background: #fff;
+}
+.wb-logo__box img { max-width: 100%; max-height: 56px; display: block; }
+.wb-logo__actions { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+
+/* Brand colours */
+.wb-colors { margin-top: 18px; }

@@ -93,6 +93,13 @@ db.exec(`
     data       TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
+
+  -- Website branding (logo override + brand colours), JSON per user.
+  CREATE TABLE IF NOT EXISTS website_branding (
+    user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    data       TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
 `);
 
 module.exports = { db, dbFile };

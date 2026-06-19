@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Footer — StacksNext</title>
+  <title>Branding — StacksNext</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/components/navigation/navigation.css" />
   <link rel="stylesheet" href="../website.css" />
-  <link rel="stylesheet" href="/shared/sortable-tree.css" />
-  <link rel="stylesheet" href="footer.css" />
+  <link rel="stylesheet" href="branding.css" />
   <link rel="stylesheet" href="/shared/app-shell.css" />
 </head>
 <body>
@@ -63,7 +62,7 @@
             </a>
           </li>
           <li>
-            <a class="nav-item nav-item--interactive is-active" href="#" aria-current="page">
+            <a class="nav-item nav-item--interactive" href="/website/footer/">
               <span class="nav-item__icon"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="2.6" width="12.4" height="10.8" rx="1.5"/><path d="M1.8 9.8h12.4"/></svg></span>
               <span class="nav-item__label">Footer</span>
             </a>
@@ -75,7 +74,7 @@
             </a>
           </li>
           <li>
-            <a class="nav-item nav-item--interactive" href="/website/branding/">
+            <a class="nav-item nav-item--interactive is-active" href="#" aria-current="page">
               <span class="nav-item__icon"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.4S3.6 7 3.6 10a4.4 4.4 0 0 0 8.8 0C12.4 7 8 2.4 8 2.4Z"/></svg></span>
               <span class="nav-item__label">Branding</span>
             </a>
@@ -92,38 +91,34 @@
 
     <div class="content">
       <div class="navworkspace">
-        <section class="navpanel" aria-labelledby="ftr-title">
-          <div class="navpanel__head">
-            <h1 class="navpanel__title" id="ftr-title">Footer</h1>
-            <button type="button" class="navpanel__add" data-add aria-label="Add custom link" title="Add custom link">
-              <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
-            </button>
-          </div>
-          <p class="navpanel__desc">Manage footer content displayed across your website.</p>
+        <section class="navpanel" aria-labelledby="wb-title">
+          <h1 class="navpanel__title" id="wb-title">Branding</h1>
+          <p class="navpanel__desc">Manage your website's visual identity to ensure a consistent brand experience.</p>
 
-          <div class="ftr-elements" role="group" aria-label="Elements">
-            <span class="ftr-elements__label" aria-hidden="true">Elements</span>
-            <label class="checkbox">
-              <input type="checkbox" data-el="logo" />
-              <span class="checkbox__box" aria-hidden="true"></span>
-              <span class="checkbox__label">Logo</span>
-            </label>
-            <label class="checkbox">
-              <input type="checkbox" data-el="navigation" />
-              <span class="checkbox__box" aria-hidden="true"></span>
-              <span class="checkbox__label">Navigation</span>
-            </label>
+          <!-- Logo override -->
+          <div class="wb-field">
+            <span class="wb-label">Logo</span>
+            <p class="wb-help">Upload a different logo. This will override the platform logo.</p>
+            <button type="button" class="btn btn--secondary" data-logo-choose>Choose an image</button>
+            <div class="wb-logo" data-logo-preview hidden>
+              <div class="wb-logo__box"><img data-logo-img alt="Logo preview" /></div>
+              <div class="wb-logo__actions">
+                <button type="button" class="btn btn--secondary" data-logo-replace>Replace image</button>
+                <button type="button" class="btn--link" data-logo-remove>Remove</button>
+              </div>
+            </div>
+            <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif" data-logo-input hidden />
+            <p class="wb-error" data-logo-error role="alert" hidden></p>
           </div>
 
-          <hr class="ftr-divider" data-links-divider hidden />
-          <div class="ftr-links" data-tree></div>
+          <!-- Brand colours -->
+          <div class="wb-colors" data-colors></div>
+
+          <p class="wb-note">Colors configured here are applied across the website and serve as the default color options for content elements. Individual elements can override these settings when needed.</p>
         </section>
 
-        <div class="navpreview" role="img" aria-label="Live footer preview">
-          <div class="sitepreview" aria-hidden="true">
-            <div class="sitepreview__body"></div>
-            <footer class="sitefooter" data-sitefooter></footer>
-          </div>
+        <div class="navpreview" role="img" aria-label="Website preview">
+          <span class="navpreview__hint">Preview</span>
         </div>
       </div>
 
@@ -159,9 +154,6 @@
 
   <script src="/shared/app-shell.js"></script>
   <script src="/shared/auth-client.js"></script>
-  <script src="/shared/popover.js"></script>
-  <script src="/shared/modal.js"></script>
-  <script src="/shared/sortable-tree.js"></script>
-  <script src="footer.js"></script>
+  <script src="branding.js"></script>
 </body>
 </html>
