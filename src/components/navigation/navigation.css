@@ -112,6 +112,22 @@
 }
 
 /* ----- Assembled side navigation helpers -------------------------------- */
+/* Canonical sidenav shell — shared by every page so the width never drifts.
+   Page CSS must NOT redefine this; per-breakpoint overrides live in
+   shared/app-shell.css (drawer below 899px). */
+.sidenav {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;          /* don't stretch — needed for sticky height */
+  height: 100vh;                   /* fill the viewport; divider runs full height */
+  overflow-y: auto;                /* scroll the nav internally if it ever overflows */
+  width: 288px;
+  flex-shrink: 0;
+  padding: 16px 8px;
+  background: var(--white);
+  border-right: 1px solid var(--gray-200);
+}
+
 .sidenav__list {
   list-style: none;
   margin: 0;
