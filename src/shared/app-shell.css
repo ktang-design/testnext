@@ -92,6 +92,9 @@
 /* Wraps the product menu + grid so the mobile dropdown anchors to the grid. */
 .topnav__navwrap { position: relative; display: flex; align-items: center; }
 
+/* Product-layer pills double as links (Website <-> Platform) — no underline. */
+a.navpill, a.navpill:hover, a.navpill:visited { text-decoration: none; }
+
 /* User-menu chevron reflects the account dropdown's state only: up when the
    menu is open, down when closed — no hover/focus changes. The dropdown
    (shared/auth-client.js) toggles aria-expanded on the .usermenu button. */

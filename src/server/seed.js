@@ -6,7 +6,6 @@ const { createUser } = require('./auth/authService');
 const { userRepository } = require('./auth/repository');
 const { seedUser, isProd } = require('./config');
 const { pagesRepository } = require('./website/PagesRepository');
-const { navigationRepository } = require('./website/NavigationRepository');
 
 async function seed() {
   // Never auto-create the public demo account on a production/UAT deployment
@@ -21,11 +20,11 @@ async function seed() {
     // eslint-disable-next-line no-console
     console.log(`[seed] created demo user: ${seedUser.email} / ${seedUser.password}`);
   }
-  // Give the demo user some published pages + a starter navigation so the
-  // Website layer is populated out of the box (both idempotent).
+  // Give the demo user some published pages so the "Add page" flow has
+  // something to link to. The navigation itself starts empty — only items the
+  // user adds appear.
   if (user && user.id) {
     pagesRepository.seedDefaults(user.id);
-    navigationRepository.seedDefault(user.id);
   }
   return user;
 }
