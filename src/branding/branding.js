@@ -5,7 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const $ = (sel) => document.querySelector(sel);
   const PLACEHOLDER_FAVICON = 'assets/placeholder-favicon.png';
-  const LOGO_MAX = 5 * 1024 * 1024; // 5 MB
+  const LOGO_MAX = 3 * 1024 * 1024; // 3 MB (keeps uploads under the serverless body limit)
   const FAVICON_MAX = 1 * 1024 * 1024; // 1 MB
 
   // Color swatches

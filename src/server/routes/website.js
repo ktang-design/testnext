@@ -19,6 +19,7 @@ const {
 } = require('../website/defaults');
 
 const router = express.Router();
+const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 const str = (v) => (typeof v === 'string' ? v : '');
 const HEX = /^#[0-9a-fA-F]{6}$/;
@@ -39,8 +40,15 @@ class ValidationError extends Error {
   }
 }
 
+// The user's pages are preloaded once per request into a Map(id -> page), so
+// sanitize/annotate stay synchronous (no per-item DB round-trips).
+async function loadPageMap(userId) {
+  const pages = await pagesRepository.list(userId);
+  return { pages, map: new Map(pages.map((p) => [p.id, p])) };
+}
+
 // Re-shape arbitrary input into the canonical stored form, validating as we go.
-function sanitize(items, userId, depth, counter) {
+function sanitize(items, pageMap, depth, counter) {
   if (!Array.isArray(items)) throw new ValidationError('Navigation must be a list of items.');
   return items.map((raw) => {
     if (!raw || typeof raw !== 'object') throw new ValidationError('Invalid navigation item.');
@@ -54,7 +62,7 @@ function sanitize(items, userId, depth, counter) {
     const item = { id: str(raw.id) || null, type, pageId: null, url: null, label, children: [] };
 
     if (type === 'page') {
-      const page = pagesRepository.getById(userId, str(raw.pageId));
+      const page = pageMap.get(str(raw.pageId));
       if (!page) throw new ValidationError('A linked page no longer exists.');
       item.pageId = page.id;
     } else {
@@ -64,18 +72,18 @@ function sanitize(items, userId, depth, counter) {
 
     if (Array.isArray(raw.children) && raw.children.length) {
       if (depth + 1 >= MAX_DEPTH) throw new ValidationError('Navigation can only nest one level deep.');
-      item.children = sanitize(raw.children, userId, depth + 1, counter);
+      item.children = sanitize(raw.children, pageMap, depth + 1, counter);
     }
     return item;
   });
 }
 
 // Annotate page items with the live page title + availability for the client.
-function annotate(items, userId) {
+function annotate(items, pageMap) {
   return items.map((it) => {
-    const out = { ...it, children: annotate(it.children || [], userId) };
+    const out = { ...it, children: annotate(it.children || [], pageMap) };
     if (it.type === 'page') {
-      const page = pagesRepository.getById(userId, it.pageId);
+      const page = pageMap.get(it.pageId);
       out.available = !!page && page.status === 'published';
       out.pageTitle = page ? page.title : null;
       out.pageStatus = page ? page.status : 'missing';
@@ -86,29 +94,31 @@ function annotate(items, userId) {
   });
 }
 
-router.get('/navigation', requireApiAuth, (req, res) => {
+router.get('/navigation', requireApiAuth, ah(async (req, res) => {
   const userId = req.session.userId;
-  const saved = navigationRepository.get(userId) || [];
+  const { pages, map } = await loadPageMap(userId);
+  const saved = (await navigationRepository.get(userId)) || [];
   res.json({
-    navigation: annotate(saved, userId),
-    publishedPages: pagesRepository.listPublished(userId).map((p) => ({ id: p.id, title: p.title })),
+    navigation: annotate(saved, map),
+    publishedPages: pages.filter((p) => p.status === 'published').map((p) => ({ id: p.id, title: p.title })),
   });
-});
+}));
 
-router.put('/navigation', requireApiAuth, (req, res) => {
+router.put('/navigation', requireApiAuth, ah(async (req, res) => {
   const userId = req.session.userId;
+  const { map } = await loadPageMap(userId);
   let clean;
   try {
-    clean = sanitize((req.body || {}).items, userId, 0, { n: 0 });
+    clean = sanitize((req.body || {}).items, map, 0, { n: 0 });
   } catch (err) {
     if (err instanceof ValidationError) {
       return res.status(400).json({ error: err.code, message: err.message });
     }
     throw err;
   }
-  navigationRepository.save(userId, clean);
-  res.json({ saved: annotate(navigationRepository.get(userId), userId) });
-});
+  await navigationRepository.save(userId, clean);
+  res.json({ saved: annotate(clean, map) });
+}));
 
 // ---------------------------------------------------------------------------
 // Header configuration
@@ -122,11 +132,11 @@ function cleanColor(raw, fallback) {
   return { color, opacity };
 }
 
-router.get('/header', requireApiAuth, (req, res) => {
-  res.json({ defaults: HEADER_DEFAULTS, saved: headerRepository.get(req.session.userId) });
-});
+router.get('/header', requireApiAuth, ah(async (req, res) => {
+  res.json({ defaults: HEADER_DEFAULTS, saved: await headerRepository.get(req.session.userId) });
+}));
 
-router.put('/header', requireApiAuth, (req, res) => {
+router.put('/header', requireApiAuth, ah(async (req, res) => {
   const b = req.body || {};
   const config = {
     logo: b.logo === 'center' ? 'center' : 'left',
@@ -134,17 +144,17 @@ router.put('/header', requireApiAuth, (req, res) => {
     background: cleanColor(b.background, HEADER_DEFAULTS.background),
     links: cleanColor(b.links, HEADER_DEFAULTS.links),
   };
-  res.json({ saved: headerRepository.save(req.session.userId, config) });
-});
+  res.json({ saved: await headerRepository.save(req.session.userId, config) });
+}));
 
 // ---------------------------------------------------------------------------
 // Footer configuration
 // ---------------------------------------------------------------------------
-router.get('/footer', requireApiAuth, (req, res) => {
-  res.json({ defaults: FOOTER_DEFAULTS, saved: footerRepository.get(req.session.userId) });
-});
+router.get('/footer', requireApiAuth, ah(async (req, res) => {
+  res.json({ defaults: FOOTER_DEFAULTS, saved: await footerRepository.get(req.session.userId) });
+}));
 
-router.put('/footer', requireApiAuth, (req, res) => {
+router.put('/footer', requireApiAuth, ah(async (req, res) => {
   const b = req.body || {};
   const rawLinks = Array.isArray(b.links) ? b.links : [];
   if (rawLinks.length > MAX_ITEMS) {
@@ -160,8 +170,8 @@ router.put('/footer', requireApiAuth, (req, res) => {
     links.push({ id: str(raw.id) || null, url: str(raw.url).trim(), label });
   }
   const config = { showLogo: !!b.showLogo, showNavigation: !!b.showNavigation, links };
-  res.json({ saved: footerRepository.save(req.session.userId, config) });
-});
+  res.json({ saved: await footerRepository.save(req.session.userId, config) });
+}));
 
 // ---------------------------------------------------------------------------
 // Typography configuration
@@ -170,11 +180,11 @@ function pick(value, allowed, fallback) {
   return allowed.includes(value) ? value : fallback;
 }
 
-router.get('/typography', requireApiAuth, (req, res) => {
-  res.json({ defaults: TYPOGRAPHY_DEFAULTS, saved: typographyRepository.get(req.session.userId) });
-});
+router.get('/typography', requireApiAuth, ah(async (req, res) => {
+  res.json({ defaults: TYPOGRAPHY_DEFAULTS, saved: await typographyRepository.get(req.session.userId) });
+}));
 
-router.put('/typography', requireApiAuth, (req, res) => {
+router.put('/typography', requireApiAuth, ah(async (req, res) => {
   const b = req.body || {};
   const family = str(b.fontFamily).trim().slice(0, 60) || TYPOGRAPHY_DEFAULTS.fontFamily;
   const config = {
@@ -184,7 +194,7 @@ router.put('/typography', requireApiAuth, (req, res) => {
     bodySize: pick(str(b.bodySize), TYPOGRAPHY_OPTIONS.bodySize, 'default'),
     bodyWeight: pick(str(b.bodyWeight), TYPOGRAPHY_OPTIONS.bodyWeight, 'default'),
   };
-  res.json({ saved: typographyRepository.save(req.session.userId, config) });
-});
+  res.json({ saved: await typographyRepository.save(req.session.userId, config) });
+}));
 
 module.exports = router;

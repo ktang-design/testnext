@@ -11,17 +11,19 @@ const { brandingRepository } = require('../settings/BrandingRepository');
 const { WEBSITE_BRANDING_DEFAULTS, WEBSITE_BRANDING_COLORS } = require('../website/defaults');
 
 const router = express.Router();
+const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
-const LOGO_MAX = Math.ceil(5 * 1024 * 1024 * 1.4); // ~5 MB image as a data URL
+// ~3 MB raw → ~4.1 MB data URL, under the serverless request body limit.
+const LOGO_MAX = Math.ceil(3 * 1024 * 1024 * 1.4);
 
 const str = (v) => (typeof v === 'string' ? v : '');
 
 // Website branding inherits from Platform branding: the Platform primary /
 // secondary colours seed the Website palette, so configuring Platform flows
 // down as the Website defaults.
-function brandingDefaults(userId) {
-  const p = brandingRepository.get(userId) || {};
+async function brandingDefaults(userId) {
+  const p = (await brandingRepository.get(userId)) || {};
   const primary = HEX.test(str(p.primaryColor)) ? p.primaryColor.toUpperCase() : WEBSITE_BRANDING_DEFAULTS.primary.color;
   const secondary = HEX.test(str(p.secondaryColor)) ? p.secondaryColor.toUpperCase() : WEBSITE_BRANDING_DEFAULTS.secondary.color;
   return {
@@ -43,20 +45,23 @@ function cleanColor(raw, fallback) {
   return { color, opacity };
 }
 
-router.get('/', requireApiAuth, (req, res) => {
-  res.json({ defaults: brandingDefaults(req.session.userId), saved: websiteBrandingRepository.get(req.session.userId) });
-});
+router.get('/', requireApiAuth, ah(async (req, res) => {
+  res.json({
+    defaults: await brandingDefaults(req.session.userId),
+    saved: await websiteBrandingRepository.get(req.session.userId),
+  });
+}));
 
-router.put('/', requireApiAuth, (req, res) => {
+router.put('/', requireApiAuth, ah(async (req, res) => {
   const b = req.body || {};
   if (b.logo != null && !(typeof b.logo === 'string' && b.logo.startsWith('data:image/') && b.logo.length <= LOGO_MAX)) {
-    return res.status(400).json({ error: 'INVALID_LOGO', message: 'Logo must be an image within 5 MB.' });
+    return res.status(400).json({ error: 'INVALID_LOGO', message: 'Logo must be an image within 3 MB.' });
   }
   const config = { logo: b.logo || null };
   WEBSITE_BRANDING_COLORS.forEach((key) => {
     config[key] = cleanColor(b[key], WEBSITE_BRANDING_DEFAULTS[key]);
   });
-  res.json({ saved: websiteBrandingRepository.save(req.session.userId, config) });
-});
+  res.json({ saved: await websiteBrandingRepository.save(req.session.userId, config) });
+}));
 
 module.exports = router;

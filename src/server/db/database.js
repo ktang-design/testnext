@@ -1,28 +1,50 @@
 'use strict';
-// SQLite database connection + schema, using Node's built-in `node:sqlite`
-// (no native dependency / build step). One shared connection for the process.
+// Database connection + schema, on libSQL (@libsql/client). The same client
+// talks to a local file (dev) or a remote Turso database (production) depending
+// on TURSO_DATABASE_URL — one async code path everywhere.
+//
+// Helpers keep the call sites tiny so repositories read almost like the old
+// synchronous code, just awaited:
+//   await get(sql, args)  -> first row | null
+//   await all(sql, args)  -> rows[]
+//   await run(sql, args)  -> result
+//   await batch(stmts)    -> runs statements atomically (used by the migration)
+// `ready` is a memoized promise that ensures the schema exists before any query.
 
 const path = require('path');
 const fs = require('fs');
-const { DatabaseSync } = require('node:sqlite');
+const { createClient } = require('@libsql/client');
 
-// DB file location (override with DATABASE_FILE; ':memory:' for tests).
-const DEFAULT_FILE = path.join(__dirname, '..', '..', '..', 'data', 'stacksnext.db');
-const dbFile = process.env.DATABASE_FILE || DEFAULT_FILE;
+const url = process.env.TURSO_DATABASE_URL || 'file:./data/dev.db';
+const authToken = process.env.TURSO_AUTH_TOKEN || undefined;
 
-if (dbFile !== ':memory:') {
-  fs.mkdirSync(path.dirname(dbFile), { recursive: true });
+// For local file: URLs, make sure the directory exists.
+if (url.startsWith('file:')) {
+  const filePath = url.slice('file:'.length);
+  const dir = path.dirname(path.isAbsolute(filePath) ? filePath : path.join(process.cwd(), filePath));
+  fs.mkdirSync(dir, { recursive: true });
 }
 
-const db = new DatabaseSync(dbFile);
+const client = createClient({ url, authToken });
 
-// Pragmas: WAL for better concurrency, enforce foreign keys.
-db.exec('PRAGMA journal_mode = WAL;');
-db.exec('PRAGMA foreign_keys = ON;');
+async function get(sql, args = []) {
+  const res = await client.execute({ sql, args });
+  return res.rows[0] || null;
+}
+async function all(sql, args = []) {
+  const res = await client.execute({ sql, args });
+  return res.rows;
+}
+async function run(sql, args = []) {
+  return client.execute({ sql, args });
+}
+async function batch(statements) {
+  return client.batch(statements);
+}
 
-// Schema (idempotent).
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
+// Schema — one statement per array entry (libSQL executes them as a batch).
+const SCHEMA = [
+  `CREATE TABLE IF NOT EXISTS users (
     id             TEXT PRIMARY KEY,
     email          TEXT NOT NULL UNIQUE,
     name           TEXT NOT NULL,
@@ -30,76 +52,67 @@ db.exec(`
     failed_attempts INTEGER NOT NULL DEFAULT 0,
     locked_until   TEXT,
     created_at     TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS sessions (
+  )`,
+  `CREATE TABLE IF NOT EXISTS sessions (
     sid     TEXT PRIMARY KEY,
     data    TEXT NOT NULL,
     expires INTEGER NOT NULL
-  );
-  CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires);
-
-  CREATE TABLE IF NOT EXISTS site_settings (
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires)`,
+  `CREATE TABLE IF NOT EXISTS site_settings (
     user_id     TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     name        TEXT NOT NULL,
     description TEXT NOT NULL,
     updated_at  TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS branding_settings (
+  )`,
+  `CREATE TABLE IF NOT EXISTS branding_settings (
     user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    data       TEXT NOT NULL,   -- JSON: colors, logo/favicon data URLs, options
+    data       TEXT NOT NULL,
     updated_at TEXT NOT NULL
-  );
-
-  -- Website pages. The navigation builder links to these; a page that is not
-  -- 'published' renders its nav entry as disabled. (The full Pages builder is
-  -- a separate layer; these rows stand in as its published output.)
-  CREATE TABLE IF NOT EXISTS pages (
+  )`,
+  `CREATE TABLE IF NOT EXISTS pages (
     id         TEXT NOT NULL,
     user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     title      TEXT NOT NULL,
     slug       TEXT NOT NULL,
-    status     TEXT NOT NULL DEFAULT 'published',  -- 'published' | 'draft'
+    status     TEXT NOT NULL DEFAULT 'published',
     sort       INTEGER NOT NULL DEFAULT 0,
     updated_at TEXT NOT NULL,
-    PRIMARY KEY (user_id, id)   -- ids (e.g. 'page-home') are unique per user
-  );
-
-  -- The website navigation tree, stored as one JSON document per user.
-  CREATE TABLE IF NOT EXISTS website_navigation (
-    user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    data       TEXT NOT NULL,   -- JSON: ordered tree of page/custom-link items
-    updated_at TEXT NOT NULL
-  );
-
-  -- Website header configuration (logo/nav placement + colours), JSON per user.
-  CREATE TABLE IF NOT EXISTS website_header (
+    PRIMARY KEY (user_id, id)
+  )`,
+  `CREATE TABLE IF NOT EXISTS website_navigation (
     user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     data       TEXT NOT NULL,
     updated_at TEXT NOT NULL
-  );
-
-  -- Website footer configuration (element toggles + custom links), JSON per user.
-  CREATE TABLE IF NOT EXISTS website_footer (
+  )`,
+  `CREATE TABLE IF NOT EXISTS website_header (
     user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     data       TEXT NOT NULL,
     updated_at TEXT NOT NULL
-  );
-
-  -- Website typography configuration (font family + heading/body size & weight).
-  CREATE TABLE IF NOT EXISTS website_typography (
+  )`,
+  `CREATE TABLE IF NOT EXISTS website_footer (
     user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     data       TEXT NOT NULL,
     updated_at TEXT NOT NULL
-  );
-
-  -- Website branding (logo override + brand colours), JSON per user.
-  CREATE TABLE IF NOT EXISTS website_branding (
+  )`,
+  `CREATE TABLE IF NOT EXISTS website_typography (
     user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     data       TEXT NOT NULL,
     updated_at TEXT NOT NULL
-  );
-`);
+  )`,
+  `CREATE TABLE IF NOT EXISTS website_branding (
+    user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    data       TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  )`,
+];
 
-module.exports = { db, dbFile };
+let _ready = null;
+function migrate() {
+  if (!_ready) _ready = client.batch(SCHEMA, 'write');
+  return _ready;
+}
+// `ready` resolves once the schema has been ensured (run once per process).
+const ready = migrate();
+
+module.exports = { client, get, all, run, batch, migrate, ready };

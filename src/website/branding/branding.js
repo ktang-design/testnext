@@ -20,7 +20,7 @@
     { key: 'body', label: 'Body' },
     { key: 'link', label: 'Link' },
   ];
-  const LOGO_MAX = 5 * 1024 * 1024;
+  const LOGO_MAX = 3 * 1024 * 1024; // 3 MB (keeps uploads under the serverless body limit)
 
   let config = null;
   let baseline = '';
@@ -91,7 +91,7 @@
     logoInput.value = '';
     if (!file) return;
     hide(logoError);
-    if (file.size > LOGO_MAX) { logoError.textContent = 'Logo must be 5 MB or smaller.'; show(logoError); return; }
+    if (file.size > LOGO_MAX) { logoError.textContent = 'Logo must be 3 MB or smaller.'; show(logoError); return; }
     const reader = new FileReader();
     reader.onload = () => { config.logo = reader.result; renderLogo(); onChange(); };
     reader.onerror = () => { logoError.textContent = 'Couldn’t read that file. Try another.'; show(logoError); };

@@ -9,10 +9,12 @@ const { brandingRepository } = require('../settings/BrandingRepository');
 const { BRANDING_DEFAULTS, ALT_TEXT_MAX } = require('../settings/defaults');
 
 const router = express.Router();
+const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
-// data URLs are ~4/3 the raw size; cap logo at 5 MB and favicon at 1 MB raw.
-const LOGO_MAX = Math.ceil(5 * 1024 * 1024 * 1.4);
+// data URLs are ~4/3 the raw size; cap logo at 3 MB and favicon at 1 MB raw so
+// the request stays under the serverless body limit (~4.5 MB).
+const LOGO_MAX = Math.ceil(3 * 1024 * 1024 * 1.4);
 const FAVICON_MAX = Math.ceil(1 * 1024 * 1024 * 1.4);
 
 function validImage(v, max) {
@@ -20,11 +22,11 @@ function validImage(v, max) {
   return typeof v === 'string' && v.startsWith('data:image/') && v.length <= max;
 }
 
-router.get('/', requireApiAuth, (req, res) => {
-  res.json({ defaults: BRANDING_DEFAULTS, saved: brandingRepository.get(req.session.userId) });
-});
+router.get('/', requireApiAuth, ah(async (req, res) => {
+  res.json({ defaults: BRANDING_DEFAULTS, saved: await brandingRepository.get(req.session.userId) });
+}));
 
-router.put('/', requireApiAuth, (req, res) => {
+router.put('/', requireApiAuth, ah(async (req, res) => {
   const b = req.body || {};
   const primaryColor = typeof b.primaryColor === 'string' ? b.primaryColor : '';
   const secondaryColor = typeof b.secondaryColor === 'string' ? b.secondaryColor : '';
@@ -32,7 +34,7 @@ router.put('/', requireApiAuth, (req, res) => {
     return res.status(400).json({ error: 'INVALID_COLOR', message: 'Colors must be hex values.' });
   }
   if (!validImage(b.logo, LOGO_MAX)) {
-    return res.status(400).json({ error: 'INVALID_LOGO', message: 'Logo must be an image within 5 MB.' });
+    return res.status(400).json({ error: 'INVALID_LOGO', message: 'Logo must be an image within 3 MB.' });
   }
   if (!validImage(b.favicon, FAVICON_MAX)) {
     return res.status(400).json({ error: 'INVALID_FAVICON', message: 'Favicon must be an image within 1 MB.' });
@@ -46,7 +48,7 @@ router.put('/', requireApiAuth, (req, res) => {
     altText: typeof b.altText === 'string' ? b.altText.slice(0, ALT_TEXT_MAX) : '',
     favicon: b.favicon || null,
   };
-  res.json({ saved: brandingRepository.save(req.session.userId, config) });
-});
+  res.json({ saved: await brandingRepository.save(req.session.userId, config) });
+}));
 
 module.exports = router;

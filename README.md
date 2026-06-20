@@ -95,14 +95,59 @@ implementation is chosen in `auth/repository.js`; today it's
 same four methods and swap that one line — no auth logic changes. An in-memory
 reference implementation remains in `UserRepository.js` for tests.
 
+## Database
+
+Data lives in a **libSQL** database via [`@libsql/client`](https://github.com/tursodatabase/libsql-client-ts)
+(`src/server/db/database.js`). The connection comes from `TURSO_DATABASE_URL`:
+
+- **Local dev:** a file URL — `TURSO_DATABASE_URL=file:./data/dev.db` (the default).
+  Persists to disk; survives restarts.
+- **Production:** a remote [Turso](https://turso.tech) database —
+  `TURSO_DATABASE_URL=libsql://<db>.turso.io` plus `TURSO_AUTH_TOKEN`.
+
+Same async code path either way. Repositories use the `get/all/run/batch`
+helpers; the schema is created on first request (a memoized migration). Sessions
+are stored in the DB too, so logins persist across restarts/deploys.
+
 ## Production notes
 
 - Set `NODE_ENV=production` and a strong `SESSION_SECRET` (the app refuses to
   start in prod without one). `secure` cookies turn on automatically.
-- The SQLite store is fine for single-node deployments. For multi-node, move to
-  a networked database and a shared session store (e.g. `connect-redis`).
 - Serve behind HTTPS; `trust proxy` is enabled in production for correct
   secure-cookie handling behind a load balancer.
+
+## Deploy to Vercel (free) — accounts persist + custom domain
+
+The app runs as a single serverless function: `api/index.js` exports the Express
+app and [`vercel.json`](vercel.json) rewrites every request to it (so the page
+guard and static serving keep working). Accounts persist because data lives in a
+managed **Turso** database, not on the ephemeral filesystem.
+
+1. **Create a free Turso DB** ([turso.tech](https://turso.tech), or the CLI):
+   ```sh
+   turso db create stacksnext
+   turso db show stacksnext --url           # -> libsql://stacksnext-<org>.turso.io
+   turso db tokens create stacksnext        # -> auth token
+   ```
+2. **Push to GitHub**, then in Vercel: **New Project → import the repo** (no build
+   command needed — it's a serverless function + static files).
+3. **Set env vars** (Vercel → Project → Settings → Environment Variables):
+   - `TURSO_DATABASE_URL` = the `libsql://…` URL
+   - `TURSO_AUTH_TOKEN` = the token
+   - `SESSION_SECRET` = a long random string
+     (`node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`)
+   - `NODE_ENV` = `production`
+   - `SEED_DEMO_USER` = `true` only if you want the demo login seeded
+4. **Deploy.** The schema is created automatically on the first request. Create
+   accounts via `/signup`; they persist across redeploys.
+5. **Custom domain:** Vercel → Project → **Domains → Add** `yourdomain.com`, then
+   create the DNS record Vercel shows. TLS is automatic and free on Hobby.
+
+Notes:
+- Vercel caps a function's request body at ~4.5 MB, so logo uploads are limited
+  to 3 MB (favicon 1 MB).
+- `node:sqlite` is no longer used, so the app runs on Node 18+ (Vercel's default).
+- `render.yaml` is kept as an alternative host; it is not needed for Vercel.
 
 ## Deploy a UAT environment on Render
 
@@ -141,8 +186,7 @@ add a disk, then point the DB at it:
    get in.
 
 Notes:
-- Node is pinned to 24 (`NODE_VERSION` in `render.yaml` + `.node-version`) because
-  `node:sqlite` is unflagged from Node 24.
+- The app uses libSQL (`@libsql/client`), so on Render point `TURSO_DATABASE_URL`
+  at a disk file (`file:/data/stacksnext.db`) or a remote Turso URL instead of the
+  old `DATABASE_FILE`. Runs on Node 18+.
 - The component showcase ships in the build but stays unlinked/internal.
-- SQLite on a single disk fits UAT well. For a high-traffic production tier you'd
-  move to Postgres (swap `auth/repository.js`) + a managed session store.

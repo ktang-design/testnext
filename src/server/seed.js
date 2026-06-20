@@ -24,7 +24,7 @@ async function seed() {
   // something to link to. The navigation itself starts empty — only items the
   // user adds appear.
   if (user && user.id) {
-    pagesRepository.seedDefaults(user.id);
+    await pagesRepository.seedDefaults(user.id);
   }
   return user;
 }

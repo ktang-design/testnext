@@ -1,8 +1,10 @@
 'use strict';
-// A minimal express-session store backed by node:sqlite, so sessions persist
-// across restarts. Implements get/set/destroy/touch + periodic cleanup.
+// An express-session store backed by libSQL, so sessions persist across
+// restarts/deploys (the table lives in the managed DB). Implements the
+// callback-based Store contract over the async DB helpers.
 
 const session = require('express-session');
+const { get, run } = require('../db/database');
 
 function expiryOf(sess) {
   // Prefer the cookie's absolute expiry; fall back to maxAge from now.
@@ -12,68 +14,39 @@ function expiryOf(sess) {
   return Date.now() + (maxAge || 24 * 60 * 60 * 1000);
 }
 
+const UPSERT = `INSERT INTO sessions (sid, data, expires) VALUES (?, ?, ?)
+  ON CONFLICT(sid) DO UPDATE SET data = excluded.data, expires = excluded.expires`;
+
 class SqliteSessionStore extends session.Store {
-  constructor(db) {
-    super();
-    this.db = db;
-    this._get = db.prepare('SELECT data, expires FROM sessions WHERE sid = ?');
-    this._upsert = db.prepare(
-      `INSERT INTO sessions (sid, data, expires) VALUES (?, ?, ?)
-       ON CONFLICT(sid) DO UPDATE SET data = excluded.data, expires = excluded.expires`
-    );
-    this._touch = db.prepare('UPDATE sessions SET expires = ? WHERE sid = ?');
-    this._destroy = db.prepare('DELETE FROM sessions WHERE sid = ?');
-    this._sweep = db.prepare('DELETE FROM sessions WHERE expires < ?');
-
-    // Sweep expired sessions hourly (and once at startup).
-    this._cleanup();
-    this._timer = setInterval(() => this._cleanup(), 60 * 60 * 1000);
-    if (this._timer.unref) this._timer.unref();
-  }
-
-  _cleanup() {
-    try { this._sweep.run(Date.now()); } catch (_) { /* ignore */ }
-  }
-
   get(sid, cb) {
-    try {
-      const row = this._get.get(sid);
-      if (!row) return cb(null, null);
-      if (row.expires < Date.now()) {
-        this._destroy.run(sid);
-        return cb(null, null);
-      }
-      return cb(null, JSON.parse(row.data));
-    } catch (err) {
-      return cb(err);
-    }
+    get('SELECT data, expires FROM sessions WHERE sid = ?', [sid])
+      .then((row) => {
+        if (!row) return cb(null, null);
+        if (Number(row.expires) < Date.now()) {
+          return run('DELETE FROM sessions WHERE sid = ?', [sid]).then(() => cb(null, null)).catch(() => cb(null, null));
+        }
+        return cb(null, JSON.parse(row.data));
+      })
+      .catch((err) => cb(err));
   }
 
   set(sid, sess, cb) {
-    try {
-      this._upsert.run(sid, JSON.stringify(sess), expiryOf(sess));
-      return cb(null);
-    } catch (err) {
-      return cb(err);
-    }
+    run(UPSERT, [sid, JSON.stringify(sess), expiryOf(sess)])
+      .then(() => {
+        // Serverless has no reliable background timer, so sweep expired rows
+        // opportunistically on a small fraction of writes.
+        if (Math.random() < 0.02) run('DELETE FROM sessions WHERE expires < ?', [Date.now()]).catch(() => {});
+        cb(null);
+      })
+      .catch((err) => cb(err));
   }
 
   touch(sid, sess, cb) {
-    try {
-      this._touch.run(expiryOf(sess), sid);
-      return cb(null);
-    } catch (err) {
-      return cb(err);
-    }
+    run('UPDATE sessions SET expires = ? WHERE sid = ?', [expiryOf(sess), sid]).then(() => cb(null)).catch((err) => cb(err));
   }
 
   destroy(sid, cb) {
-    try {
-      this._destroy.run(sid);
-      return cb(null);
-    } catch (err) {
-      return cb(err);
-    }
+    run('DELETE FROM sessions WHERE sid = ?', [sid]).then(() => cb(null)).catch((err) => cb(err));
   }
 }
 

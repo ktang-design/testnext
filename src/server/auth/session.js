@@ -1,16 +1,14 @@
 'use strict';
-// express-session configuration. Uses the default in-memory store, which is
-// fine for local/dev. For production, swap `store` for a persistent store
-// (e.g. connect-redis) — see README.
+// express-session configuration. Sessions are stored in the database (libSQL/
+// Turso) so they persist across restarts and deploys on serverless.
 
 const session = require('express-session');
 const { sessionSecret, sessionMaxAgeMs, isProd } = require('../config');
-const { db } = require('../db/database');
 const { SqliteSessionStore } = require('./SqliteSessionStore');
 
 module.exports = session({
   name: 'sn.sid',
-  store: new SqliteSessionStore(db),
+  store: new SqliteSessionStore(),
   secret: sessionSecret,
   resave: false,
   saveUninitialized: false,

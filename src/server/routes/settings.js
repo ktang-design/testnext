@@ -10,12 +10,15 @@ const { FACTORY_DEFAULTS, NAME_MAX, DESCRIPTION_MAX } = require('../settings/def
 
 const router = express.Router();
 
-router.get('/', requireApiAuth, (req, res) => {
-  const saved = settingsRepository.get(req.session.userId);
-  res.json({ defaults: FACTORY_DEFAULTS, saved });
-});
+// Forward async errors to the global error handler (Express 4 doesn't auto-catch).
+const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
-router.put('/', requireApiAuth, (req, res) => {
+router.get('/', requireApiAuth, ah(async (req, res) => {
+  const saved = await settingsRepository.get(req.session.userId);
+  res.json({ defaults: FACTORY_DEFAULTS, saved });
+}));
+
+router.put('/', requireApiAuth, ah(async (req, res) => {
   const body = req.body || {};
   const name = typeof body.name === 'string' ? body.name : '';
   const description = typeof body.description === 'string' ? body.description : '';
@@ -33,8 +36,8 @@ router.put('/', requireApiAuth, (req, res) => {
     });
   }
 
-  const saved = settingsRepository.save(req.session.userId, { name, description });
+  const saved = await settingsRepository.save(req.session.userId, { name, description });
   res.json({ saved });
-});
+}));
 
 module.exports = router;

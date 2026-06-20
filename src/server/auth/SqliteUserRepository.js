@@ -1,10 +1,11 @@
 'use strict';
 // SqliteUserRepository — persistent implementation of the UserRepository
-// interface, backed by node:sqlite. Drop-in replacement for the in-memory one;
+// interface, backed by libSQL. Drop-in replacement for the in-memory one;
 // same async method signatures, so authService never changes.
 
 const crypto = require('crypto');
 const { normalizeEmail } = require('./UserRepository');
+const { get, run } = require('../db/database');
 
 // Map a DB row (snake_case) to the user object the app uses (camelCase).
 function rowToUser(row) {
@@ -21,22 +22,12 @@ function rowToUser(row) {
 }
 
 class SqliteUserRepository {
-  constructor(db) {
-    this.db = db;
-    this._byEmail = db.prepare('SELECT * FROM users WHERE email = ?');
-    this._byId = db.prepare('SELECT * FROM users WHERE id = ?');
-    this._insert = db.prepare(
-      `INSERT INTO users (id, email, name, password_hash, failed_attempts, locked_until, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
-    );
-  }
-
   async findByEmail(email) {
-    return rowToUser(this._byEmail.get(normalizeEmail(email)));
+    return rowToUser(await get('SELECT * FROM users WHERE email = ?', [normalizeEmail(email)]));
   }
 
   async findById(id) {
-    return rowToUser(this._byId.get(id));
+    return rowToUser(await get('SELECT * FROM users WHERE id = ?', [id]));
   }
 
   async create({ email, passwordHash, name }) {
@@ -51,9 +42,10 @@ class SqliteUserRepository {
       createdAt: new Date().toISOString(),
     };
     try {
-      this._insert.run(
-        user.id, user.email, user.name, user.passwordHash,
-        user.failedAttempts, user.lockedUntil, user.createdAt
+      await run(
+        `INSERT INTO users (id, email, name, password_hash, failed_attempts, locked_until, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [user.id, user.email, user.name, user.passwordHash, user.failedAttempts, user.lockedUntil, user.createdAt]
       );
     } catch (err) {
       if (String(err.message).includes('UNIQUE')) {
@@ -82,7 +74,7 @@ class SqliteUserRepository {
     }
     if (sets.length) {
       values.push(id);
-      this.db.prepare(`UPDATE users SET ${sets.join(', ')} WHERE id = ?`).run(...values);
+      await run(`UPDATE users SET ${sets.join(', ')} WHERE id = ?`, values);
     }
     return this.findById(id);
   }

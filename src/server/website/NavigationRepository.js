@@ -1,21 +1,11 @@
 'use strict';
 // One JSON navigation document per user (mirrors the branding repository shape).
 
-const { db } = require('../db/database');
+const { get, run } = require('../db/database');
 
 class NavigationRepository {
-  constructor(database) {
-    this.db = database;
-    this._get = database.prepare('SELECT data FROM website_navigation WHERE user_id = ?');
-    this._upsert = database.prepare(
-      `INSERT INTO website_navigation (user_id, data, updated_at)
-       VALUES (?, ?, ?)
-       ON CONFLICT(user_id) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at`
-    );
-  }
-
-  get(userId) {
-    const row = this._get.get(userId);
+  async get(userId) {
+    const row = await get('SELECT data FROM website_navigation WHERE user_id = ?', [userId]);
     if (!row) return null;
     try {
       const parsed = JSON.parse(row.data);
@@ -25,10 +15,15 @@ class NavigationRepository {
     }
   }
 
-  save(userId, items) {
-    this._upsert.run(userId, JSON.stringify(items), new Date().toISOString());
+  async save(userId, items) {
+    await run(
+      `INSERT INTO website_navigation (user_id, data, updated_at)
+       VALUES (?, ?, ?)
+       ON CONFLICT(user_id) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at`,
+      [userId, JSON.stringify(items), new Date().toISOString()]
+    );
     return this.get(userId);
   }
 }
 
-module.exports = { navigationRepository: new NavigationRepository(db), NavigationRepository };
+module.exports = { navigationRepository: new NavigationRepository(), NavigationRepository };

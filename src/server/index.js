@@ -1,93 +1,15 @@
 'use strict';
-// StacksNext application server.
-// - Serves the static front-end from /src
-// - Exposes the auth API under /api/auth
-// - Protects the three settings pages behind a session
-// - Leaves the component showcase reachable but unlinked (internal reference)
+// Local entry point: start a listening HTTP server for development.
+// On Vercel the app is exported via api/index.js and run as a serverless
+// function instead (no app.listen). Schema migration + demo seed run lazily on
+// the first request via the init gate in app.js.
 
-const path = require('path');
-const express = require('express');
+const app = require('./app');
+const { port } = require('./config');
 
-const { port, isProd } = require('./config');
-const sessionMiddleware = require('./auth/session');
-const authRoutes = require('./routes/auth');
-const { requirePageAuth } = require('./auth/authGuard');
-const { seed } = require('./seed');
-
-const SRC_DIR = path.join(__dirname, '..'); // .../src
-
-const app = express();
-if (isProd) app.set('trust proxy', 1); // needed for secure cookies behind a proxy
-app.disable('x-powered-by');
-
-// ---- Health check (public, no session) ------------------------------------
-app.get('/healthz', (req, res) => res.json({ ok: true }));
-
-app.use(sessionMiddleware);
-
-// Body parsers are applied per-router: small for auth/settings, large for
-// branding (which carries logo/favicon image data URLs).
-const jsonSmall = express.json({ limit: '10kb' });
-const jsonLarge = express.json({ limit: '10mb' });
-
-// ---- Auth API -------------------------------------------------------------
-app.use('/api/auth', jsonSmall, authRoutes);
-
-// ---- Settings APIs (per-user) ---------------------------------------------
-app.use('/api/site-settings', jsonSmall, require('./routes/settings'));
-app.use('/api/branding', jsonLarge, require('./routes/branding'));
-// Website branding carries a logo data URL → large parser; mount the specific
-// path before the general /api/website router so it takes precedence.
-app.use('/api/website/branding', jsonLarge, require('./routes/website-branding'));
-app.use('/api/website', jsonSmall, require('./routes/website'));
-
-// ---- Page protection ------------------------------------------------------
-// The HTML entry points for these sections require a session. Their CSS/JS/
-// assets stay public (harmless), which keeps the pages' relative paths working.
-const PROTECTED_SECTIONS = new Set([
-  '/site-details', '/branding', '/access',
-  '/website/navigation', '/website/header', '/website/footer', '/website/typography', '/website/branding',
-]);
-
-function sectionOf(reqPath) {
-  // Normalize "/branding", "/branding/", "/branding/index.html" -> "/branding"
-  const noIndex = reqPath.replace(/\/index\.html$/i, '');
-  const noTrailing = noIndex.replace(/\/$/, '');
-  return noTrailing === '' ? '/' : noTrailing;
-}
-
-app.use((req, res, next) => {
-  if (req.method !== 'GET' && req.method !== 'HEAD') return next();
-  if (PROTECTED_SECTIONS.has(sectionOf(req.path))) {
-    return requirePageAuth(req, res, next);
-  }
-  return next();
-});
-
-// ---- Static front-end -----------------------------------------------------
-app.get('/', (req, res) => res.redirect('/site-details/'));
-app.use(express.static(SRC_DIR, { extensions: ['html'] }));
-
-// ---- Fallbacks ------------------------------------------------------------
-app.use((req, res) => res.status(404).send('Not found'));
-// eslint-disable-next-line no-unused-vars
-app.use((err, req, res, next) => {
+app.listen(port, () => {
   // eslint-disable-next-line no-console
-  console.error('[server] unhandled error', err);
-  res.status(500).send('Server error');
+  console.log(`StacksNext running at http://localhost:${port}`);
+  // eslint-disable-next-line no-console
+  console.log('Login: /login   ·   Protected: /site-details  /branding  /access  /website/*');
 });
-
-seed()
-  .then(() => {
-    app.listen(port, () => {
-      // eslint-disable-next-line no-console
-      console.log(`StacksNext running at http://localhost:${port}`);
-      // eslint-disable-next-line no-console
-      console.log('Protected: /site-details  /branding  /access   ·   Login: /login');
-    });
-  })
-  .catch((err) => {
-    // eslint-disable-next-line no-console
-    console.error('[server] failed to seed/start', err);
-    process.exit(1);
-  });
