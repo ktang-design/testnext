@@ -1,40 +1,70 @@
-/* Shared website preview (website-preview.js). Sits inside .navpreview. */
+/* Shared website preview (website-preview.js).
+   A fixed desktop-width site rendered inside a pan/zoom canvas. */
+
+/* The container ([data-website-preview]) fills .navpreview and anchors the HUD. */
+[data-website-preview] { flex: 1; min-width: 0; display: flex; position: relative; }
+
+/* Canvas viewport: scroll to pan, dotted backdrop for the design-tool feel. */
+.wsprev-canvas {
+  flex: 1; min-width: 0; overflow: auto;
+  display: flex; padding: 28px;
+  background-color: var(--gray-100);
+  background-image: radial-gradient(rgba(16, 24, 40, 0.06) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+.wsprev-canvas--zoom { cursor: zoom-in; }
+
+/* Tracks the scaled size so scrollbars are correct; margin auto centers it when
+   it fits and falls back to 0 (no clipping) when it overflows. */
+.wsprev-sizer { margin: auto; position: relative; flex: 0 0 auto; }
+
+/* The site mock, drawn at a real desktop width and visually scaled. */
 .wsprev {
-  width: 100%; align-self: stretch;
+  position: absolute; top: 0; left: 0;
+  width: 1280px; transform-origin: top left;
   display: flex; flex-direction: column;
-  background: #fff; border: 1px solid var(--gray-200); border-radius: 8px;
-  overflow: hidden; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  background: #fff; border-radius: 6px; overflow: hidden;
+  box-shadow: 0 6px 28px rgba(16, 24, 40, 0.14);
 }
 
 /* Header / navigation bar */
-.wsprev__header { display: flex; align-items: center; gap: 24px; padding: 18px 28px; }
+.wsprev__header { display: flex; align-items: center; gap: 28px; padding: 22px 48px; }
 .wsprev__header--inline { justify-content: space-between; }
-.wsprev__header--stacked { flex-direction: column; align-items: stretch; gap: 14px; }
+.wsprev__header--stacked { flex-direction: column; align-items: stretch; gap: 16px; }
 .wsprev__logo { display: inline-flex; align-items: center; }
-.wsprev__logoimg { width: 100px; height: 19px; display: block; }
-.wsprev__logoimg--custom { width: auto; height: 24px; max-width: 150px; object-fit: contain; }
-.wsprev__nav { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
-.wsprev__navlink { font-weight: 600; font-size: 14px; white-space: nowrap; }
+.wsprev__logoimg { width: 116px; height: 22px; display: block; }
+.wsprev__logoimg--custom { width: auto; height: 30px; max-width: 180px; object-fit: contain; }
+.wsprev__nav { display: flex; flex-wrap: wrap; gap: 28px; align-items: center; }
+.wsprev__navlink { font-weight: 600; font-size: 15px; white-space: nowrap; }
 
-/* Body */
-.wsprev__body {
-  flex: 1; min-height: 120px; padding: 30px 28px;
-  display: flex; flex-direction: column; gap: 14px; align-items: flex-start;
-}
-.wsprev__heading { margin: 0; line-height: 1.2; }
-.wsprev__text { margin: 0; line-height: 1.5; max-width: 520px; }
-.wsprev__link { text-decoration: underline; }
-.wsprev__btn { display: inline-block; padding: 9px 18px; border-radius: 6px; color: #fff; font-weight: 600; font-size: 14px; }
+/* Page body — intentionally empty until the user publishes page content. */
+.wsprev__body { flex: 1; min-height: 460px; background: #fff; }
 
 /* Footer */
 .wsprev__footer {
   border-top: 1px solid var(--gray-200); background: #fafbfc;
-  padding: 24px 28px 18px; display: flex; flex-direction: column; gap: 16px;
+  padding: 36px 48px 26px; display: flex; flex-direction: column; gap: 20px;
 }
-.wsprev__fmain { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.wsprev__fmain { display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
 .wsprev__flogo { display: inline-flex; }
-.wsprev__flogo .wsprev__logoimg { width: 90px; height: 17px; }
-.wsprev__flogo .wsprev__logoimg--custom { width: auto; height: 22px; }
-.wsprev__flinks { display: flex; flex-wrap: wrap; gap: 10px 22px; }
-.wsprev__flink { font-size: 13px; color: var(--gray-600); white-space: nowrap; }
-.wsprev__copyright { border-top: 1px solid var(--gray-200); padding-top: 14px; font-size: 12px; color: var(--gray-500); }
+.wsprev__flogo .wsprev__logoimg { width: 104px; height: 20px; }
+.wsprev__flogo .wsprev__logoimg--custom { width: auto; height: 26px; }
+.wsprev__flinks { display: flex; flex-wrap: wrap; gap: 12px 26px; }
+.wsprev__flink { font-size: 14px; color: var(--gray-600); white-space: nowrap; }
+.wsprev__copyright { border-top: 1px solid var(--gray-200); padding-top: 18px; font-size: 13px; color: var(--gray-500); }
+
+/* HUD overlay — zoom hint + current zoom level. */
+.wsprev-hud {
+  position: absolute; left: 14px; bottom: 14px; z-index: 2;
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 11px; border-radius: 999px;
+  background: rgba(16, 24, 40, 0.72); color: #fff;
+  font-size: 11px; font-weight: 500; letter-spacing: 0.2px;
+  pointer-events: none; user-select: none;
+}
+.wsprev-hud kbd {
+  font: inherit; background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px; padding: 1px 5px;
+}
+.wsprev-hud__dot { opacity: 0.5; }
+.wsprev-hud__pct { opacity: 0.85; font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
