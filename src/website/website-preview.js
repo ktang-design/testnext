@@ -211,10 +211,11 @@
       (blr.sections || []).forEach((section) => {
         const sec = el('div', 'wsprev__section');
         sec.dataset.id = section.id;
-        sec.style.background = rgba(section.background);
-        // Only the single selected block is pink: a section is highlighted only
-        // when no element within it is the selected one.
-        if (section.id === blr.selectedSectionId && !blr.selectedElementId) sec.classList.add('is-selected');
+        // A selected section shows only its pink border — its background fill is
+        // dropped so it reads as a clean outline (one selected block is pink).
+        const sectionSelected = section.id === blr.selectedSectionId && !blr.selectedElementId;
+        sec.style.background = sectionSelected ? 'transparent' : rgba(section.background);
+        if (sectionSelected) sec.classList.add('is-selected');
         // The "Add element" placeholder only shows on the active (selected)
         // section — selecting an element keeps its section active.
         const active = section.id === blr.selectedSectionId;
@@ -245,7 +246,9 @@
 
         body.appendChild(sec);
       });
-      body.appendChild(cta('Add section', () => cb.onAddSection && cb.onAddSection()));
+      // "Add section" placeholder only on an empty page; once a section exists,
+      // add more from the panel — keeps the building canvas focused.
+      if (!(blr.sections || []).length) body.appendChild(cta('Add section', () => cb.onAddSection && cb.onAddSection()));
     }
 
     function render() {
