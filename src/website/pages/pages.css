@@ -94,6 +94,10 @@
 
 /* Settings fields in the panel. */
 .pgb__settings { display: flex; flex-direction: column; gap: 16px; margin: 4px 0 8px; }
+/* Richtext settings: 3 groups 2rem apart; colour rows are a compact sub-group. */
+.pgb__settings--rt { gap: 2rem; }
+.pgb__group { display: flex; flex-direction: column; gap: 16px; }
+.pgb__colors { display: flex; flex-direction: column; gap: 8px; }
 .pgb__field { display: flex; flex-direction: column; gap: 6px; }
 .pgb__label { font-size: 14px; font-weight: 600; color: var(--gray-700); }
 .pgb__hint { margin: -2px 0 2px; font-size: 13px; line-height: 18px; color: var(--gray-500); }

@@ -47,10 +47,11 @@
     if (st.heading && st.heading.opacity > 0) rt.style.setProperty('--rt-heading', rgba(st.heading));
     if (st.text && st.text.opacity > 0) rt.style.setProperty('--rt-text', rgba(st.text));
     if (st.link && st.link.opacity > 0) rt.style.setProperty('--rt-link', rgba(st.link));
-    const bw = ({ 1: 1, 2: 2, 3: 3, 4: 4 })[st.borderWidth] || 0;
+    const bw = ({ 1: 1, 2: 2, 4: 4 })[st.borderWidth] || 1;
     const sides = st.borderSides || {};
-    if (bw && (sides.top || sides.right || sides.bottom || sides.left)) {
-      const bc = st.borderColor && st.borderColor.opacity > 0 ? rgba(st.borderColor) : '#d7d8da';
+    // A border only appears once a border colour is chosen (opacity > 0).
+    if (st.borderColor && st.borderColor.opacity > 0 && (sides.top || sides.right || sides.bottom || sides.left)) {
+      const bc = rgba(st.borderColor);
       const b = `${bw}px solid ${bc}`;
       if (sides.top) elt.style.borderTop = b;
       if (sides.right) elt.style.borderRight = b;

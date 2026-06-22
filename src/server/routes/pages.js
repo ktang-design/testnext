@@ -59,16 +59,20 @@ function cleanColor(raw) {
 
 // Richtext element styling (colours + border). A missing colour defaults to
 // opacity 0 (no override), so absent styles don't paint anything.
-const RT_BORDER_WIDTHS = ['default', '1', '2', '3', '4'];
-const styleColor = (c) => (c && typeof c === 'object' ? cleanColor(c) : { color: '#FFFFFF', opacity: 0 });
+const RT_BORDER_WIDTHS = ['1', '2', '4']; // Default(1px) / Medium(2px) / Large(4px)
+const styleColor = (c, dc, dop) => (c && typeof c === 'object' ? cleanColor(c) : { color: dc, opacity: dop });
 function normalizeRichtextStyle(raw) {
   const s = raw && typeof raw === 'object' ? raw : {};
-  const sides = s.borderSides && typeof s.borderSides === 'object' ? s.borderSides : {};
+  const sides = s.borderSides && typeof s.borderSides === 'object'
+    ? s.borderSides : { top: true, right: true, bottom: true, left: true };
   return {
-    heading: styleColor(s.heading), text: styleColor(s.text), link: styleColor(s.link), background: styleColor(s.background),
-    borderWidth: RT_BORDER_WIDTHS.includes(String(s.borderWidth)) ? String(s.borderWidth) : 'default',
+    heading: styleColor(s.heading, '#3D3F42', 100),
+    text: styleColor(s.text, '#55585D', 100),
+    link: styleColor(s.link, '#255096', 100),
+    background: styleColor(s.background, '#FFFFFF', 100),
+    borderWidth: RT_BORDER_WIDTHS.includes(String(s.borderWidth)) ? String(s.borderWidth) : '1',
     borderSides: { top: bool(sides.top), right: bool(sides.right), bottom: bool(sides.bottom), left: bool(sides.left) },
-    borderColor: styleColor(s.borderColor),
+    borderColor: styleColor(s.borderColor, '#FFFFFF', 0),
   };
 }
 

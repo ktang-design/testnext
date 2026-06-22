@@ -83,7 +83,7 @@
 .wsprev__richtext > :last-child { margin-bottom: 0; }
 .wsprev__richtext ul, .wsprev__richtext ol { margin: 0 0 12px; padding-left: 24px; }
 .wsprev__richtext li { margin: 0 0 4px; }
-.wsprev__richtext a { color: var(--rt-link, #2d62b7); text-decoration: underline; }
+.wsprev__richtext a { color: var(--rt-link, #255096); text-decoration: underline; }
 .wsprev__code {
   margin: 0; padding: 16px; border-radius: 6px;
   background: #1e2433; color: #e6e9f0; overflow: auto;

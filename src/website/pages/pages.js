@@ -633,7 +633,7 @@
     const HEX = /^#[0-9a-fA-F]{6}$/;
     swatch.value = colorObj.color; hex.value = colorObj.color; op.value = colorObj.opacity;
     swatch.addEventListener('input', () => { colorObj.color = swatch.value.toUpperCase(); hex.value = colorObj.color; if (colorObj.opacity === 0) { colorObj.opacity = 100; op.value = 100; } onChange(); });
-    hex.addEventListener('input', () => { let v = hex.value.trim(); if (v && !v.startsWith('#')) v = '#' + v; if (HEX.test(v)) { colorObj.color = v.toUpperCase(); swatch.value = colorObj.color; onChange(); } });
+    hex.addEventListener('input', () => { let v = hex.value.trim(); if (v && !v.startsWith('#')) v = '#' + v; if (HEX.test(v)) { colorObj.color = v.toUpperCase(); swatch.value = colorObj.color; if (colorObj.opacity === 0) { colorObj.opacity = 100; op.value = 100; } onChange(); } });
     hex.addEventListener('blur', () => { hex.value = colorObj.color; });
     op.addEventListener('input', () => { let n = parseInt(op.value, 10); if (isNaN(n)) return; n = Math.max(0, Math.min(100, n)); colorObj.opacity = n; onChange(); });
     op.addEventListener('blur', () => { op.value = colorObj.opacity; });
@@ -641,15 +641,17 @@
   }
   // ---- richtext element style (colours + border), per Figma 670:14197 ----
   const BORDER_WIDTHS = [
-    { value: 'default', label: 'Default' }, { value: '1', label: '1px' },
-    { value: '2', label: '2px' }, { value: '3', label: '3px' }, { value: '4', label: '4px' },
+    { value: '1', label: 'Default' }, { value: '2', label: 'Medium' }, { value: '4', label: 'Large' },
   ];
   function defaultRichtextStyle() {
-    const off = () => ({ color: '#FFFFFF', opacity: 0 }); // opacity 0 = no override
     return {
-      heading: off(), text: off(), link: off(), background: off(),
-      borderWidth: 'default', borderSides: { top: false, right: false, bottom: false, left: false },
-      borderColor: off(),
+      heading: { color: '#3D3F42', opacity: 100 },
+      text: { color: '#55585D', opacity: 100 },
+      link: { color: '#255096', opacity: 100 },
+      background: { color: '#FFFFFF', opacity: 100 },
+      borderWidth: '1', // "Default" = 1px
+      borderSides: { top: true, right: true, bottom: true, left: true }, // first option = all
+      borderColor: { color: '#FFFFFF', opacity: 0 }, // border only appears once a colour is set
     };
   }
   // Ensure an element has a full style object (backfills missing keys in place).
@@ -816,21 +818,35 @@
 
     const settings = document.createElement('div');
     settings.className = 'pgb__settings';
-    settings.appendChild(buildTextField('Title', elc.title, limits.elementTitle, (v) => { elc.title = v; afterFieldEdit(); }));
-    settings.appendChild(buildCheckbox('Display element title', elc.displayTitle, (v) => { elc.displayTitle = v; afterFieldEdit(); }));
     if (elc.type === 'code') {
+      settings.appendChild(buildTextField('Title', elc.title, limits.elementTitle, (v) => { elc.title = v; afterFieldEdit(); }));
+      settings.appendChild(buildCheckbox('Display element title', elc.displayTitle, (v) => { elc.displayTitle = v; afterFieldEdit(); }));
       settings.appendChild(buildTextarea('Code', elc.code, limits.body, (v) => { elc.code = v; afterFieldEdit(); }, true));
     } else {
-      // Richtext: colours + border (content is edited via the toolbar edit icon).
+      // Richtext: title + colours + border, in 3 groups (2rem apart; colours are
+      // a compact sub-group). Content is edited via the toolbar edit icon.
+      settings.classList.add('pgb__settings--rt');
       const st = rtStyle(elc);
-      settings.appendChild(makeColorRow('Heading', st.heading, afterFieldEdit));
-      settings.appendChild(makeColorRow('Body', st.text, afterFieldEdit));
-      settings.appendChild(makeColorRow('Link', st.link, afterFieldEdit));
-      settings.appendChild(makeColorRow('Background', st.background, afterFieldEdit));
-      settings.appendChild(buildDivider());
-      settings.appendChild(buildDropdown('Border width', BORDER_WIDTHS, st.borderWidth, (v) => { st.borderWidth = v; afterFieldEdit(); }));
-      settings.appendChild(buildToggleSelect('Border style', st.borderSides, afterFieldEdit));
-      settings.appendChild(makeColorRow('Border', st.borderColor, afterFieldEdit));
+      const grp = (cls) => { const g = document.createElement('div'); g.className = cls; return g; };
+
+      const top = grp('pgb__group');
+      top.appendChild(buildTextField('Title', elc.title, limits.elementTitle, (v) => { elc.title = v; afterFieldEdit(); }));
+      top.appendChild(buildCheckbox('Display element title', elc.displayTitle, (v) => { elc.displayTitle = v; afterFieldEdit(); }));
+
+      const colors = grp('pgb__colors');
+      colors.appendChild(makeColorRow('Heading', st.heading, afterFieldEdit));
+      colors.appendChild(makeColorRow('Body', st.text, afterFieldEdit));
+      colors.appendChild(makeColorRow('Link', st.link, afterFieldEdit));
+      colors.appendChild(makeColorRow('Background', st.background, afterFieldEdit));
+
+      const border = grp('pgb__group');
+      border.appendChild(buildDropdown('Border width', BORDER_WIDTHS, st.borderWidth, (v) => { st.borderWidth = v; afterFieldEdit(); }));
+      border.appendChild(buildToggleSelect('Border style', st.borderSides, afterFieldEdit));
+      border.appendChild(makeColorRow('Border', st.borderColor, afterFieldEdit));
+
+      settings.appendChild(top);
+      settings.appendChild(colors);
+      settings.appendChild(border);
     }
     builderView.appendChild(settings);
   }
