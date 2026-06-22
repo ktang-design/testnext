@@ -25,7 +25,9 @@
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-html, body { height: 100%; }
+/* Lock the viewport: the page never scrolls — only the panel + preview canvas
+   do. (overflow:hidden on html clips the 100vh sidenav too.) */
+html, body { height: 100%; overflow: hidden; }
 body {
   margin: 0;
   font-family: var(--font);
@@ -34,7 +36,9 @@ body {
   -webkit-font-smoothing: antialiased;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  /* Fixed to the viewport (height:100% from above) so the page never grows: the
+     panel + preview canvas scroll internally and the save bar stays pinned. */
+  overflow: hidden;
 }
 img { display: block; }
 
@@ -77,7 +81,11 @@ img { display: block; }
 
 /* ===========================  Layout  =========================== */
 .layout { flex: 1; display: flex; align-items: stretch; min-height: 0; }
-.content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.content { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+/* On these fixed-viewport pages the page never scrolls, so the sidenav fills its
+   container (not 100vh, which would be 65px too tall and create stray overflow).
+   The mobile drawer height is set in app-shell.css and still wins via @media. */
+.sidenav { height: 100%; }
 
 /* Sidenav icons use inline SVG that follows the nav-item text colour. */
 .nav-item__icon svg { width: 16px; height: 16px; display: block; }
