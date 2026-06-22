@@ -53,6 +53,9 @@
 /* Trailing actions: a gold homepage indicator (shown only on the homepage row,
    non-interactive) + the actions menu. The homepage is set from that menu. */
 .pageitem__actions { display: inline-flex; align-items: center; gap: 2px; }
+
+/* The "more options" menu is always visible here (not only on row hover). */
+.navtree__kebab { opacity: 1; }
 .pageitem__star {
   display: inline-flex; align-items: center; justify-content: center;
   width: 28px; height: 28px; color: #f9a814;

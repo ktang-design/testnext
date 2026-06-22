@@ -90,6 +90,8 @@
         if (!page.isHomepage) opts.push({ label: 'Set as homepage', onSelect: () => setHomepage(page.id) });
         opts.push({ label: 'Edit', onSelect: () => editPage(page.id) });
         opts.push({ label: 'Duplicate', onSelect: () => duplicatePage(page.id) });
+        // Every page except the homepage can be deleted.
+        if (!page.isHomepage) opts.push({ label: 'Delete', danger: true, onSelect: () => deletePage(page.id) });
         return opts;
       },
       { align: 'right', label: `Actions for ${page.title}` }
@@ -173,6 +175,11 @@
     const copy = { ...src, id: uid(), title: `${src.title} (copy)`, isHomepage: false };
     items.splice(idx + 1, 0, copy);
     commit(items);
+  }
+  function deletePage(id) {
+    const cur = findById(tree.getItems(), id);
+    if (!cur || cur.isHomepage) return; // the homepage cannot be deleted
+    commit(tree.getItems().filter((p) => p.id !== id));
   }
 
   // ---------- add / edit modal ----------
