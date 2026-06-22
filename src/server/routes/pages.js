@@ -10,6 +10,7 @@
 
 const express = require('express');
 const crypto = require('crypto');
+const sanitizeHtml = require('sanitize-html');
 const { requireApiAuth } = require('../auth/authGuard');
 const { pagesRepository } = require('../website/PagesRepository');
 const {
@@ -36,6 +37,17 @@ function uniqueId(provided, prefix, used) {
   used.add(id);
   return id;
 }
+
+// Richtext bodies are stored as HTML; sanitize to a small safe allowlist so a
+// stored body can never inject scripts/handlers when rendered.
+const RICHTEXT_SANITIZE = {
+  allowedTags: ['p', 'br', 'b', 'strong', 'i', 'em', 'u', 'h2', 'h3', 'ul', 'ol', 'li', 'a'],
+  allowedAttributes: { a: ['href', 'target', 'rel'] },
+  allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+  transformTags: { div: 'p' },
+  allowProtocolRelative: false,
+};
+const sanitizeRichtext = (html) => sanitizeHtml(str(html), RICHTEXT_SANITIZE);
 
 function cleanColor(raw) {
   const src = raw && typeof raw === 'object' ? raw : {};
@@ -68,7 +80,7 @@ function normalizeContent(raw) {
         column: Number(e.column) === 1 ? 1 : 0, // left (0) / right (1) in a 50/50 section
       };
       if (type === 'code') el.code = str(e.code).slice(0, ELEMENT_BODY_MAX);
-      else el.body = str(e.body).slice(0, ELEMENT_BODY_MAX);
+      else el.body = sanitizeRichtext(e.body).slice(0, ELEMENT_BODY_MAX);
       return el;
     });
     return {

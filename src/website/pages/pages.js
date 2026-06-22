@@ -296,6 +296,124 @@
     selectedElementId = e.id;
     afterContentChange();
   }
+  // Edit icon: richtext opens the focused content modal; code selects (panel).
+  function editElement(secId, elId) {
+    const elc = findElement(secId, elId);
+    if (!elc) return;
+    selectElement(secId, elId);
+    if (elc.type === 'richtext') openRichtextModal(secId, elId);
+  }
+
+  // Focused "Edit richtext" modal — a small WYSIWYG editor. Cannot be dismissed
+  // by clicking outside (only Cancel / Save / close / Escape).
+  function openRichtextModal(secId, elId) {
+    const elc = findElement(secId, elId);
+    if (!elc || elc.type !== 'richtext') return;
+    const prev = document.activeElement;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Edit richtext');
+    const modal = document.createElement('div');
+    modal.className = 'modal modal--rt';
+    overlay.appendChild(modal);
+    modal.innerHTML =
+      '<div class="modal__header"><h2 class="modal__title">Edit richtext</h2>' +
+      '<button type="button" class="modal__close" aria-label="Close dialog"><img src="/shared/close.svg" alt="" /></button></div>';
+
+    const body = document.createElement('div');
+    body.className = 'modal__body';
+    const lab = document.createElement('span');
+    lab.className = 'pgb__label';
+    lab.textContent = 'Content';
+    body.appendChild(lab);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'rt';
+    const toolbar = document.createElement('div');
+    toolbar.className = 'rt__toolbar';
+    toolbar.setAttribute('role', 'toolbar');
+    toolbar.setAttribute('aria-label', 'Formatting');
+    const editor = document.createElement('div');
+    editor.className = 'rt__editor';
+    editor.contentEditable = 'true';
+    editor.setAttribute('role', 'textbox');
+    editor.setAttribute('aria-multiline', 'true');
+    editor.innerHTML = window.RichText.sanitize(elc.body || '');
+
+    const exec = (cmd, val) => { editor.focus(); document.execCommand(cmd, false, val || null); };
+    const TOOLS = [
+      { label: 'Bold', html: '<b>B</b>', run: () => exec('bold') },
+      { label: 'Italic', html: '<i>I</i>', run: () => exec('italic') },
+      { label: 'Underline', html: '<u>U</u>', run: () => exec('underline') },
+      { sep: true },
+      { label: 'Heading', html: 'H2', run: () => exec('formatBlock', 'H2') },
+      { label: 'Subheading', html: 'H3', run: () => exec('formatBlock', 'H3') },
+      { sep: true },
+      { label: 'Bulleted list', html: '&bull;', run: () => exec('insertUnorderedList') },
+      { label: 'Numbered list', html: '1.', run: () => exec('insertOrderedList') },
+      { sep: true },
+      { label: 'Link', html: '&#128279;', run: () => { const u = window.prompt('Link URL', 'https://'); if (u) exec('createLink', u.trim()); } },
+    ];
+    TOOLS.forEach((t) => {
+      if (t.sep) { const s = document.createElement('span'); s.className = 'rt__sep'; toolbar.appendChild(s); return; }
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'rt__tool';
+      b.title = t.label;
+      b.setAttribute('aria-label', t.label);
+      b.innerHTML = t.html;
+      b.addEventListener('mousedown', (e) => e.preventDefault()); // keep the editor's selection
+      b.addEventListener('click', t.run);
+      toolbar.appendChild(b);
+    });
+    wrap.appendChild(toolbar);
+    wrap.appendChild(editor);
+    body.appendChild(wrap);
+    modal.appendChild(body);
+
+    const footer = document.createElement('div');
+    footer.className = 'modal__footer';
+    footer.innerHTML =
+      '<button type="button" class="modal__btn modal__btn--cancel">Cancel</button>' +
+      '<button type="button" class="modal__btn modal__btn--primary" data-save>Save</button>';
+    modal.appendChild(footer);
+
+    document.body.appendChild(overlay);
+    document.body.classList.add('is-locked');
+    try { document.execCommand('defaultParagraphSeparator', false, 'p'); } catch (_) { /* not supported */ }
+
+    function close() {
+      document.removeEventListener('keydown', onKey, true);
+      overlay.remove();
+      document.body.classList.remove('is-locked');
+      if (prev && prev.focus) prev.focus();
+    }
+    modal.querySelector('.modal__close').addEventListener('click', close);
+    footer.querySelector('.modal__btn--cancel').addEventListener('click', close);
+    footer.querySelector('[data-save]').addEventListener('click', () => {
+      const target = findElement(secId, elId);
+      if (target) { target.body = window.RichText.sanitize(editor.innerHTML); afterContentChange(); }
+      close();
+    });
+    // Deliberately NO overlay-click handler — the user can't click outside to exit.
+    function onKey(e) {
+      if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+      if (e.key === 'Tab') {
+        const f = Array.from(modal.querySelectorAll('button, [contenteditable="true"]')).filter((el) => el.offsetParent !== null);
+        if (!f.length) return;
+        const first = f[0];
+        const last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    }
+    document.addEventListener('keydown', onKey, true);
+    editor.focus();
+  }
+
   function deleteElement(secId, elId) {
     const sec = findSection(secId);
     if (!sec) return;
@@ -615,7 +733,20 @@
     if (elc.type === 'code') {
       settings.appendChild(buildTextarea('Code', elc.code, limits.body, (v) => { elc.code = v; afterFieldEdit(); }, true));
     } else {
-      settings.appendChild(buildTextarea('Content', elc.body, limits.body, (v) => { elc.body = v; afterFieldEdit(); }, false, 'Leave a blank line between paragraphs.'));
+      // Richtext content is edited in a focused modal (also via the toolbar's edit icon).
+      const field = document.createElement('div');
+      field.className = 'pgb__field';
+      const lab = document.createElement('span');
+      lab.className = 'pgb__label';
+      lab.textContent = 'Content';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn btn--secondary';
+      btn.textContent = 'Edit content';
+      btn.addEventListener('click', () => openRichtextModal(selectedSectionId, elc.id));
+      field.appendChild(lab);
+      field.appendChild(btn);
+      settings.appendChild(field);
     }
     builderView.appendChild(settings);
   }
@@ -631,6 +762,7 @@
         onAddElement: (sid, col) => addElement(sid, col),
         onSelectSection: selectSection,
         onSelectElement: selectElement,
+        onEditElement: (sid, elId) => editElement(sid, elId),
         onDeleteSection: deleteSection,
         onDeleteElement: deleteElement,
       },

@@ -135,3 +135,30 @@
     #fafafa;
 }
 .elchoose__name { padding: 12px 16px; font-size: 14px; color: var(--gray-700); }
+
+/* Edit richtext modal — focused WYSIWYG editor. */
+.modal.modal--rt { width: min(800px, 94vw); }
+.rt { border: 1px solid var(--gray-200); border-radius: 6px; overflow: hidden; }
+.rt__toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 2px;
+  padding: 6px 8px; border-bottom: 1px solid var(--gray-200); background: #fafafa;
+}
+.rt__tool {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 32px; height: 32px; padding: 0 8px;
+  border: 0; border-radius: 4px; background: none; color: var(--gray-700);
+  font-size: 15px; line-height: 1; cursor: pointer;
+}
+.rt__tool:hover { background: var(--gray-200, #d7d8da); }
+.rt__tool:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); }
+.rt__sep { width: 1px; height: 20px; background: var(--gray-200); margin: 0 4px; }
+.rt__editor {
+  min-height: 240px; max-height: 48vh; overflow: auto;
+  padding: 12px 16px; font: 400 15px/1.6 "Noto Sans", Arial, sans-serif; color: var(--gray-700);
+}
+.rt__editor:focus { outline: none; }
+.rt__editor h2 { font-size: 22px; font-weight: 600; margin: 0 0 8px; }
+.rt__editor h3 { font-size: 18px; font-weight: 600; margin: 0 0 8px; }
+.rt__editor p { margin: 0 0 8px; }
+.rt__editor ul, .rt__editor ol { padding-left: 24px; margin: 0 0 8px; }
+.rt__editor a { color: #2d62b7; text-decoration: underline; }

@@ -188,7 +188,7 @@
         if (element.id === blr.selectedElementId) elt.classList.add('is-selected');
         elt.addEventListener('click', (e) => { e.stopPropagation(); cb.onSelectElement && cb.onSelectElement(section.id, element.id); });
         elt.appendChild(blockToolbar(
-          () => cb.onSelectElement && cb.onSelectElement(section.id, element.id),
+          () => cb.onEditElement && cb.onEditElement(section.id, element.id),
           () => cb.onDeleteElement && cb.onDeleteElement(section.id, element.id)
         ));
         if (element.displayTitle && element.title) elt.appendChild(el('h3', 'wsprev__eltitle', element.title));
@@ -199,10 +199,14 @@
           pre.appendChild(code);
           elt.appendChild(pre);
         } else {
-          const text = String(element.body || '');
-          const paras = text.split(/\n{2,}/).filter((q) => q.trim());
-          if (paras.length) paras.forEach((para) => elt.appendChild(el('p', 'wsprev__eltext', para)));
-          else elt.appendChild(el('p', 'wsprev__elempty', 'Empty rich text.'));
+          const html = String(element.body || '');
+          if (html.replace(/<[^>]*>/g, '').trim() || /<(br|img|hr)/i.test(html)) {
+            const rt = el('div', 'wsprev__richtext');
+            rt.innerHTML = window.RichText ? window.RichText.sanitize(html) : '';
+            elt.appendChild(rt);
+          } else {
+            elt.appendChild(el('p', 'wsprev__elempty', 'Empty rich text.'));
+          }
         }
         return elt;
       }
