@@ -84,6 +84,15 @@
 .wsprev__richtext ul, .wsprev__richtext ol { margin: 0 0 12px; padding-left: 24px; }
 .wsprev__richtext li { margin: 0 0 4px; }
 .wsprev__richtext a { color: var(--rt-link, #255096); text-decoration: underline; }
+.wsprev__richtext h1 { margin: 0 0 12px; font-size: 30px; font-weight: 700; color: var(--rt-heading, #3d3f42); }
+.wsprev__richtext h4 { margin: 0 0 8px; font-size: 16px; font-weight: 600; color: var(--rt-heading, #3d3f42); }
+.wsprev__richtext h5 { margin: 0 0 8px; font-size: 14px; font-weight: 600; color: var(--rt-heading, #3d3f42); }
+.wsprev__richtext blockquote { margin: 0 0 12px; padding: 4px 0 4px 16px; border-left: 3px solid var(--gray-200, #d7d8da); color: #6e7277; }
+.wsprev__richtext hr { border: 0; border-top: 1px solid var(--gray-200, #d7d8da); margin: 16px 0; }
+.wsprev__richtext img { max-width: 100%; height: auto; border-radius: 4px; }
+.wsprev__richtext table { width: 100%; border-collapse: collapse; margin: 0 0 12px; }
+.wsprev__richtext td, .wsprev__richtext th { border: 1px solid var(--gray-200, #d7d8da); padding: 6px 8px; text-align: left; }
+.wsprev__richtext sub, .wsprev__richtext sup { font-size: 0.75em; }
 .wsprev__code {
   margin: 0; padding: 16px; border-radius: 6px;
   background: #1e2433; color: #e6e9f0; overflow: auto;

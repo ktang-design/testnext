@@ -215,7 +215,12 @@
           () => cb.onEditElement && cb.onEditElement(section.id, element.id),
           () => cb.onDeleteElement && cb.onDeleteElement(section.id, element.id)
         ));
-        if (element.displayTitle && element.title) elt.appendChild(el('h3', 'wsprev__eltitle', element.title));
+        if (element.displayTitle && element.title) {
+          const t = el('h3', 'wsprev__eltitle', element.title);
+          const h = element.style && element.style.heading;
+          if (h && h.opacity > 0) t.style.color = rgba(h); // title inherits the Heading colour
+          elt.appendChild(t);
+        }
         if (element.type === 'code') {
           const pre = el('pre', 'wsprev__code');
           const code = document.createElement('code');

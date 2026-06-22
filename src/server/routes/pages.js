@@ -41,10 +41,20 @@ function uniqueId(provided, prefix, used) {
 // Richtext bodies are stored as HTML; sanitize to a small safe allowlist so a
 // stored body can never inject scripts/handlers when rendered.
 const RICHTEXT_SANITIZE = {
-  allowedTags: ['p', 'br', 'b', 'strong', 'i', 'em', 'u', 'h2', 'h3', 'ul', 'ol', 'li', 'a'],
-  allowedAttributes: { a: ['href', 'target', 'rel'] },
+  allowedTags: [
+    'p', 'br', 'div', 'b', 'strong', 'i', 'em', 'u', 's', 'strike', 'sub', 'sup',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'ul', 'ol', 'li', 'a', 'blockquote', 'hr', 'img',
+    'table', 'thead', 'tbody', 'tr', 'td', 'th',
+  ],
+  allowedAttributes: { a: ['href', 'target', 'rel'], img: ['src', 'alt'], '*': ['style'] },
+  allowedStyles: {
+    '*': {
+      'text-align': [/^(left|right|center|justify)$/],
+      'margin-left': [/^\d+(\.\d+)?(px|em|rem)$/],
+    },
+  },
   allowedSchemes: ['http', 'https', 'mailto', 'tel'],
-  transformTags: { div: 'p' },
+  allowedSchemesByTag: { img: ['http', 'https'] }, // no data:/svg in <img> (avoid XSS)
   allowProtocolRelative: false,
 };
 const sanitizeRichtext = (html) => sanitizeHtml(str(html), RICHTEXT_SANITIZE);

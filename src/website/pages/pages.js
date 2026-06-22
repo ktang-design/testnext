@@ -344,18 +344,40 @@
     editor.innerHTML = window.RichText.sanitize(elc.body || '');
 
     const exec = (cmd, val) => { editor.focus(); document.execCommand(cmd, false, val || null); };
+    const ic = (paths) => `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
+    const insertLink = () => { const u = window.prompt('Link URL', 'https://'); if (u) exec('createLink', u.trim()); };
+    const insertImage = () => { const u = window.prompt('Image URL (https://…)', 'https://'); if (u) exec('insertImage', u.trim()); };
+    const insertTable = () => exec('insertHTML', '<table><tbody><tr><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td></tr></tbody></table><p><br></p>');
     const TOOLS = [
+      { label: 'Heading 1', html: 'H1', run: () => exec('formatBlock', 'H1') },
+      { label: 'Heading 2', html: 'H2', run: () => exec('formatBlock', 'H2') },
+      { label: 'Heading 3', html: 'H3', run: () => exec('formatBlock', 'H3') },
+      { label: 'Heading 4', html: 'H4', run: () => exec('formatBlock', 'H4') },
+      { label: 'Heading 5', html: 'H5', run: () => exec('formatBlock', 'H5') },
+      { sep: true },
       { label: 'Bold', html: '<b>B</b>', run: () => exec('bold') },
       { label: 'Italic', html: '<i>I</i>', run: () => exec('italic') },
       { label: 'Underline', html: '<u>U</u>', run: () => exec('underline') },
+      { label: 'Strikethrough', html: '<s>S</s>', run: () => exec('strikeThrough') },
+      { label: 'Subscript', html: 'X<sub>2</sub>', run: () => exec('subscript') },
+      { label: 'Superscript', html: 'X<sup>2</sup>', run: () => exec('superscript') },
       { sep: true },
-      { label: 'Heading', html: 'H2', run: () => exec('formatBlock', 'H2') },
-      { label: 'Subheading', html: 'H3', run: () => exec('formatBlock', 'H3') },
+      { label: 'Align left', html: ic('<path d="M2 4h12M2 8h8M2 12h11"/>'), run: () => exec('justifyLeft') },
+      { label: 'Align center', html: ic('<path d="M2 4h12M4 8h8M3 12h10"/>'), run: () => exec('justifyCenter') },
+      { label: 'Align right', html: ic('<path d="M2 4h12M6 8h8M3 12h11"/>'), run: () => exec('justifyRight') },
       { sep: true },
-      { label: 'Bulleted list', html: '&bull;', run: () => exec('insertUnorderedList') },
-      { label: 'Numbered list', html: '1.', run: () => exec('insertOrderedList') },
+      { label: 'Indent', html: ic('<path d="M7 4h7M7 8h7M2 12h12M2 5l3 3-3 3"/>'), run: () => exec('indent') },
+      { label: 'Outdent', html: ic('<path d="M7 4h7M7 8h7M2 12h12M5 5l-3 3 3 3"/>'), run: () => exec('outdent') },
       { sep: true },
-      { label: 'Link', html: '&#128279;', run: () => { const u = window.prompt('Link URL', 'https://'); if (u) exec('createLink', u.trim()); } },
+      { label: 'Bulleted list', html: ic('<circle cx="3" cy="4.5" r="0.9"/><circle cx="3" cy="8" r="0.9"/><circle cx="3" cy="11.5" r="0.9"/><path d="M6.5 4.5h7.5M6.5 8h7.5M6.5 11.5h7.5"/>'), run: () => exec('insertUnorderedList') },
+      { label: 'Numbered list', html: '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><text x="0" y="6" font-size="5.5" font-weight="700" fill="currentColor">1</text><text x="0" y="13.5" font-size="5.5" font-weight="700" fill="currentColor">2</text><path d="M6.5 4.5h7.5M6.5 11.5h7.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>', run: () => exec('insertOrderedList') },
+      { sep: true },
+      { label: 'Quote', html: ic('<path d="M4 5h3v3a3 3 0 0 1-3 3M9 5h3v3a3 3 0 0 1-3 3"/>'), run: () => exec('formatBlock', 'BLOCKQUOTE') },
+      { label: 'Divider', html: ic('<path d="M2 8h12"/>'), run: () => exec('insertHorizontalRule') },
+      { sep: true },
+      { label: 'Link', html: ic('<path d="M6.5 9.5 9.5 6.5M7 4.5 8.5 3a2.5 2.5 0 0 1 3.5 3.5L10.5 8M9 11.5 7.5 13A2.5 2.5 0 0 1 4 9.5L5.5 8"/>'), run: insertLink },
+      { label: 'Image / media', html: ic('<rect x="2" y="3" width="12" height="10" rx="1"/><circle cx="5.5" cy="6.5" r="1.1"/><path d="M3 12.5 6.5 9l2.5 2.5 2-2 2 2.5"/>'), run: insertImage },
+      { label: 'Table', html: ic('<rect x="2" y="3" width="12" height="10" rx="1"/><path d="M2 7h12M2 10.5h12M6.5 3v10M10 3v10"/>'), run: insertTable },
     ];
     TOOLS.forEach((t) => {
       if (t.sep) { const s = document.createElement('span'); s.className = 'rt__sep'; toolbar.appendChild(s); return; }
