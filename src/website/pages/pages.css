@@ -26,6 +26,30 @@
 .navpanel__add[data-tooltip]:focus-visible::after,
 .navpanel__add[data-tooltip]:focus-visible::before { opacity: 1; visibility: visible; }
 
+/* The homepage's reorder handle is disabled (it's pinned to the top), with a
+   tooltip explaining why. Left-aligned to the handle so the panel's clipped
+   x-overflow (overflow-y:auto) doesn't cut it off. */
+.navtree__handle.is-locked { color: var(--gray-300, #c9cbcf); cursor: not-allowed; }
+.navtree__handle.is-locked:hover { background: none; color: var(--gray-300, #c9cbcf); }
+.navtree__handle[data-tooltip] { position: relative; }
+.navtree__handle[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute; top: calc(100% + 8px); left: 0;
+  padding: 5px 8px; border-radius: 4px;
+  background: var(--gray-700, #3d3f42); color: #fff;
+  font: 400 13px/1.4 "Noto Sans", Arial, sans-serif; white-space: nowrap;
+}
+.navtree__handle[data-tooltip]::before {
+  content: ""; position: absolute; top: calc(100% + 3px); left: 6px;
+  border: 5px solid transparent; border-bottom-color: var(--gray-700, #3d3f42);
+}
+.navtree__handle[data-tooltip]::after,
+.navtree__handle[data-tooltip]::before { opacity: 0; visibility: hidden; transition: opacity 0.12s ease; pointer-events: none; z-index: 30; }
+.navtree__handle[data-tooltip]:hover::after,
+.navtree__handle[data-tooltip]:hover::before,
+.navtree__handle[data-tooltip]:focus-visible::after,
+.navtree__handle[data-tooltip]:focus-visible::before { opacity: 1; visibility: visible; }
+
 /* Trailing actions: a gold homepage indicator (shown only on the homepage row,
    non-interactive) + the actions menu. The homepage is set from that menu. */
 .pageitem__actions { display: inline-flex; align-items: center; gap: 2px; }

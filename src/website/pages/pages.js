@@ -115,6 +115,10 @@
       labelOf: (p) => p.title,
       renderContent,
       renderTrailing,
+      // The homepage is pinned to the top, so its reorder handle is disabled.
+      itemAttrs: (p) => (p.isHomepage
+        ? { draggable: false, handleTooltip: 'The homepage cannot be reordered', className: 'is-pinned' }
+        : {}),
       onChange: () => {
         // A drag that moved a page above the homepage re-pins it to the top.
         const items2 = tree.getItems();

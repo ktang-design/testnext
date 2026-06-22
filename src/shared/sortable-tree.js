@@ -344,15 +344,26 @@
       const row = document.createElement('div');
       row.className = 'navtree__row';
 
+      // A locked item (itemAttrs -> draggable:false) renders a disabled handle:
+      // no pointer/keyboard drag, greyed out, with an optional explanatory
+      // tooltip (data-tooltip, styled by the host page).
+      const locked = attrs.draggable === false;
       const handle = document.createElement('button');
       handle.type = 'button';
-      handle.className = 'navtree__handle';
+      handle.className = 'navtree__handle' + (locked ? ' is-locked' : '');
       handle.innerHTML = GRIP;
-      handle.setAttribute('aria-describedby', instr.id);
-      handle.setAttribute('aria-label',
-        `Reorder ${labelOf(item)}. ${grabbedId === item.id ? 'Currently grabbed. ' : ''}${levelText(item.id)}.`);
-      handle.addEventListener('keydown', (e) => onHandleKey(e, item.id));
-      handle.addEventListener('pointerdown', (e) => onHandlePointerDown(e, item.id));
+      if (locked) {
+        handle.setAttribute('aria-disabled', 'true');
+        handle.tabIndex = -1;
+        handle.setAttribute('aria-label', `${labelOf(item)} is pinned and cannot be reordered.`);
+        if (attrs.handleTooltip) handle.setAttribute('data-tooltip', attrs.handleTooltip);
+      } else {
+        handle.setAttribute('aria-describedby', instr.id);
+        handle.setAttribute('aria-label',
+          `Reorder ${labelOf(item)}. ${grabbedId === item.id ? 'Currently grabbed. ' : ''}${levelText(item.id)}.`);
+        handle.addEventListener('keydown', (e) => onHandleKey(e, item.id));
+        handle.addEventListener('pointerdown', (e) => onHandlePointerDown(e, item.id));
+      }
       row.appendChild(handle);
 
       const content = document.createElement('div');
