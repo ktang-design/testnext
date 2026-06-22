@@ -65,18 +65,19 @@
     const wrap = document.createElement('span');
     wrap.className = 'pageitem__actions';
 
-    // Homepage star
-    const star = document.createElement('button');
-    star.type = 'button';
-    star.className = 'pageitem__star' + (page.isHomepage ? ' is-home' : '');
-    star.setAttribute('aria-pressed', page.isHomepage ? 'true' : 'false');
-    star.setAttribute('aria-label', page.isHomepage ? `${page.title} is the homepage` : `Set ${page.title} as homepage`);
-    star.title = page.isHomepage ? 'Homepage' : 'Set as homepage';
-    star.appendChild(svg('<path d="M8 2.1 9.85 5.85 14 6.46 11 9.38 11.71 13.5 8 11.56 4.29 13.5 5 9.38 2 6.46 6.15 5.85Z"/>'));
-    star.addEventListener('click', () => setHomepage(page.id));
-    wrap.appendChild(star);
+    // Homepage indicator — shown only on the homepage row and non-interactive.
+    // The homepage is reassigned from the menu, not by clicking the star.
+    if (page.isHomepage) {
+      const star = document.createElement('span');
+      star.className = 'pageitem__star';
+      star.setAttribute('role', 'img');
+      star.setAttribute('aria-label', 'Homepage');
+      star.title = 'Homepage';
+      star.appendChild(svg('<path d="M8 2.1 9.85 5.85 14 6.46 11 9.38 11.71 13.5 8 11.56 4.29 13.5 5 9.38 2 6.46 6.15 5.85Z"/>'));
+      wrap.appendChild(star);
+    }
 
-    // Edit / Duplicate menu
+    // Actions menu — "Set as homepage" only appears for non-homepage pages.
     const kebab = document.createElement('button');
     kebab.type = 'button';
     kebab.className = 'navtree__kebab';
@@ -84,10 +85,13 @@
     kebab.appendChild(svg('<circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/>'));
     window.Popover.attach(
       kebab,
-      () => [
-        { label: 'Edit', onSelect: () => editPage(page.id) },
-        { label: 'Duplicate', onSelect: () => duplicatePage(page.id) },
-      ],
+      () => {
+        const opts = [];
+        if (!page.isHomepage) opts.push({ label: 'Set as homepage', onSelect: () => setHomepage(page.id) });
+        opts.push({ label: 'Edit', onSelect: () => editPage(page.id) });
+        opts.push({ label: 'Duplicate', onSelect: () => duplicatePage(page.id) });
+        return opts;
+      },
       { align: 'right', label: `Actions for ${page.title}` }
     );
     wrap.appendChild(kebab);
