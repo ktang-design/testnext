@@ -193,6 +193,8 @@
         ));
         if (section.displayTitle && section.title) sec.appendChild(el('h2', 'wsprev__sectitle', section.title));
 
+        const elementsWrap = el('div', 'wsprev__elements');
+        if (Number(section.columns) === 2) elementsWrap.classList.add('wsprev__elements--split');
         (section.elements || []).forEach((element) => {
           const elt = el('div', 'wsprev__el');
           elt.dataset.id = element.id;
@@ -215,8 +217,9 @@
             if (paras.length) paras.forEach((para) => elt.appendChild(el('p', 'wsprev__eltext', para)));
             else elt.appendChild(el('p', 'wsprev__elempty', 'Empty rich text.'));
           }
-          sec.appendChild(elt);
+          elementsWrap.appendChild(elt);
         });
+        sec.appendChild(elementsWrap);
 
         sec.appendChild(cta('Add element', () => cb.onAddElement && cb.onAddElement(section.id)));
         body.appendChild(sec);

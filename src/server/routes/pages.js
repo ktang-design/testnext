@@ -74,6 +74,7 @@ function normalizeContent(raw) {
       id: uniqueId(str(s.id), 'sec', usedSec),
       title: str(s.title).slice(0, SECTION_TITLE_MAX),
       displayTitle: bool(s.displayTitle),
+      columns: Number(s.columns) === 2 ? 2 : 1, // 100% (1) or 50% / 50% (2)
       background: cleanColor(s.background),
       elements,
     };

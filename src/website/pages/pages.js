@@ -263,7 +263,7 @@
   function addSection() {
     const secs = getSections();
     if (secs.length >= limits.maxSections) return;
-    const s = { id: uid('sec'), title: `Section ${secs.length + 1}`, displayTitle: true, background: { color: '#FFFFFF', opacity: 100 }, elements: [] };
+    const s = { id: uid('sec'), title: `Section ${secs.length + 1}`, displayTitle: true, columns: 1, background: { color: '#FFFFFF', opacity: 100 }, elements: [] };
     secs.push(s);
     selectedSectionId = s.id;
     selectedElementId = null;
@@ -400,7 +400,7 @@
       b.type = 'button';
       b.className = 'navpanel__add pgb__add';
       b.setAttribute('aria-label', addLabel);
-      b.title = addLabel;
+      b.setAttribute('data-tooltip', addLabel);
       b.innerHTML = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>';
       b.addEventListener('click', onAdd);
       head.appendChild(b);
@@ -451,6 +451,36 @@
     ta.value = value || '';
     ta.addEventListener('input', () => onInput(ta.value));
     field.appendChild(ta);
+    return field;
+  }
+  function buildRadio(labelText, options, value, onChange) {
+    const field = document.createElement('div');
+    field.className = 'pgb__field';
+    const lab = document.createElement('span');
+    lab.className = 'pgb__label';
+    lab.textContent = labelText;
+    field.appendChild(lab);
+    const group = document.createElement('div');
+    group.className = 'pgb__radios';
+    group.setAttribute('role', 'radiogroup');
+    group.setAttribute('aria-label', labelText);
+    const name = uid('r');
+    options.forEach((o) => {
+      const wrap = document.createElement('label');
+      wrap.className = 'pgb__radio';
+      const input = document.createElement('input');
+      input.type = 'radio';
+      input.name = name;
+      input.value = String(o.value);
+      input.checked = String(o.value) === String(value);
+      input.addEventListener('change', () => { if (input.checked) onChange(o.value); });
+      const span = document.createElement('span');
+      span.textContent = o.label;
+      wrap.appendChild(input);
+      wrap.appendChild(span);
+      group.appendChild(wrap);
+    });
+    field.appendChild(group);
     return field;
   }
   function buildCheckbox(labelText, checked, onChange) {
@@ -556,6 +586,7 @@
     settings.className = 'pgb__settings';
     settings.appendChild(buildTextField('Title', sec.title, limits.sectionTitle, (v) => { sec.title = v; afterFieldEdit(); }));
     settings.appendChild(buildCheckbox('Display section title', sec.displayTitle, (v) => { sec.displayTitle = v; afterFieldEdit(); }));
+    settings.appendChild(buildRadio('Column layout', [{ value: 1, label: '100%' }, { value: 2, label: '50% / 50%' }], sec.columns || 1, (v) => { sec.columns = v; afterFieldEdit(); }));
     settings.appendChild(makeColorRow('Background', sec.background, afterFieldEdit));
     builderView.appendChild(settings);
 
@@ -572,8 +603,6 @@
         renderTrailing: (it) => { const e = findElement(sec.id, it.id); return rowKebab(e && e.title, [{ label: 'Edit', onSelect: () => selectElement(sec.id, it.id) }, { label: 'Delete', danger: true, onSelect: () => deleteElement(sec.id, it.id) }]); },
         onChange: () => reorderElements(sec.id, elementTree.getItems().map((it) => it.id)),
       });
-    } else {
-      builderView.appendChild(buildEmpty('No elements yet. Use the + button to add rich text or code.'));
     }
   }
 
