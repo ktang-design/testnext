@@ -78,6 +78,7 @@ const SCHEMA = [
     status      TEXT NOT NULL DEFAULT 'published',
     description TEXT NOT NULL DEFAULT '',
     is_homepage INTEGER NOT NULL DEFAULT 0,
+    content     TEXT NOT NULL DEFAULT '{"sections":[]}',
     sort        INTEGER NOT NULL DEFAULT 0,
     updated_at  TEXT NOT NULL,
     PRIMARY KEY (user_id, id)
@@ -115,6 +116,7 @@ const SCHEMA = [
 const COLUMN_PATCHES = [
   { table: 'pages', column: 'description', ddl: "ALTER TABLE pages ADD COLUMN description TEXT NOT NULL DEFAULT ''" },
   { table: 'pages', column: 'is_homepage', ddl: 'ALTER TABLE pages ADD COLUMN is_homepage INTEGER NOT NULL DEFAULT 0' },
+  { table: 'pages', column: 'content', ddl: 'ALTER TABLE pages ADD COLUMN content TEXT NOT NULL DEFAULT \'{"sections":[]}\'' },
 ];
 async function ensureColumns() {
   for (const p of COLUMN_PATCHES) {

@@ -6,6 +6,14 @@
 const { get, all, batch } = require('../db/database');
 const { DEFAULT_PAGES } = require('./defaults');
 
+function safeContent(raw) {
+  try {
+    const c = JSON.parse(raw);
+    if (c && Array.isArray(c.sections)) return c;
+  } catch (_) { /* fall through */ }
+  return { sections: [] };
+}
+
 // Map a DB row to the shape the API/client use (is_homepage 0/1 -> boolean).
 function toPage(row) {
   return {
@@ -15,11 +23,12 @@ function toPage(row) {
     status: row.status,
     description: row.description || '',
     isHomepage: !!row.is_homepage,
+    content: safeContent(row.content),
     sort: row.sort,
   };
 }
 
-const SELECT = 'SELECT id, title, slug, status, description, is_homepage, sort FROM pages';
+const SELECT = 'SELECT id, title, slug, status, description, is_homepage, content, sort FROM pages';
 
 class PagesRepository {
   async list(userId) {
@@ -48,8 +57,8 @@ class PagesRepository {
     const stmts = [{ sql: 'DELETE FROM pages WHERE user_id = ?', args: [userId] }];
     pages.forEach((p, i) => {
       stmts.push({
-        sql: 'INSERT INTO pages (id, user_id, title, slug, status, description, is_homepage, sort, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        args: [p.id, userId, p.title, p.slug, p.status, p.description || '', p.isHomepage ? 1 : 0, i, now],
+        sql: 'INSERT INTO pages (id, user_id, title, slug, status, description, is_homepage, content, sort, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        args: [p.id, userId, p.title, p.slug, p.status, p.description || '', p.isHomepage ? 1 : 0, JSON.stringify(p.content || { sections: [] }), i, now],
       });
     });
     await batch(stmts, 'write');
@@ -62,8 +71,8 @@ class PagesRepository {
     if ((await this.count(userId)) > 0) return;
     const now = new Date().toISOString();
     const stmts = DEFAULT_PAGES.map((p, i) => ({
-      sql: 'INSERT INTO pages (id, user_id, title, slug, status, description, is_homepage, sort, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      args: [p.id, userId, p.title, p.slug, p.status, p.description || '', p.isHomepage ? 1 : 0, i, now],
+      sql: 'INSERT INTO pages (id, user_id, title, slug, status, description, is_homepage, content, sort, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      args: [p.id, userId, p.title, p.slug, p.status, p.description || '', p.isHomepage ? 1 : 0, JSON.stringify(p.content || { sections: [] }), i, now],
     }));
     if (stmts.length) await batch(stmts, 'write');
   }

@@ -304,6 +304,11 @@ body.is-locked { overflow: hidden; }
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.15);
 }
 .modal__btn--primary:hover { background: #356bc4; }
+.modal__btn--danger {
+  background: #d71818; border: 0; color: #fff;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.15);
+}
+.modal__btn--danger:hover { background: #b91414; }
 .modal__btn:focus-visible { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3e75cf; }
 
 /* Form fields inside a modal. The last field drops its bottom margin so the

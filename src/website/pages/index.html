@@ -97,23 +97,29 @@
     <div class="content">
       <div class="navworkspace">
         <section class="navpanel" aria-labelledby="pagespanel-title">
-          <div class="navpanel__head">
-            <h1 class="navpanel__title" id="pagespanel-title">Pages</h1>
-            <button type="button" class="navpanel__add" data-add aria-label="Add page" data-tooltip="Add page">
-              <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
-            </button>
+          <!-- List view: the pages list -->
+          <div data-list-view>
+            <div class="navpanel__head">
+              <h1 class="navpanel__title" id="pagespanel-title">Pages</h1>
+              <button type="button" class="navpanel__add" data-add aria-label="Add page" data-tooltip="Add page">
+                <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
+              </button>
+            </div>
+            <p class="navpanel__desc">
+              Select a page to start creating and editing content. Drag and drop
+              pages to organize in your preferred order.
+            </p>
+
+            <div class="navpanel__tree" data-tree></div>
+
+            <p class="navpanel__empty" data-empty hidden>
+              No pages yet. Use the <span aria-hidden="true">+</span><span class="sr-only">add</span>
+              button to add your first page.
+            </p>
           </div>
-          <p class="navpanel__desc">
-            Select a page to start creating and editing content. Drag and drop
-            pages to organize in your preferred order.
-          </p>
 
-          <div class="navpanel__tree" data-tree></div>
-
-          <p class="navpanel__empty" data-empty hidden>
-            No pages yet. Use the <span aria-hidden="true">+</span><span class="sr-only">add</span>
-            button to add your first page.
-          </p>
+          <!-- Builder view: per-page content builder (sections + elements), built in JS -->
+          <div data-builder-view hidden></div>
         </section>
 
         <div class="navpreview" role="img" aria-label="Live website preview">
@@ -125,6 +131,8 @@
       <footer class="pageactions">
         <div class="pageactions__inner">
           <span class="save-status" data-save-status role="status" aria-live="polite" hidden>Unsaved changes</span>
+          <button type="button" class="btn btn--secondary" data-action="back" hidden>Back to pages</button>
+          <button type="button" class="btn btn--secondary" data-action="publish" hidden>Publish page</button>
           <button type="button" class="btn btn--primary" data-action="save" disabled>
             <span class="btn__spinner" aria-hidden="true"></span>
             <span class="btn__label">Save</span>

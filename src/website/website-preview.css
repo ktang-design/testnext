@@ -37,8 +37,64 @@
 .wsprev__nav { display: flex; flex-wrap: wrap; gap: 28px; align-items: center; }
 .wsprev__navlink { font-weight: 600; font-size: 15px; white-space: nowrap; }
 
-/* Page body — intentionally empty until the user publishes page content. */
+/* Page body — empty in list view; the content builder fills it. */
 .wsprev__body { flex: 1; min-height: 460px; background: #fff; }
+
+/* ---- Content builder overlays (only shown while editing a page) ---- */
+/* Blue "Add section / Add element" call-to-action blocks (Figma #E9EFFA). */
+.wsprev__cta {
+  display: flex; justify-content: center; align-items: center;
+  background: #e9effa; padding: 28px; margin: 8px 34px;
+}
+.wsprev__section > .wsprev__cta { margin: 12px 0 0; }
+.wsprev__ctabtn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 16px; border: 0; border-radius: 4px; background: #fff;
+  color: #2d62b7; font: 600 15px/1 "Noto Sans", Arial, sans-serif; cursor: pointer;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.1);
+}
+.wsprev__ctabtn:hover { background: #f5f8ff; }
+
+/* Section + element blocks. The selected block gets a pink/rose outline and its
+   grip/edit/trash toolbar; others reveal the toolbar on hover. */
+.wsprev__section { position: relative; padding: 24px 34px; }
+.wsprev__el { position: relative; padding: 12px 0; cursor: pointer; }
+.wsprev__section.is-selected,
+.wsprev__el.is-selected { outline: 2px solid #e0489b; outline-offset: -2px; border-radius: 4px; }
+.wsprev__section:hover { outline: 1px dashed #cdd6e6; outline-offset: -1px; }
+
+.wsprev__sectitle { margin: 0 0 12px; font-size: 22px; font-weight: 600; color: #3d3f42; }
+.wsprev__eltitle { margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #3d3f42; }
+.wsprev__eltext { margin: 0 0 12px; font-size: 15px; line-height: 1.6; color: #55585d; white-space: pre-wrap; }
+.wsprev__eltext:last-child { margin-bottom: 0; }
+.wsprev__elempty { margin: 0; font-size: 14px; font-style: italic; color: #8d9095; }
+.wsprev__code {
+  margin: 0; padding: 16px; border-radius: 6px;
+  background: #1e2433; color: #e6e9f0; overflow: auto;
+  font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* Floating toolbar (top-right of a section/element). */
+.wsprev__toolbar {
+  position: absolute; top: 6px; right: 8px; z-index: 2;
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 4px; border-radius: 6px; background: #fff;
+  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.16);
+  opacity: 0; visibility: hidden; transition: opacity 0.1s ease;
+}
+.wsprev__section:hover > .wsprev__toolbar,
+.wsprev__el:hover > .wsprev__toolbar,
+.wsprev__section.is-selected > .wsprev__toolbar,
+.wsprev__el.is-selected > .wsprev__toolbar { opacity: 1; visibility: visible; }
+.wsprev__tbgrip,
+.wsprev__tbbtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border: 0; border-radius: 4px; background: none;
+  color: #55585d; cursor: pointer;
+}
+.wsprev__tbgrip { cursor: grab; }
+.wsprev__tbbtn:hover { background: var(--gray-100, #f5f5f5); }
+.wsprev__tbbtn svg { fill: none; }
 
 /* Footer */
 .wsprev__footer {

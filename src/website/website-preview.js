@@ -46,6 +46,8 @@
       typography: TYPO_D,
       branding: BRAND_D,
       platformLogo: null,
+      builder: null,          // { sections, selectedSectionId, selectedElementId } when editing a page
+      builderCallbacks: {},   // { onAddSection, onAddElement, onSelectSection, onSelectElement, onDeleteSection, onDeleteElement }
     };
 
     // ---- Canvas scaffold: viewport > sizer > site mock, plus a HUD overlay ----
@@ -141,6 +143,87 @@
       return img;
     }
 
+    // ---- Content builder overlays (only the body changes; header/footer stay) ----
+    function iconBtn(cls, label, paths, onClick) {
+      const b = el('button', cls);
+      b.type = 'button';
+      b.title = label;
+      b.setAttribute('aria-label', label);
+      b.innerHTML = paths;
+      b.addEventListener('click', (e) => { e.stopPropagation(); onClick(); });
+      return b;
+    }
+    const GRIP = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><circle cx="5.5" cy="3" r="1.3"/><circle cx="10.5" cy="3" r="1.3"/><circle cx="5.5" cy="8" r="1.3"/><circle cx="10.5" cy="8" r="1.3"/><circle cx="5.5" cy="13" r="1.3"/><circle cx="10.5" cy="13" r="1.3"/></svg>';
+    const PENCIL = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M10.8 2.6 13.4 5.2 5.4 13.2H2.8v-2.6z"/></svg>';
+    const TRASH = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5h10M6 4.5V3h4v1.5M4.8 4.5 5.4 13h5.2l.6-8.5"/></svg>';
+    const PLUSC = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6.4"/><path d="M8 5v6M5 8h6"/></svg>';
+
+    function blockToolbar(onEdit, onDelete) {
+      const tb = el('div', 'wsprev__toolbar');
+      const grip = el('span', 'wsprev__tbgrip');
+      grip.innerHTML = GRIP;
+      tb.appendChild(grip);
+      tb.appendChild(iconBtn('wsprev__tbbtn', 'Edit', PENCIL, onEdit));
+      tb.appendChild(iconBtn('wsprev__tbbtn', 'Delete', TRASH, onDelete));
+      return tb;
+    }
+    function cta(label, onClick) {
+      const wrap = el('div', 'wsprev__cta');
+      const btn = el('button', 'wsprev__ctabtn');
+      btn.type = 'button';
+      btn.innerHTML = PLUSC;
+      btn.appendChild(document.createTextNode(label));
+      btn.addEventListener('click', (e) => { e.stopPropagation(); onClick(); });
+      wrap.appendChild(btn);
+      return wrap;
+    }
+
+    function renderBuilderBody(body) {
+      const cb = state.builderCallbacks || {};
+      const blr = state.builder || { sections: [] };
+      (blr.sections || []).forEach((section) => {
+        const sec = el('div', 'wsprev__section');
+        sec.dataset.id = section.id;
+        sec.style.background = rgba(section.background);
+        if (section.id === blr.selectedSectionId) sec.classList.add('is-selected');
+        sec.addEventListener('click', () => cb.onSelectSection && cb.onSelectSection(section.id));
+        sec.appendChild(blockToolbar(
+          () => cb.onSelectSection && cb.onSelectSection(section.id),
+          () => cb.onDeleteSection && cb.onDeleteSection(section.id)
+        ));
+        if (section.displayTitle && section.title) sec.appendChild(el('h2', 'wsprev__sectitle', section.title));
+
+        (section.elements || []).forEach((element) => {
+          const elt = el('div', 'wsprev__el');
+          elt.dataset.id = element.id;
+          if (element.id === blr.selectedElementId) elt.classList.add('is-selected');
+          elt.addEventListener('click', (e) => { e.stopPropagation(); cb.onSelectElement && cb.onSelectElement(section.id, element.id); });
+          elt.appendChild(blockToolbar(
+            () => cb.onSelectElement && cb.onSelectElement(section.id, element.id),
+            () => cb.onDeleteElement && cb.onDeleteElement(section.id, element.id)
+          ));
+          if (element.displayTitle && element.title) elt.appendChild(el('h3', 'wsprev__eltitle', element.title));
+          if (element.type === 'code') {
+            const pre = el('pre', 'wsprev__code');
+            const code = document.createElement('code');
+            code.textContent = element.code || '';
+            pre.appendChild(code);
+            elt.appendChild(pre);
+          } else {
+            const text = String(element.body || '');
+            const paras = text.split(/\n{2,}/).filter((p) => p.trim());
+            if (paras.length) paras.forEach((para) => elt.appendChild(el('p', 'wsprev__eltext', para)));
+            else elt.appendChild(el('p', 'wsprev__elempty', 'Empty rich text.'));
+          }
+          sec.appendChild(elt);
+        });
+
+        sec.appendChild(cta('Add element', () => cb.onAddElement && cb.onAddElement(section.id)));
+        body.appendChild(sec);
+      });
+      body.appendChild(cta('Add section', () => cb.onAddSection && cb.onAddSection()));
+    }
+
     function render() {
       const h = state.header || HEADER_D;
       const f = state.footer || FOOTER_D;
@@ -173,8 +256,10 @@
       header.appendChild(hNav);
       root.appendChild(header);
 
-      // ---- Page body: intentionally empty (no content added yet) ----
-      root.appendChild(el('main', 'wsprev__body'));
+      // ---- Page body: empty in list view; the content builder fills it ----
+      const body = el('main', 'wsprev__body');
+      if (state.builder) renderBuilderBody(body);
+      root.appendChild(body);
 
       // ---- Footer ----
       const footer = el('footer', 'wsprev__footer');

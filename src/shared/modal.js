@@ -202,11 +202,89 @@
     });
   }
 
+  // Confirmation dialog -> Promise<boolean> (true = confirmed). Reuses the same
+  // overlay / focus-trap / Escape scaffolding as form(). Focus starts on Cancel
+  // so destructive actions aren't triggered by an accidental Enter.
+  function confirm(config) {
+    return new Promise((resolve) => {
+      const previouslyFocused = document.activeElement;
+      const titleId = `modal-title-${++uid}`;
+
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      overlay.setAttribute('aria-labelledby', titleId);
+
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      overlay.appendChild(modal);
+
+      const header = document.createElement('div');
+      header.className = 'modal__header';
+      header.innerHTML =
+        `<h2 class="modal__title" id="${titleId}">${escapeHtml(config.title || '')}</h2>` +
+        '<button type="button" class="modal__close" aria-label="Close dialog"><img src="/shared/close.svg" alt="" /></button>';
+      modal.appendChild(header);
+
+      const body = document.createElement('div');
+      body.className = 'modal__body';
+      const msg = document.createElement('p');
+      msg.className = 'modal__text';
+      msg.textContent = config.message || '';
+      body.appendChild(msg);
+      modal.appendChild(body);
+
+      const footer = document.createElement('div');
+      footer.className = 'modal__footer';
+      const cancelBtn = document.createElement('button');
+      cancelBtn.type = 'button';
+      cancelBtn.className = 'modal__btn modal__btn--cancel';
+      cancelBtn.textContent = config.cancelLabel || 'Cancel';
+      const okBtn = document.createElement('button');
+      okBtn.type = 'button';
+      okBtn.className = 'modal__btn ' + (config.danger ? 'modal__btn--danger' : 'modal__btn--primary');
+      okBtn.textContent = config.confirmLabel || 'Confirm';
+      footer.appendChild(cancelBtn);
+      footer.appendChild(okBtn);
+      modal.appendChild(footer);
+
+      document.body.appendChild(overlay);
+      document.body.classList.add('is-locked');
+
+      function done(result) {
+        document.removeEventListener('keydown', onKey, true);
+        overlay.remove();
+        document.body.classList.remove('is-locked');
+        if (previouslyFocused && previouslyFocused.focus) previouslyFocused.focus();
+        resolve(result);
+      }
+      header.querySelector('.modal__close').addEventListener('click', () => done(false));
+      cancelBtn.addEventListener('click', () => done(false));
+      okBtn.addEventListener('click', () => done(true));
+      overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) done(false); });
+
+      function onKey(e) {
+        if (e.key === 'Escape') { e.preventDefault(); done(false); return; }
+        if (e.key === 'Tab') {
+          const f = Array.from(modal.querySelectorAll(FOCUSABLE)).filter((el) => el.offsetParent !== null);
+          if (!f.length) return;
+          const first = f[0];
+          const last = f[f.length - 1];
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+      }
+      document.addEventListener('keydown', onKey, true);
+      cancelBtn.focus();
+    });
+  }
+
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, (c) => (
       { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
     ));
   }
 
-  window.Modal = { form };
+  window.Modal = { form, confirm };
 })();

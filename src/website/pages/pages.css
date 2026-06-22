@@ -61,3 +61,70 @@
   width: 28px; height: 28px; color: #f9a814;
 }
 .pageitem__star svg { fill: currentColor; stroke: currentColor; stroke-width: 1.3; stroke-linejoin: round; }
+
+/* The page/section/element title is a button that opens the builder. */
+.pageitem__open {
+  flex: 1; min-width: 0; text-align: left;
+  background: none; border: 0; padding: 0; margin: 0; cursor: pointer;
+  font: inherit; color: var(--gray-700); word-break: break-word;
+}
+.pageitem__open:hover { text-decoration: underline; }
+.pageitem__open:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); border-radius: 2px; }
+
+/* ===========================  Content builder  =========================== */
+/* Breadcrumb (Pages › Page › Section …). */
+.pgb__crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 4px; }
+.pgb__crumb { font-size: 13px; color: var(--gray-600); }
+.pgb__crumb--link { background: none; border: 0; padding: 0; cursor: pointer; color: var(--blue-700, #255096); }
+.pgb__crumb--link:hover { text-decoration: underline; }
+.pgb__crumb--link:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); border-radius: 2px; }
+.pgb__crumbsep { color: var(--gray-400); font-size: 13px; }
+
+/* The section/element add (+) — a soft circular button (Figma r100, #F5F5F5). */
+.pgb__add { border-radius: 50%; background: var(--gray-100, #f5f5f5); }
+.pgb__add:hover { background: var(--gray-200, #d7d8da); }
+.pgb__add::after, .pgb__add::before { content: none; } /* no "Add page" tooltip here */
+
+/* Settings fields in the panel. */
+.pgb__settings { display: flex; flex-direction: column; gap: 16px; margin: 4px 0 8px; }
+.pgb__field { display: flex; flex-direction: column; gap: 6px; }
+.pgb__label { font-size: 14px; font-weight: 600; color: var(--gray-700); }
+.pgb__hint { margin: -2px 0 2px; font-size: 13px; line-height: 18px; color: var(--gray-500); }
+.pgb__input {
+  width: 100%; box-sizing: border-box; padding: 7px 10px;
+  font: 400 14px/21px "Noto Sans", Arial, sans-serif; color: var(--gray-700);
+  background: #fff; border: 1px solid var(--gray-200); border-radius: 4px;
+}
+.pgb__input:focus-visible { outline: none; border-color: #3e75cf; box-shadow: 0 0 0 2px var(--blue-50, #e9effa); }
+.pgb__textarea { resize: vertical; min-height: 96px; line-height: 1.5; }
+.pgb__textarea--mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+.pgb__count { align-self: flex-end; font-size: 13px; color: var(--gray-500); font-variant-numeric: tabular-nums; }
+.pgb__check { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--gray-700); cursor: pointer; }
+.pgb__check input { width: 16px; height: 16px; accent-color: #3e75cf; cursor: pointer; }
+
+/* Add-element chooser cards. */
+.elchoose { display: flex; gap: 16px; }
+.elchoose__card {
+  flex: 1; display: flex; flex-direction: column; gap: 0;
+  border: 1px solid var(--gray-200); border-radius: 6px; overflow: hidden;
+  background: #fff; cursor: pointer; padding: 0; text-align: left;
+}
+.elchoose__card:hover { border-color: #6591d9; }
+.elchoose__card.is-selected { border-color: #3e75cf; box-shadow: 0 0 0 1px #3e75cf; }
+.elchoose__card:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); }
+.elchoose__vis { height: 88px; background: #fafafa; border-bottom: 1px solid var(--gray-200); display: block; }
+.elchoose__vis--rt {
+  background:
+    linear-gradient(#255096, #255096) 16px 24px / 140px 8px no-repeat,
+    linear-gradient(#d7d8da, #d7d8da) 16px 40px / 240px 8px no-repeat,
+    linear-gradient(#d7d8da, #d7d8da) 16px 56px / 180px 8px no-repeat,
+    #fafafa;
+}
+.elchoose__vis--code {
+  background:
+    linear-gradient(#255096, #255096) 16px 24px / 90px 8px no-repeat,
+    linear-gradient(#d7d8da, #d7d8da) 36px 40px / 140px 8px no-repeat,
+    linear-gradient(#255096, #255096) 16px 56px / 80px 8px no-repeat,
+    #fafafa;
+}
+.elchoose__name { padding: 12px 16px; font-size: 14px; color: var(--gray-700); }

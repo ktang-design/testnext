@@ -12,15 +12,73 @@ const express = require('express');
 const crypto = require('crypto');
 const { requireApiAuth } = require('../auth/authGuard');
 const { pagesRepository } = require('../website/PagesRepository');
-const { TITLE_MAX, DESCRIPTION_MAX, MAX_PAGES } = require('../website/defaults');
+const {
+  TITLE_MAX, DESCRIPTION_MAX, MAX_PAGES,
+  SECTION_TITLE_MAX, ELEMENT_TITLE_MAX, ELEMENT_BODY_MAX, MAX_SECTIONS, MAX_ELEMENTS,
+} = require('../website/defaults');
 
 const router = express.Router();
 const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 const str = (v) => (typeof v === 'string' ? v : '');
+const bool = (v) => v === true || v === 'true';
+const HEX6 = /^#[0-9a-fA-F]{6}$/;
 
 function slugify(s) {
   const base = str(s).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
   return base ? '/' + base : '/page';
+}
+
+function uniqueId(provided, prefix, used) {
+  let id = /^[\w-]{1,64}$/.test(provided) ? provided : '';
+  if (!id || used.has(id)) {
+    do { id = `${prefix}-${crypto.randomUUID()}`; } while (used.has(id));
+  }
+  used.add(id);
+  return id;
+}
+
+function cleanColor(raw) {
+  const src = raw && typeof raw === 'object' ? raw : {};
+  const color = HEX6.test(str(src.color)) ? str(src.color).toUpperCase() : '#FFFFFF';
+  let opacity = Number(src.opacity);
+  if (!Number.isFinite(opacity)) opacity = 100;
+  return { color, opacity: Math.max(0, Math.min(100, Math.round(opacity))) };
+}
+
+// Re-shape a page's content (sections + elements) into the canonical stored
+// form. Never throws — invalid bits are coerced/dropped — so a save can't fail
+// on content. Richtext/code stay PLAIN TEXT (rendered via textContent client-
+// side), so there is no HTML/injection surface.
+function normalizeContent(raw) {
+  const c = raw && typeof raw === 'object' ? raw : {};
+  const rawSections = Array.isArray(c.sections) ? c.sections.slice(0, MAX_SECTIONS) : [];
+  const usedSec = new Set();
+  const sections = rawSections.map((rs) => {
+    const s = rs && typeof rs === 'object' ? rs : {};
+    const rawEls = Array.isArray(s.elements) ? s.elements.slice(0, MAX_ELEMENTS) : [];
+    const usedEl = new Set();
+    const elements = rawEls.map((re) => {
+      const e = re && typeof re === 'object' ? re : {};
+      const type = e.type === 'code' ? 'code' : 'richtext';
+      const el = {
+        id: uniqueId(str(e.id), 'el', usedEl),
+        type,
+        title: str(e.title).slice(0, ELEMENT_TITLE_MAX),
+        displayTitle: bool(e.displayTitle),
+      };
+      if (type === 'code') el.code = str(e.code).slice(0, ELEMENT_BODY_MAX);
+      else el.body = str(e.body).slice(0, ELEMENT_BODY_MAX);
+      return el;
+    });
+    return {
+      id: uniqueId(str(s.id), 'sec', usedSec),
+      title: str(s.title).slice(0, SECTION_TITLE_MAX),
+      displayTitle: bool(s.displayTitle),
+      background: cleanColor(s.background),
+      elements,
+    };
+  });
+  return { sections };
 }
 
 class ValidationError extends Error {
@@ -47,7 +105,7 @@ function normalize(rawPages) {
     usedIds.add(id);
 
     if (raw.isHomepage && homepageIndex === -1) homepageIndex = i;
-    return { id, title, description, status, isHomepage: false, slug: '' };
+    return { id, title, description, status, isHomepage: false, slug: '', content: normalizeContent(raw.content) };
   });
 
   // Exactly one homepage; default to the first page when none is flagged.
@@ -79,7 +137,11 @@ router.get('/', requireApiAuth, ah(async (req, res) => {
   await pagesRepository.seedDefaults(req.session.userId);
   res.json({
     pages: await pagesRepository.list(req.session.userId),
-    limits: { title: TITLE_MAX, description: DESCRIPTION_MAX },
+    limits: {
+      title: TITLE_MAX, description: DESCRIPTION_MAX,
+      sectionTitle: SECTION_TITLE_MAX, elementTitle: ELEMENT_TITLE_MAX, body: ELEMENT_BODY_MAX,
+      maxSections: MAX_SECTIONS, maxElements: MAX_ELEMENTS,
+    },
   });
 }));
 

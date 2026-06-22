@@ -10,6 +10,13 @@ const TITLE_MAX = 120;
 const DESCRIPTION_MAX = 160;
 const MAX_PAGES = 100;
 
+// Page content builder (sections + elements) limits.
+const SECTION_TITLE_MAX = 120;
+const ELEMENT_TITLE_MAX = 120;
+const ELEMENT_BODY_MAX = 20000;
+const MAX_SECTIONS = 50;
+const MAX_ELEMENTS = 100; // per section
+
 const LABEL_MAX = 120;
 const URL_MAX = 2048;
 const MAX_ITEMS = 200; // total nodes, bounds the payload
@@ -63,6 +70,7 @@ const WEBSITE_BRANDING_COLORS = ['primary', 'secondary', 'heading', 'body', 'lin
 module.exports = {
   DEFAULT_PAGES, LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH,
   TITLE_MAX, DESCRIPTION_MAX, MAX_PAGES,
+  SECTION_TITLE_MAX, ELEMENT_TITLE_MAX, ELEMENT_BODY_MAX, MAX_SECTIONS, MAX_ELEMENTS,
   HEADER_DEFAULTS, FOOTER_DEFAULTS, TYPOGRAPHY_DEFAULTS, TYPOGRAPHY_OPTIONS,
   WEBSITE_BRANDING_DEFAULTS, WEBSITE_BRANDING_COLORS,
 };
