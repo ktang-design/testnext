@@ -65,6 +65,7 @@ function normalizeContent(raw) {
         type,
         title: str(e.title).slice(0, ELEMENT_TITLE_MAX),
         displayTitle: bool(e.displayTitle),
+        column: Number(e.column) === 1 ? 1 : 0, // left (0) / right (1) in a 50/50 section
       };
       if (type === 'code') el.code = str(e.code).slice(0, ELEMENT_BODY_MAX);
       else el.body = str(e.body).slice(0, ELEMENT_BODY_MAX);

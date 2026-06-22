@@ -282,14 +282,15 @@
     getContent().sections = orderedIds.map((id) => map[id]).filter(Boolean);
     afterFieldEdit();
   }
-  async function addElement(sectionId) {
+  async function addElement(sectionId, column) {
     const sec = findSection(sectionId);
     if (!sec || sec.elements.length >= limits.maxElements) return;
     const type = await chooseElementType();
     if (!type) return;
+    const col = column === 1 ? 1 : 0; // which 50% column (ignored in 100% layout)
     const e = type === 'code'
-      ? { id: uid('el'), type: 'code', title: 'Code', displayTitle: false, code: '' }
-      : { id: uid('el'), type: 'richtext', title: 'Richtext', displayTitle: false, body: '' };
+      ? { id: uid('el'), type: 'code', title: 'Code', displayTitle: false, column: col, code: '' }
+      : { id: uid('el'), type: 'richtext', title: 'Richtext', displayTitle: false, column: col, body: '' };
     sec.elements.push(e);
     selectedSectionId = sectionId;
     selectedElementId = e.id;
@@ -627,7 +628,7 @@
       builder: { sections: getSections(), selectedSectionId, selectedElementId },
       builderCallbacks: {
         onAddSection: addSection,
-        onAddElement: (sid) => addElement(sid),
+        onAddElement: (sid, col) => addElement(sid, col),
         onSelectSection: selectSection,
         onSelectElement: selectElement,
         onDeleteSection: deleteSection,

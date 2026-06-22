@@ -181,11 +181,40 @@
     function renderBuilderBody(body) {
       const cb = state.builderCallbacks || {};
       const blr = state.builder || { sections: [] };
+      const colOf = (e) => (Number(e.column) === 1 ? 1 : 0);
+
+      function buildElement(element, section) {
+        const elt = el('div', 'wsprev__el');
+        elt.dataset.id = element.id;
+        if (element.id === blr.selectedElementId) elt.classList.add('is-selected');
+        elt.addEventListener('click', (e) => { e.stopPropagation(); cb.onSelectElement && cb.onSelectElement(section.id, element.id); });
+        elt.appendChild(blockToolbar(
+          () => cb.onSelectElement && cb.onSelectElement(section.id, element.id),
+          () => cb.onDeleteElement && cb.onDeleteElement(section.id, element.id)
+        ));
+        if (element.displayTitle && element.title) elt.appendChild(el('h3', 'wsprev__eltitle', element.title));
+        if (element.type === 'code') {
+          const pre = el('pre', 'wsprev__code');
+          const code = document.createElement('code');
+          code.textContent = element.code || '';
+          pre.appendChild(code);
+          elt.appendChild(pre);
+        } else {
+          const text = String(element.body || '');
+          const paras = text.split(/\n{2,}/).filter((q) => q.trim());
+          if (paras.length) paras.forEach((para) => elt.appendChild(el('p', 'wsprev__eltext', para)));
+          else elt.appendChild(el('p', 'wsprev__elempty', 'Empty rich text.'));
+        }
+        return elt;
+      }
+
       (blr.sections || []).forEach((section) => {
         const sec = el('div', 'wsprev__section');
         sec.dataset.id = section.id;
         sec.style.background = rgba(section.background);
-        if (section.id === blr.selectedSectionId) sec.classList.add('is-selected');
+        // Only the single selected block is pink: a section is highlighted only
+        // when no element within it is the selected one.
+        if (section.id === blr.selectedSectionId && !blr.selectedElementId) sec.classList.add('is-selected');
         sec.addEventListener('click', () => cb.onSelectSection && cb.onSelectSection(section.id));
         sec.appendChild(blockToolbar(
           () => cb.onSelectSection && cb.onSelectSection(section.id),
@@ -193,35 +222,24 @@
         ));
         if (section.displayTitle && section.title) sec.appendChild(el('h2', 'wsprev__sectitle', section.title));
 
-        const elementsWrap = el('div', 'wsprev__elements');
-        if (Number(section.columns) === 2) elementsWrap.classList.add('wsprev__elements--split');
-        (section.elements || []).forEach((element) => {
-          const elt = el('div', 'wsprev__el');
-          elt.dataset.id = element.id;
-          if (element.id === blr.selectedElementId) elt.classList.add('is-selected');
-          elt.addEventListener('click', (e) => { e.stopPropagation(); cb.onSelectElement && cb.onSelectElement(section.id, element.id); });
-          elt.appendChild(blockToolbar(
-            () => cb.onSelectElement && cb.onSelectElement(section.id, element.id),
-            () => cb.onDeleteElement && cb.onDeleteElement(section.id, element.id)
-          ));
-          if (element.displayTitle && element.title) elt.appendChild(el('h3', 'wsprev__eltitle', element.title));
-          if (element.type === 'code') {
-            const pre = el('pre', 'wsprev__code');
-            const code = document.createElement('code');
-            code.textContent = element.code || '';
-            pre.appendChild(code);
-            elt.appendChild(pre);
-          } else {
-            const text = String(element.body || '');
-            const paras = text.split(/\n{2,}/).filter((p) => p.trim());
-            if (paras.length) paras.forEach((para) => elt.appendChild(el('p', 'wsprev__eltext', para)));
-            else elt.appendChild(el('p', 'wsprev__elempty', 'Empty rich text.'));
+        const elements = section.elements || [];
+        if (Number(section.columns) === 2) {
+          // Two 50% columns, each with its own elements + 50%-wide Add element.
+          const grid = el('div', 'wsprev__elements wsprev__elements--split');
+          for (let col = 0; col < 2; col++) {
+            const column = el('div', 'wsprev__col');
+            elements.filter((e) => colOf(e) === col).forEach((element) => column.appendChild(buildElement(element, section)));
+            column.appendChild(cta('Add element', () => cb.onAddElement && cb.onAddElement(section.id, col)));
+            grid.appendChild(column);
           }
-          elementsWrap.appendChild(elt);
-        });
-        sec.appendChild(elementsWrap);
+          sec.appendChild(grid);
+        } else {
+          const wrap = el('div', 'wsprev__elements');
+          elements.forEach((element) => wrap.appendChild(buildElement(element, section)));
+          sec.appendChild(wrap);
+          sec.appendChild(cta('Add element', () => cb.onAddElement && cb.onAddElement(section.id, 0)));
+        }
 
-        sec.appendChild(cta('Add element', () => cb.onAddElement && cb.onAddElement(section.id)));
         body.appendChild(sec);
       });
       body.appendChild(cta('Add section', () => cb.onAddSection && cb.onAddSection()));

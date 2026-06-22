@@ -59,12 +59,18 @@
    grip/edit/trash toolbar; others reveal the toolbar on hover. */
 .wsprev__section { position: relative; padding: 24px 34px; }
 .wsprev__el { position: relative; padding: 12px 0; cursor: pointer; }
+/* Only the single selected block is pink; hovering a non-selected block shows a
+   subtle grey hint (so at most one pink highlight is visible at a time). */
 .wsprev__section.is-selected,
-.wsprev__el.is-selected,
-.wsprev__section:hover { outline: 2px solid #e0489b; outline-offset: -2px; border-radius: 4px; }
+.wsprev__el.is-selected { outline: 2px solid #e0489b; outline-offset: -2px; border-radius: 4px; }
+.wsprev__section:hover:not(.is-selected),
+.wsprev__el:hover:not(.is-selected) { outline: 1px dashed #cdd6e6; outline-offset: -1px; border-radius: 4px; }
 
-/* Element layout within a section (Column layout: 100% vs 50% / 50%). */
+/* Element layout within a section (Column layout: 100% vs 50% / 50%). In split
+   mode each column holds its own elements + a 50%-wide Add element area. */
 .wsprev__elements--split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+.wsprev__col { display: flex; flex-direction: column; }
+.wsprev__col > .wsprev__cta { margin: 8px 0 0; }
 
 .wsprev__sectitle { margin: 0 0 12px; font-size: 22px; font-weight: 600; color: #3d3f42; }
 .wsprev__eltitle { margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #3d3f42; }
