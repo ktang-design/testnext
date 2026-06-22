@@ -168,14 +168,13 @@
       return tb;
     }
     function cta(label, onClick) {
-      const wrap = el('div', 'wsprev__cta');
-      const btn = el('button', 'wsprev__ctabtn');
+      // The whole call-to-action is a single button (full touch area).
+      const btn = el('button', 'wsprev__cta');
       btn.type = 'button';
       btn.innerHTML = PLUSC;
       btn.appendChild(document.createTextNode(label));
       btn.addEventListener('click', (e) => { e.stopPropagation(); onClick(); });
-      wrap.appendChild(btn);
-      return wrap;
+      return btn;
     }
 
     function renderBuilderBody(body) {

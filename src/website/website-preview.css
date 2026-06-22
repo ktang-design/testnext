@@ -41,19 +41,17 @@
 .wsprev__body { flex: 1; min-height: 460px; background: #fff; }
 
 /* ---- Content builder overlays (only shown while editing a page) ---- */
-/* Blue "Add section / Add element" call-to-action blocks (Figma #E9EFFA). */
+/* "Add section / Add element" — one big button: the whole area is the touch
+   target, transparent with blue text (light-blue fill on hover for feedback). */
 .wsprev__cta {
-  display: flex; justify-content: center; align-items: center;
-  background: #e9effa; padding: 28px; margin: 8px 34px;
+  display: flex; justify-content: center; align-items: center; gap: 8px;
+  width: 100%; box-sizing: border-box; padding: 24px; margin: 8px 0;
+  background: transparent; border: 0; cursor: pointer;
+  color: #2d62b7; font: 600 15px/1.2 "Noto Sans", Arial, sans-serif;
 }
+.wsprev__cta:hover { background: #e9effa; }
+.wsprev__cta svg { flex: none; }
 .wsprev__section > .wsprev__cta { margin: 12px 0 0; }
-.wsprev__ctabtn {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 8px 16px; border: 0; border-radius: 4px; background: #fff;
-  color: #2d62b7; font: 600 15px/1 "Noto Sans", Arial, sans-serif; cursor: pointer;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.1);
-}
-.wsprev__ctabtn:hover { background: #f5f8ff; }
 
 /* Section + element blocks. The selected block gets a pink/rose outline and its
    grip/edit/trash toolbar; others reveal the toolbar on hover. */
