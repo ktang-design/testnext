@@ -4,7 +4,7 @@
 // Save action in the Pages builder.
 
 const { get, all, batch } = require('../db/database');
-const { DEMO_PAGES } = require('./defaults');
+const { DEFAULT_PAGES } = require('./defaults');
 
 // Map a DB row to the shape the API/client use (is_homepage 0/1 -> boolean).
 function toPage(row) {
@@ -56,11 +56,12 @@ class PagesRepository {
     return this.list(userId);
   }
 
-  // Idempotent: only seeds when the user has no pages yet.
+  // Idempotent: only seeds when the user has no pages yet. Every new account
+  // starts with a single starred Homepage.
   async seedDefaults(userId) {
     if ((await this.count(userId)) > 0) return;
     const now = new Date().toISOString();
-    const stmts = DEMO_PAGES.map((p, i) => ({
+    const stmts = DEFAULT_PAGES.map((p, i) => ({
       sql: 'INSERT INTO pages (id, user_id, title, slug, status, description, is_homepage, sort, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
       args: [p.id, userId, p.title, p.slug, p.status, p.description || '', p.isHomepage ? 1 : 0, i, now],
     }));

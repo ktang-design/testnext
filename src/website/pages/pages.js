@@ -94,6 +94,13 @@
     return wrap;
   }
 
+  // The homepage is always pinned to the top of the list.
+  function pinHomepage(items) {
+    const i = items.findIndex((p) => p.isHomepage);
+    if (i > 0) items.unshift(items.splice(i, 1)[0]);
+    return items;
+  }
+
   function mountTree(items) {
     if (tree) tree.destroy();
     treeMount.innerHTML = '';
@@ -104,7 +111,12 @@
       labelOf: (p) => p.title,
       renderContent,
       renderTrailing,
-      onChange: () => refresh(),
+      onChange: () => {
+        // A drag that moved a page above the homepage re-pins it to the top.
+        const items2 = tree.getItems();
+        if (items2.findIndex((p) => p.isHomepage) > 0) commit(items2);
+        else refresh();
+      },
     });
     refresh();
   }
@@ -137,11 +149,13 @@
   // ---------- mutations ----------
   function commit(items) {
     saveError = null;
-    mountTree(items);
+    mountTree(pinHomepage(items));
   }
   function setHomepage(id) {
-    const items = tree.getItems().map((p) => ({ ...p, isHomepage: p.id === id }));
-    commit(items);
+    const cur = findById(tree.getItems(), id);
+    if (!cur || cur.isHomepage) return; // already the homepage
+    // Reassign the star and pin the new homepage to the top of the list.
+    commit(tree.getItems().map((p) => ({ ...p, isHomepage: p.id === id })));
   }
   function duplicatePage(id) {
     const items = tree.getItems();

@@ -1,19 +1,9 @@
 'use strict';
-// Starter "pages" rows + navigation tree. The Pages builder (Website layer)
-// manages these; the navigation builder links to the published ones. One page
-// is the homepage (starred) and one is unpublished so the navigation builder's
-// disabled/tooltip state stays demonstrable.
-
-// Stable ids so the starter navigation below can reference these pages.
-const DEMO_PAGES = [
-  { id: 'page-home', title: 'Homepage', slug: '/', status: 'published', isHomepage: true, description: 'Welcome to our site.' },
-  { id: 'page-about', title: 'About us', slug: '/about', status: 'published', description: 'Learn about our mission and team.' },
-  { id: 'page-resources', title: 'Resources', slug: '/resources', status: 'published', description: 'Guides, lessons and worksheets.' },
-  { id: 'page-video', title: 'Video lessons', slug: '/resources/video-lessons', status: 'published', description: 'Watch our latest video lessons.' },
-  { id: 'page-worksheets', title: 'Worksheets', slug: '/resources/worksheets', status: 'draft', description: 'Printable worksheets for every level.' },
-  { id: 'page-locations', title: 'Locations', slug: '/locations', status: 'published', description: 'Find a location near you.' },
-  { id: 'page-pricing', title: 'Pricing', slug: '/pricing', status: 'published', description: 'Simple, transparent pricing.' },
-  { id: 'page-contact', title: 'Contact', slug: '/contact', status: 'published', description: 'Get in touch with our team.' },
+// Every new site/account starts with a single page — the Homepage — which is
+// the starred homepage and pinned to the top of the Pages list. Users add more
+// pages from there.
+const DEFAULT_PAGES = [
+  { id: 'page-home', title: 'Homepage', slug: '/', status: 'published', isHomepage: true, description: '' },
 ];
 
 const TITLE_MAX = 120;
@@ -71,7 +61,7 @@ const WEBSITE_BRANDING_DEFAULTS = {
 const WEBSITE_BRANDING_COLORS = ['primary', 'secondary', 'heading', 'body', 'link'];
 
 module.exports = {
-  DEMO_PAGES, LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH,
+  DEFAULT_PAGES, LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH,
   TITLE_MAX, DESCRIPTION_MAX, MAX_PAGES,
   HEADER_DEFAULTS, FOOTER_DEFAULTS, TYPOGRAPHY_DEFAULTS, TYPOGRAPHY_OPTIONS,
   WEBSITE_BRANDING_DEFAULTS, WEBSITE_BRANDING_COLORS,

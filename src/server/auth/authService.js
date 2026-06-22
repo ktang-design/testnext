@@ -6,6 +6,7 @@ const { userRepository } = require('./repository');
 const { hashPassword, verifyPassword, wasteTime } = require('./passwords');
 const { validateEmail, validatePassword, validateName } = require('./validators');
 const { maxFailedAttempts, lockoutMs } = require('../config');
+const { pagesRepository } = require('../website/PagesRepository');
 
 // A typed error so the HTTP layer can map codes -> status + message.
 class AuthError extends Error {
@@ -90,6 +91,8 @@ async function register({ name, email, password }) {
   }
   try {
     const user = await createUser({ name: name.trim(), email, password });
+    // Every new account starts with a single starred Homepage.
+    await pagesRepository.seedDefaults(user.id);
     return toPublicUser(user);
   } catch (err) {
     // Guard against a race between the check above and insert.

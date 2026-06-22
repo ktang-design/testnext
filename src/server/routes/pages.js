@@ -54,6 +54,9 @@ function normalize(rawPages) {
   if (homepageIndex === -1 && pages.length) homepageIndex = 0;
   pages.forEach((p, i) => { p.isHomepage = i === homepageIndex; });
 
+  // The homepage is pinned to the top of the list.
+  if (homepageIndex > 0) pages.unshift(pages.splice(homepageIndex, 1)[0]);
+
   // Slugs: homepage is '/', the rest are unique slugified titles.
   const usedSlugs = new Set();
   pages.forEach((p) => { if (p.isHomepage) { p.slug = '/'; usedSlugs.add('/'); } });
@@ -71,6 +74,9 @@ function normalize(rawPages) {
 }
 
 router.get('/', requireApiAuth, ah(async (req, res) => {
+  // Guarantee every account has at least the starred Homepage (no-op if it
+  // already has pages) so the list is never empty.
+  await pagesRepository.seedDefaults(req.session.userId);
   res.json({
     pages: await pagesRepository.list(req.session.userId),
     limits: { title: TITLE_MAX, description: DESCRIPTION_MAX },
