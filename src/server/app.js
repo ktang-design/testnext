@@ -50,8 +50,9 @@ app.use('/api/auth', jsonSmall, authRoutes);
 app.use('/api/site-settings', jsonSmall, require('./routes/settings'));
 app.use('/api/branding', jsonLarge, require('./routes/branding'));
 // Website branding carries a logo data URL → large parser; mount the specific
-// path before the general /api/website router so it takes precedence.
+// paths before the general /api/website router so they take precedence.
 app.use('/api/website/branding', jsonLarge, require('./routes/website-branding'));
+app.use('/api/website/pages', jsonSmall, require('./routes/pages'));
 app.use('/api/website', jsonSmall, require('./routes/website'));
 
 // ---- Page protection ------------------------------------------------------
@@ -59,7 +60,7 @@ app.use('/api/website', jsonSmall, require('./routes/website'));
 // assets stay public (harmless), which keeps the pages' relative paths working.
 const PROTECTED_SECTIONS = new Set([
   '/site-details', '/branding', '/access',
-  '/website/navigation', '/website/header', '/website/footer', '/website/typography', '/website/branding',
+  '/website/pages', '/website/navigation', '/website/header', '/website/footer', '/website/typography', '/website/branding',
 ]);
 
 function sectionOf(reqPath) {

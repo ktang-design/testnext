@@ -64,6 +64,15 @@
         label.textContent = f.label;
         field.appendChild(label);
 
+        // Optional helper text under the label (e.g. an SEO description hint).
+        if (f.hint) {
+          const hint = document.createElement('p');
+          hint.className = 'modal__hint';
+          hint.id = `${fid}-hint`;
+          hint.textContent = f.hint;
+          field.appendChild(hint);
+        }
+
         let control;
         if (f.type === 'select') {
           control = document.createElement('select');
@@ -81,6 +90,13 @@
           });
           control.value = values[f.name] != null ? values[f.name] : '';
           if (!control.value) ph.selected = true;
+        } else if (f.type === 'textarea') {
+          control = document.createElement('textarea');
+          control.className = 'modal__control modal__control--textarea';
+          control.rows = f.rows || 4;
+          if (f.placeholder) control.placeholder = f.placeholder;
+          if (f.maxLength) control.maxLength = f.maxLength;
+          control.value = values[f.name] != null ? values[f.name] : '';
         } else {
           control = document.createElement('input');
           control.className = 'modal__control';
@@ -93,10 +109,22 @@
         control.id = fid;
         control.name = f.name;
         if (f.required) control.setAttribute('aria-required', 'true');
+        if (f.hint) control.setAttribute('aria-describedby', `${fid}-hint`);
         control.addEventListener('input', () => { values[f.name] = control.value; });
         control.addEventListener('change', () => { values[f.name] = control.value; });
         controls[f.name] = control;
         field.appendChild(control);
+
+        // Optional live character counter (opt-in; needs a maxLength).
+        if (f.showCount && f.maxLength) {
+          const count = document.createElement('div');
+          count.className = 'modal__count';
+          const draw = () => { count.textContent = `${(control.value || '').length}/${f.maxLength}`; };
+          draw();
+          control.addEventListener('input', draw);
+          field.appendChild(count);
+        }
+
         body.appendChild(field);
       });
 

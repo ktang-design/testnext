@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Footer — StacksNext</title>
+  <title>Pages — StacksNext</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
@@ -11,10 +11,11 @@
   <link rel="stylesheet" href="../website.css" />
   <link rel="stylesheet" href="../website-preview.css" />
   <link rel="stylesheet" href="/shared/sortable-tree.css" />
-  <link rel="stylesheet" href="footer.css" />
   <link rel="stylesheet" href="/shared/app-shell.css" />
+  <link rel="stylesheet" href="pages.css" />
 </head>
 <body>
+  <!-- ============ Top navigation (Website layer active) ============ -->
   <header class="topnav">
     <div class="topnav__left">
       <a class="topnav__logo" href="#" aria-label="Stacks home">
@@ -42,11 +43,12 @@
   </header>
 
   <div class="layout">
+    <!-- ============ Website sidenav ============ -->
     <aside class="sidenav">
       <nav aria-label="Website">
         <ul class="sidenav__list">
           <li>
-            <a class="nav-item nav-item--interactive" href="/website/pages/">
+            <a class="nav-item nav-item--interactive is-active" href="/website/pages/" aria-current="page">
               <span class="nav-item__icon"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.6 14.4 5 8 8.4 1.6 5 8 1.6Z"/><path d="m2 8 6 3.2L14 8"/><path d="m2 11 6 3.2L14 11"/></svg></span>
               <span class="nav-item__label">Pages</span>
             </a>
@@ -64,7 +66,7 @@
             </a>
           </li>
           <li>
-            <a class="nav-item nav-item--interactive is-active" href="#" aria-current="page">
+            <a class="nav-item nav-item--interactive" href="/website/footer/">
               <span class="nav-item__icon"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="2.6" width="12.4" height="10.8" rx="1.5"/><path d="M1.8 9.8h12.4"/></svg></span>
               <span class="nav-item__label">Footer</span>
             </a>
@@ -91,33 +93,27 @@
       </nav>
     </aside>
 
+    <!-- ============ Content: pages editor + preview ============ -->
     <div class="content">
       <div class="navworkspace">
-        <section class="navpanel" aria-labelledby="ftr-title">
+        <section class="navpanel" aria-labelledby="pagespanel-title">
           <div class="navpanel__head">
-            <h1 class="navpanel__title" id="ftr-title">Footer</h1>
-            <button type="button" class="navpanel__add" data-add aria-label="Add custom link" title="Add custom link">
+            <h1 class="navpanel__title" id="pagespanel-title">Pages</h1>
+            <button type="button" class="navpanel__add" data-add aria-label="Add page" title="Add page">
               <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
             </button>
           </div>
-          <p class="navpanel__desc">Manage footer content displayed across your website.</p>
+          <p class="navpanel__desc">
+            Select a page to start creating and editing content. Drag and drop
+            pages to organize in your preferred order.
+          </p>
 
-          <div class="ftr-elements" role="group" aria-label="Elements">
-            <span class="ftr-elements__label" aria-hidden="true">Elements</span>
-            <label class="checkbox">
-              <input type="checkbox" data-el="logo" />
-              <span class="checkbox__box" aria-hidden="true"></span>
-              <span class="checkbox__label">Logo</span>
-            </label>
-            <label class="checkbox">
-              <input type="checkbox" data-el="navigation" />
-              <span class="checkbox__box" aria-hidden="true"></span>
-              <span class="checkbox__label">Navigation</span>
-            </label>
-          </div>
+          <div class="navpanel__tree" data-tree></div>
 
-          <hr class="ftr-divider" data-links-divider hidden />
-          <div class="ftr-links" data-tree></div>
+          <p class="navpanel__empty" data-empty hidden>
+            No pages yet. Use the <span aria-hidden="true">+</span><span class="sr-only">add</span>
+            button to add your first page.
+          </p>
         </section>
 
         <div class="navpreview" role="img" aria-label="Live website preview">
@@ -125,6 +121,7 @@
         </div>
       </div>
 
+      <!-- Save bar -->
       <footer class="pageactions">
         <div class="pageactions__inner">
           <span class="save-status" data-save-status role="status" aria-live="polite" hidden>Unsaved changes</span>
@@ -137,6 +134,7 @@
     </div>
   </div>
 
+  <!-- Unsaved-changes guard (shown when navigating away with pending edits) -->
   <div class="modal-overlay" data-modal="unsaved" role="dialog" aria-modal="true" aria-labelledby="unsaved-title" hidden>
     <div class="modal">
       <div class="modal__header">
@@ -161,6 +159,6 @@
   <script src="/shared/modal.js"></script>
   <script src="/shared/sortable-tree.js"></script>
   <script src="../website-preview.js"></script>
-  <script src="footer.js"></script>
+  <script src="pages.js"></script>
 </body>
 </html>

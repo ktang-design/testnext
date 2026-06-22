@@ -317,6 +317,9 @@ body.is-locked { overflow: hidden; }
   background: #fff; border: 1px solid var(--gray-200, #d7d8da); border-radius: 4px;
 }
 .modal__control:focus-visible { outline: none; border-color: #3e75cf; box-shadow: 0 0 0 2px var(--blue-50, #e9effa); }
+.modal__control--textarea { resize: vertical; min-height: 84px; line-height: 22px; }
+.modal__hint { margin: -2px 0 2px; font-size: 13px; line-height: 18px; color: var(--gray-500, #6e7277); }
+.modal__count { align-self: flex-end; font-size: 13px; color: var(--gray-500, #6e7277); font-variant-numeric: tabular-nums; }
 .modal__error { margin: 0 0 12px; font-size: 13px; color: #d71818; }
 .modal__error[hidden] { display: none; }
 

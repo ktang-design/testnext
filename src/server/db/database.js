@@ -38,8 +38,8 @@ async function all(sql, args = []) {
 async function run(sql, args = []) {
   return client.execute({ sql, args });
 }
-async function batch(statements) {
-  return client.batch(statements);
+async function batch(statements, mode) {
+  return client.batch(statements, mode);
 }
 
 // Schema — one statement per array entry (libSQL executes them as a batch).
@@ -73,11 +73,13 @@ const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS pages (
     id         TEXT NOT NULL,
     user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    title      TEXT NOT NULL,
-    slug       TEXT NOT NULL,
-    status     TEXT NOT NULL DEFAULT 'published',
-    sort       INTEGER NOT NULL DEFAULT 0,
-    updated_at TEXT NOT NULL,
+    title       TEXT NOT NULL,
+    slug        TEXT NOT NULL,
+    status      TEXT NOT NULL DEFAULT 'published',
+    description TEXT NOT NULL DEFAULT '',
+    is_homepage INTEGER NOT NULL DEFAULT 0,
+    sort        INTEGER NOT NULL DEFAULT 0,
+    updated_at  TEXT NOT NULL,
     PRIMARY KEY (user_id, id)
   )`,
   `CREATE TABLE IF NOT EXISTS website_navigation (
@@ -107,9 +109,28 @@ const SCHEMA = [
   )`,
 ];
 
+// Columns introduced after the initial release. CREATE TABLE above already has
+// them for fresh databases; these ALTERs add them to databases created earlier
+// (the dev file, the deployed Turso DB) without dropping data. Idempotent.
+const COLUMN_PATCHES = [
+  { table: 'pages', column: 'description', ddl: "ALTER TABLE pages ADD COLUMN description TEXT NOT NULL DEFAULT ''" },
+  { table: 'pages', column: 'is_homepage', ddl: 'ALTER TABLE pages ADD COLUMN is_homepage INTEGER NOT NULL DEFAULT 0' },
+];
+async function ensureColumns() {
+  for (const p of COLUMN_PATCHES) {
+    const cols = await all(`PRAGMA table_info(${p.table})`);
+    if (!cols.some((c) => c.name === p.column)) await run(p.ddl);
+  }
+}
+
 let _ready = null;
 function migrate() {
-  if (!_ready) _ready = client.batch(SCHEMA, 'write');
+  if (!_ready) {
+    _ready = (async () => {
+      await client.batch(SCHEMA, 'write');
+      await ensureColumns();
+    })();
+  }
   return _ready;
 }
 // `ready` resolves once the schema has been ensured (run once per process).
