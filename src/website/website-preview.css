@@ -59,12 +59,10 @@
    grip/edit/trash toolbar; others reveal the toolbar on hover. */
 .wsprev__section { position: relative; padding: 24px 34px; }
 .wsprev__el { position: relative; padding: 12px 0; cursor: pointer; }
-/* Only the single selected block is pink; hovering a non-selected block shows a
-   subtle grey hint (so at most one pink highlight is visible at a time). */
-.wsprev__section.is-selected,
-.wsprev__el.is-selected { outline: 2px solid #e0489b; outline-offset: -2px; border-radius: 4px; }
-.wsprev__section:hover:not(.is-selected),
-.wsprev__el:hover:not(.is-selected) { outline: 1px dashed #cdd6e6; outline-offset: -1px; border-radius: 4px; }
+/* Only a SECTION shows the pink highlight (selected) / grey hint (hover).
+   Elements are never highlighted/filled — their affordance is the toolbar. */
+.wsprev__section.is-selected { outline: 2px solid #e0489b; outline-offset: -2px; border-radius: 4px; }
+.wsprev__section:hover:not(.is-selected) { outline: 1px dashed #cdd6e6; outline-offset: -1px; border-radius: 4px; }
 
 /* Element layout within a section (Column layout: 100% vs 50% / 50%). In split
    mode each column holds its own elements + a 50%-wide Add element area. */
@@ -83,11 +81,12 @@
   font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-/* Floating toolbar (top-right of a section/element). */
+/* Floating toolbar (Figma component 83:5303) — centered at the top of the
+   section/element area: white, r4, 8px padding/gap, grip/edit/trash buttons. */
 .wsprev__toolbar {
-  position: absolute; top: 6px; right: 8px; z-index: 2;
-  display: inline-flex; align-items: center; gap: 2px;
-  padding: 4px; border-radius: 6px; background: #fff;
+  position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 2;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px; border-radius: 4px; background: #fff;
   box-shadow: 0 2px 8px rgba(16, 24, 40, 0.16);
   opacity: 0; visibility: hidden; transition: opacity 0.1s ease;
 }
@@ -98,7 +97,7 @@
 .wsprev__tbgrip,
 .wsprev__tbbtn {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px; border: 0; border-radius: 4px; background: none;
+  width: 32px; height: 32px; border: 0; border-radius: 4px; background: none;
   color: #55585d; cursor: pointer;
 }
 .wsprev__tbgrip { cursor: grab; }
