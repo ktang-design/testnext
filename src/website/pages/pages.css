@@ -108,6 +108,26 @@
 .pgb__count { align-self: flex-end; font-size: 13px; color: var(--gray-500); font-variant-numeric: tabular-nums; }
 .pgb__check { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--gray-700); cursor: pointer; }
 .pgb__check input { width: 16px; height: 16px; accent-color: #3e75cf; cursor: pointer; }
+.pgb__divider { height: 1px; background: var(--gray-200); margin: 4px 0; }
+.pgb__select {
+  width: 100%; box-sizing: border-box; padding: 7px 32px 7px 10px;
+  font: 400 14px/21px "Noto Sans", Arial, sans-serif; color: var(--gray-700);
+  background-color: #fff; border: 1px solid var(--gray-200); border-radius: 4px;
+  appearance: none; -webkit-appearance: none;
+  background-image: url(/shared/chevron-down.svg); background-repeat: no-repeat;
+  background-position: right 10px center; background-size: 14px; cursor: pointer;
+}
+.pgb__select:focus-visible { outline: none; border-color: #3e75cf; box-shadow: 0 0 0 2px var(--blue-50, #e9effa); }
+/* Border-style toggle (which sides). */
+.pgb__field--row { flex-direction: row; align-items: center; justify-content: space-between; }
+.pgb__toggles { display: inline-flex; gap: 2px; border: 1px solid var(--gray-200); border-radius: 6px; padding: 2px; }
+.pgb__toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border: 0; border-radius: 4px; background: none; color: var(--gray-600); cursor: pointer;
+}
+.pgb__toggle:hover { background: var(--gray-100); }
+.pgb__toggle.is-on { background: var(--blue-50, #e9effa); color: var(--blue-700, #255096); }
+.pgb__toggle:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); }
 
 /* Add-element chooser cards. */
 .elchoose { display: flex; gap: 16px; }

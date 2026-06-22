@@ -38,6 +38,29 @@
     return n;
   }
 
+  // Apply a richtext element's style (colours + border) — only when a value is
+  // actually set (opacity > 0 / a width chosen), otherwise the CSS defaults win.
+  function applyRichtextStyle(elt, rt, st) {
+    if (!st) return;
+    let padded = false;
+    if (st.background && st.background.opacity > 0) { elt.style.background = rgba(st.background); padded = true; }
+    if (st.heading && st.heading.opacity > 0) rt.style.setProperty('--rt-heading', rgba(st.heading));
+    if (st.text && st.text.opacity > 0) rt.style.setProperty('--rt-text', rgba(st.text));
+    if (st.link && st.link.opacity > 0) rt.style.setProperty('--rt-link', rgba(st.link));
+    const bw = ({ 1: 1, 2: 2, 3: 3, 4: 4 })[st.borderWidth] || 0;
+    const sides = st.borderSides || {};
+    if (bw && (sides.top || sides.right || sides.bottom || sides.left)) {
+      const bc = st.borderColor && st.borderColor.opacity > 0 ? rgba(st.borderColor) : '#d7d8da';
+      const b = `${bw}px solid ${bc}`;
+      if (sides.top) elt.style.borderTop = b;
+      if (sides.right) elt.style.borderRight = b;
+      if (sides.bottom) elt.style.borderBottom = b;
+      if (sides.left) elt.style.borderLeft = b;
+      padded = true;
+    }
+    if (padded) elt.style.padding = '16px';
+  }
+
   function create(container) {
     const state = {
       navigation: [],
@@ -200,13 +223,12 @@
           elt.appendChild(pre);
         } else {
           const html = String(element.body || '');
-          if (html.replace(/<[^>]*>/g, '').trim() || /<(br|img|hr)/i.test(html)) {
-            const rt = el('div', 'wsprev__richtext');
-            rt.innerHTML = window.RichText ? window.RichText.sanitize(html) : '';
-            elt.appendChild(rt);
-          } else {
-            elt.appendChild(el('p', 'wsprev__elempty', 'Empty rich text.'));
-          }
+          const hasContent = html.replace(/<[^>]*>/g, '').trim() || /<(br|img|hr)/i.test(html);
+          const rt = el('div', 'wsprev__richtext');
+          if (hasContent) rt.innerHTML = window.RichText ? window.RichText.sanitize(html) : '';
+          else rt.appendChild(el('p', 'wsprev__elempty', 'Empty rich text.'));
+          applyRichtextStyle(elt, rt, element.style);
+          elt.appendChild(rt);
         }
         return elt;
       }

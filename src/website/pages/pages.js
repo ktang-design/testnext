@@ -290,7 +290,7 @@
     const col = column === 1 ? 1 : 0; // which 50% column (ignored in 100% layout)
     const e = type === 'code'
       ? { id: uid('el'), type: 'code', title: 'Code', displayTitle: false, column: col, code: '' }
-      : { id: uid('el'), type: 'richtext', title: 'Richtext', displayTitle: false, column: col, body: '' };
+      : { id: uid('el'), type: 'richtext', title: 'Richtext', displayTitle: false, column: col, body: '', style: defaultRichtextStyle() };
     sec.elements.push(e);
     selectedSectionId = sectionId;
     selectedElementId = e.id;
@@ -639,6 +639,94 @@
     op.addEventListener('blur', () => { op.value = colorObj.opacity; });
     return row;
   }
+  // ---- richtext element style (colours + border), per Figma 670:14197 ----
+  const BORDER_WIDTHS = [
+    { value: 'default', label: 'Default' }, { value: '1', label: '1px' },
+    { value: '2', label: '2px' }, { value: '3', label: '3px' }, { value: '4', label: '4px' },
+  ];
+  function defaultRichtextStyle() {
+    const off = () => ({ color: '#FFFFFF', opacity: 0 }); // opacity 0 = no override
+    return {
+      heading: off(), text: off(), link: off(), background: off(),
+      borderWidth: 'default', borderSides: { top: false, right: false, bottom: false, left: false },
+      borderColor: off(),
+    };
+  }
+  // Ensure an element has a full style object (backfills missing keys in place).
+  function rtStyle(elc) {
+    const d = defaultRichtextStyle();
+    const s = Object.assign({}, d, elc.style || {});
+    ['heading', 'text', 'link', 'background', 'borderColor'].forEach((k) => { s[k] = Object.assign({}, d[k], s[k] || {}); });
+    s.borderSides = Object.assign({}, d.borderSides, s.borderSides || {});
+    elc.style = s;
+    return s;
+  }
+  function buildDivider() { const d = document.createElement('div'); d.className = 'pgb__divider'; return d; }
+  function buildDropdown(labelText, options, value, onChange) {
+    const field = document.createElement('div');
+    field.className = 'pgb__field';
+    const id = uid('d');
+    const lab = document.createElement('label');
+    lab.className = 'pgb__label';
+    lab.textContent = labelText;
+    lab.setAttribute('for', id);
+    const sel = document.createElement('select');
+    sel.className = 'pgb__select';
+    sel.id = id;
+    options.forEach((o) => { const opt = document.createElement('option'); opt.value = o.value; opt.textContent = o.label; if (String(o.value) === String(value)) opt.selected = true; sel.appendChild(opt); });
+    sel.addEventListener('change', () => onChange(sel.value));
+    field.appendChild(lab);
+    field.appendChild(sel);
+    return field;
+  }
+  function borderIcon(side) {
+    const faint = '<rect x="2.5" y="2.5" width="11" height="11" rx="1" stroke="currentColor" stroke-opacity="0.3" stroke-width="1.2" fill="none"/>';
+    const bold = {
+      all: '<rect x="2.5" y="2.5" width="11" height="11" rx="1" stroke="currentColor" stroke-width="1.9" fill="none"/>',
+      top: '<path d="M2.5 3h11" stroke="currentColor" stroke-width="2"/>',
+      right: '<path d="M13 2.5v11" stroke="currentColor" stroke-width="2"/>',
+      bottom: '<path d="M2.5 13h11" stroke="currentColor" stroke-width="2"/>',
+      left: '<path d="M3 2.5v11" stroke="currentColor" stroke-width="2"/>',
+    }[side];
+    return `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">${side === 'all' ? '' : faint}${bold}</svg>`;
+  }
+  function buildToggleSelect(labelText, sides, onChange) {
+    const field = document.createElement('div');
+    field.className = 'pgb__field pgb__field--row';
+    const lab = document.createElement('span');
+    lab.className = 'pgb__label';
+    lab.textContent = labelText;
+    field.appendChild(lab);
+    const group = document.createElement('div');
+    group.className = 'pgb__toggles';
+    const SIDES = [['all', 'All sides'], ['top', 'Top'], ['right', 'Right'], ['bottom', 'Bottom'], ['left', 'Left']];
+    const allOn = () => sides.top && sides.right && sides.bottom && sides.left;
+    const btns = {};
+    function refresh() {
+      btns.all.classList.toggle('is-on', allOn());
+      ['top', 'right', 'bottom', 'left'].forEach((k) => btns[k].classList.toggle('is-on', !!sides[k]));
+    }
+    SIDES.forEach(([key, labl]) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'pgb__toggle';
+      b.title = labl;
+      b.setAttribute('aria-label', `Border ${labl}`);
+      b.innerHTML = borderIcon(key);
+      b.addEventListener('click', () => {
+        if (key === 'all') { const on = !allOn(); sides.top = sides.right = sides.bottom = sides.left = on; }
+        else sides[key] = !sides[key];
+        refresh();
+        onChange();
+      });
+      btns[key] = b;
+      group.appendChild(b);
+    });
+    refresh();
+    field.appendChild(group);
+    return field;
+  }
+
   function rowLabel(text, onClick) {
     const b = document.createElement('button');
     b.type = 'button';
@@ -733,20 +821,16 @@
     if (elc.type === 'code') {
       settings.appendChild(buildTextarea('Code', elc.code, limits.body, (v) => { elc.code = v; afterFieldEdit(); }, true));
     } else {
-      // Richtext content is edited in a focused modal (also via the toolbar's edit icon).
-      const field = document.createElement('div');
-      field.className = 'pgb__field';
-      const lab = document.createElement('span');
-      lab.className = 'pgb__label';
-      lab.textContent = 'Content';
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'btn btn--secondary';
-      btn.textContent = 'Edit content';
-      btn.addEventListener('click', () => openRichtextModal(selectedSectionId, elc.id));
-      field.appendChild(lab);
-      field.appendChild(btn);
-      settings.appendChild(field);
+      // Richtext: colours + border (content is edited via the toolbar edit icon).
+      const st = rtStyle(elc);
+      settings.appendChild(makeColorRow('Heading', st.heading, afterFieldEdit));
+      settings.appendChild(makeColorRow('Body', st.text, afterFieldEdit));
+      settings.appendChild(makeColorRow('Link', st.link, afterFieldEdit));
+      settings.appendChild(makeColorRow('Background', st.background, afterFieldEdit));
+      settings.appendChild(buildDivider());
+      settings.appendChild(buildDropdown('Border width', BORDER_WIDTHS, st.borderWidth, (v) => { st.borderWidth = v; afterFieldEdit(); }));
+      settings.appendChild(buildToggleSelect('Border style', st.borderSides, afterFieldEdit));
+      settings.appendChild(makeColorRow('Border', st.borderColor, afterFieldEdit));
     }
     builderView.appendChild(settings);
   }

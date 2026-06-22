@@ -59,8 +59,10 @@
 .wsprev__el { position: relative; padding: 12px 0; cursor: pointer; }
 /* Only a SECTION shows the pink highlight (selected) / grey hint (hover).
    Elements are never highlighted/filled — their affordance is the toolbar. */
-.wsprev__section.is-selected { outline: 2px solid #e0489b; outline-offset: -2px; border-radius: 4px; }
-.wsprev__section:hover:not(.is-selected) { outline: 1px dashed #cdd6e6; outline-offset: -1px; border-radius: 4px; }
+.wsprev__section.is-selected,
+.wsprev__el.is-selected { outline: 2px solid #e0489b; outline-offset: -2px; border-radius: 4px; }
+.wsprev__section:hover:not(.is-selected),
+.wsprev__el:hover:not(.is-selected) { outline: 1px dashed #cdd6e6; outline-offset: -1px; border-radius: 4px; }
 
 /* Element layout within a section (Column layout: 100% vs 50% / 50%). In split
    mode each column holds its own elements + a 50%-wide Add element area. */
@@ -74,14 +76,14 @@
 .wsprev__eltext:last-child { margin-bottom: 0; }
 .wsprev__elempty { margin: 0; font-size: 14px; font-style: italic; color: #8d9095; }
 /* Rendered richtext (sanitized HTML from the editor). */
-.wsprev__richtext { font-size: 15px; line-height: 1.6; color: #55585d; }
-.wsprev__richtext h2 { margin: 0 0 12px; font-size: 22px; font-weight: 600; color: #3d3f42; }
-.wsprev__richtext h3 { margin: 0 0 8px; font-size: 18px; font-weight: 600; color: #3d3f42; }
+.wsprev__richtext { font-size: 15px; line-height: 1.6; color: var(--rt-text, #55585d); }
+.wsprev__richtext h2 { margin: 0 0 12px; font-size: 22px; font-weight: 600; color: var(--rt-heading, #3d3f42); }
+.wsprev__richtext h3 { margin: 0 0 8px; font-size: 18px; font-weight: 600; color: var(--rt-heading, #3d3f42); }
 .wsprev__richtext p { margin: 0 0 12px; }
 .wsprev__richtext > :last-child { margin-bottom: 0; }
 .wsprev__richtext ul, .wsprev__richtext ol { margin: 0 0 12px; padding-left: 24px; }
 .wsprev__richtext li { margin: 0 0 4px; }
-.wsprev__richtext a { color: #2d62b7; text-decoration: underline; }
+.wsprev__richtext a { color: var(--rt-link, #2d62b7); text-decoration: underline; }
 .wsprev__code {
   margin: 0; padding: 16px; border-radius: 6px;
   background: #1e2433; color: #e6e9f0; overflow: auto;

@@ -57,6 +57,21 @@ function cleanColor(raw) {
   return { color, opacity: Math.max(0, Math.min(100, Math.round(opacity))) };
 }
 
+// Richtext element styling (colours + border). A missing colour defaults to
+// opacity 0 (no override), so absent styles don't paint anything.
+const RT_BORDER_WIDTHS = ['default', '1', '2', '3', '4'];
+const styleColor = (c) => (c && typeof c === 'object' ? cleanColor(c) : { color: '#FFFFFF', opacity: 0 });
+function normalizeRichtextStyle(raw) {
+  const s = raw && typeof raw === 'object' ? raw : {};
+  const sides = s.borderSides && typeof s.borderSides === 'object' ? s.borderSides : {};
+  return {
+    heading: styleColor(s.heading), text: styleColor(s.text), link: styleColor(s.link), background: styleColor(s.background),
+    borderWidth: RT_BORDER_WIDTHS.includes(String(s.borderWidth)) ? String(s.borderWidth) : 'default',
+    borderSides: { top: bool(sides.top), right: bool(sides.right), bottom: bool(sides.bottom), left: bool(sides.left) },
+    borderColor: styleColor(s.borderColor),
+  };
+}
+
 // Re-shape a page's content (sections + elements) into the canonical stored
 // form. Never throws — invalid bits are coerced/dropped — so a save can't fail
 // on content. Richtext/code stay PLAIN TEXT (rendered via textContent client-
@@ -79,8 +94,12 @@ function normalizeContent(raw) {
         displayTitle: bool(e.displayTitle),
         column: Number(e.column) === 1 ? 1 : 0, // left (0) / right (1) in a 50/50 section
       };
-      if (type === 'code') el.code = str(e.code).slice(0, ELEMENT_BODY_MAX);
-      else el.body = sanitizeRichtext(e.body).slice(0, ELEMENT_BODY_MAX);
+      if (type === 'code') {
+        el.code = str(e.code).slice(0, ELEMENT_BODY_MAX);
+      } else {
+        el.body = sanitizeRichtext(e.body).slice(0, ELEMENT_BODY_MAX);
+        el.style = normalizeRichtextStyle(e.style);
+      }
       return el;
     });
     return {
