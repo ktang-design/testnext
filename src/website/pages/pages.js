@@ -589,21 +589,8 @@
     settings.appendChild(buildRadio('Column layout', [{ value: 1, label: '100%' }, { value: 2, label: '50% / 50%' }], sec.columns || 1, (v) => { sec.columns = v; afterFieldEdit(); }));
     settings.appendChild(makeColorRow('Background', sec.background, afterFieldEdit));
     builderView.appendChild(settings);
-
-    if (sec.elements.length) {
-      const mount = document.createElement('div');
-      mount.className = 'navpanel__tree';
-      builderView.appendChild(mount);
-      elementTree = window.SortableTree.create(mount, {
-        items: sec.elements.map((e) => ({ id: e.id, children: [] })),
-        maxDepth: 1,
-        ariaLabel: 'Elements',
-        labelOf: (it) => { const e = findElement(sec.id, it.id); return (e && (e.title || (e.type === 'code' ? 'Code' : 'Richtext'))) || 'Element'; },
-        renderContent: (it) => { const e = findElement(sec.id, it.id); return rowLabel((e && (e.title || (e.type === 'code' ? 'Code' : 'Richtext'))) || 'Element', () => selectElement(sec.id, it.id)); },
-        renderTrailing: (it) => { const e = findElement(sec.id, it.id); return rowKebab(e && e.title, [{ label: 'Edit', onSelect: () => selectElement(sec.id, it.id) }, { label: 'Delete', danger: true, onSelect: () => deleteElement(sec.id, it.id) }]); },
-        onChange: () => reorderElements(sec.id, elementTree.getItems().map((it) => it.id)),
-      });
-    }
+    // Elements are managed in the preview (click to select/edit, toolbar to
+    // delete), so they are intentionally not listed in the section panel.
   }
 
   function renderElementSettings() {

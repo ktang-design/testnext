@@ -75,18 +75,17 @@
 
 /* ===========================  Content builder  =========================== */
 /* Breadcrumb (Pages › Page › Section …). */
-.pgb__crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 4px; }
+.pgb__crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 16px; }
 .pgb__crumb { font-size: 13px; color: var(--gray-600); }
 .pgb__crumb--link { background: none; border: 0; padding: 0; cursor: pointer; color: var(--blue-700, #255096); }
 .pgb__crumb--link:hover { text-decoration: underline; }
 .pgb__crumb--link:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); border-radius: 2px; }
 .pgb__crumbsep { color: var(--gray-400); font-size: 18px; line-height: 1; }
 
-/* The section/element add (+) — a soft circular button (Figma r100, #F5F5F5).
-   Keeps the shared .navpanel__add[data-tooltip] tooltip ("Add section" / "Add
-   element"). */
-.pgb__add { border-radius: 50%; background: var(--gray-100, #f5f5f5); }
-.pgb__add:hover { background: var(--gray-200, #d7d8da); }
+/* The section/element add (+) — circular, with the shared .navpanel__add
+   transparent-default / grey-on-hover background (no grey unless hovered) and
+   the .navpanel__add[data-tooltip] tooltip ("Add section" / "Add element"). */
+.pgb__add { border-radius: 50%; }
 
 /* Column-layout radios. */
 .pgb__radios { display: flex; flex-direction: column; gap: 8px; }
