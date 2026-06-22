@@ -46,10 +46,10 @@
 .wsprev__cta {
   display: flex; justify-content: center; align-items: center; gap: 8px;
   width: 100%; box-sizing: border-box; padding: 24px; margin: 8px 0;
-  background: transparent; border: 0; cursor: pointer;
+  background: #e9effa; border: 0; cursor: pointer;
   color: #2d62b7; font: 600 15px/1.2 "Noto Sans", Arial, sans-serif;
 }
-.wsprev__cta:hover { background: #e9effa; }
+.wsprev__cta:hover { background: #dbe6fb; }
 .wsprev__cta svg { flex: none; }
 .wsprev__section > .wsprev__cta { margin: 12px 0 0; }
 
@@ -79,17 +79,16 @@
   font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-/* Floating toolbar (Figma component 83:5303) — centered at the top of the
-   section/element area: white, r4, 8px padding/gap, grip/edit/trash buttons. */
+/* Floating toolbar (Figma component 83:5303 / mockup 666:12297) — horizontally
+   centered and straddling the TOP edge of the block; shown only on the selected
+   section/element. White, r4, 8px padding/gap, grip/edit/trash buttons. */
 .wsprev__toolbar {
-  position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 2;
+  position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); z-index: 3;
   display: inline-flex; align-items: center; gap: 8px;
   padding: 8px; border-radius: 4px; background: #fff;
   box-shadow: 0 2px 8px rgba(16, 24, 40, 0.16);
   opacity: 0; visibility: hidden; transition: opacity 0.1s ease;
 }
-.wsprev__section:hover > .wsprev__toolbar,
-.wsprev__el:hover > .wsprev__toolbar,
 .wsprev__section.is-selected > .wsprev__toolbar,
 .wsprev__el.is-selected > .wsprev__toolbar { opacity: 1; visibility: visible; }
 .wsprev__tbgrip,
