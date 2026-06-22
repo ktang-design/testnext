@@ -215,6 +215,9 @@
         // Only the single selected block is pink: a section is highlighted only
         // when no element within it is the selected one.
         if (section.id === blr.selectedSectionId && !blr.selectedElementId) sec.classList.add('is-selected');
+        // The "Add element" placeholder only shows on the active (selected)
+        // section — selecting an element keeps its section active.
+        const active = section.id === blr.selectedSectionId;
         sec.addEventListener('click', () => cb.onSelectSection && cb.onSelectSection(section.id));
         sec.appendChild(blockToolbar(
           () => cb.onSelectSection && cb.onSelectSection(section.id),
@@ -229,7 +232,7 @@
           for (let col = 0; col < 2; col++) {
             const column = el('div', 'wsprev__col');
             elements.filter((e) => colOf(e) === col).forEach((element) => column.appendChild(buildElement(element, section)));
-            column.appendChild(cta('Add element', () => cb.onAddElement && cb.onAddElement(section.id, col)));
+            if (active) column.appendChild(cta('Add element', () => cb.onAddElement && cb.onAddElement(section.id, col)));
             grid.appendChild(column);
           }
           sec.appendChild(grid);
@@ -237,7 +240,7 @@
           const wrap = el('div', 'wsprev__elements');
           elements.forEach((element) => wrap.appendChild(buildElement(element, section)));
           sec.appendChild(wrap);
-          sec.appendChild(cta('Add element', () => cb.onAddElement && cb.onAddElement(section.id, 0)));
+          if (active) sec.appendChild(cta('Add element', () => cb.onAddElement && cb.onAddElement(section.id, 0)));
         }
 
         body.appendChild(sec);
