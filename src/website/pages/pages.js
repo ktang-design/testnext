@@ -490,9 +490,15 @@
     body.appendChild(wrap);
     modal.appendChild(body);
 
-    const MIN_LINES = 15; // fill the editor height even when empty (per design)
+    // Enough numbers to fill the (height-capped) editor when empty, then one per
+    // line as it grows — so a large paste scrolls inside the textarea instead of
+    // stretching the gutter (and the modal) past the viewport.
+    const fillLines = () => {
+      const lh = parseFloat(getComputedStyle(area).lineHeight) || 21;
+      return Math.max(1, Math.ceil((area.clientHeight - 24) / lh));
+    };
     const drawNums = () => {
-      const count = Math.max(MIN_LINES, area.value.split('\n').length);
+      const count = Math.max(fillLines(), area.value.split('\n').length);
       let out = '';
       for (let i = 1; i <= count; i++) out += i + '\n';
       nums.textContent = out;
@@ -500,7 +506,7 @@
     const syncScroll = () => { nums.style.transform = `translateY(${-area.scrollTop}px)`; };
     area.addEventListener('input', drawNums);
     area.addEventListener('scroll', syncScroll);
-    drawNums();
+    window.addEventListener('resize', drawNums);
 
     const footer = document.createElement('div');
     footer.className = 'modal__footer';
@@ -511,9 +517,11 @@
 
     document.body.appendChild(overlay);
     document.body.classList.add('is-locked');
+    drawNums(); // now that the editor has a measured height
 
     function close() {
       document.removeEventListener('keydown', onKey, true);
+      window.removeEventListener('resize', drawNums);
       overlay.remove();
       document.body.classList.remove('is-locked');
       if (prev && prev.focus) prev.focus();

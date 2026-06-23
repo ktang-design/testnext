@@ -196,10 +196,16 @@
 /* The wider toolbar wraps to multiple rows. */
 .rt__tool { font-weight: 600; }
 
-/* Edit code modal — a monospace textarea with a fixed line-number gutter. */
-.modal.modal--code { width: min(800px, 94vw); }
+/* Edit code modal — a monospace textarea with a fixed line-number gutter. The
+   dialog is capped at 90vh and the editor has a bounded height, so a large paste
+   scrolls inside the textarea rather than stretching the modal off-screen. */
+.modal.modal--code { width: min(800px, 94vw); max-height: 90vh; display: flex; flex-direction: column; }
+.modal--code .modal__header, .modal--code .modal__footer { flex: none; }
+.modal--code .modal__body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
 .codeedit {
-  display: flex; border: 1px solid var(--gray-200); border-radius: 6px; overflow: hidden;
+  flex: 0 1 auto; height: 420px; max-height: 100%; min-height: 0;
+  display: flex; overflow: hidden;
+  border: 1px solid var(--gray-200); border-radius: 6px;
   background: #fff; font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 .codeedit__gutter {
@@ -209,7 +215,7 @@
 }
 .codeedit__nums { padding: 0 10px; min-width: 1.5ch; white-space: pre; }
 .codeedit__area {
-  flex: 1; min-width: 0; height: 320px; resize: none;
+  flex: 1; min-width: 0; height: 100%; resize: none;
   border: 0; outline: none; padding: 12px 14px;
   font: inherit; color: var(--gray-800); white-space: pre; overflow: auto; tab-size: 2;
 }
