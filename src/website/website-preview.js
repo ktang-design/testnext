@@ -24,6 +24,26 @@
   const BRAND_D = { logo: null, primary: { color: '#255096', opacity: 100 }, secondary: { color: '#3D3F42', opacity: 100 }, heading: { color: '#3D3F42', opacity: 100 }, body: { color: '#55585D', opacity: 100 }, link: { color: '#255096', opacity: 100 } };
   const SEARCH_D = { background: { color: '#255096', opacity: 100 }, backgroundImage: null, searches: [] };
 
+  // The preview paints from this cache on first frame so saved configuration
+  // shows immediately instead of flashing the defaults and popping in after the
+  // network resolves. It is refreshed every load once the real data arrives.
+  const CACHE_KEY = 'ws-preview-config';
+  function readCache() {
+    try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (_) { return null; }
+  }
+  function writeCache(data) {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); return; } catch (_) { /* quota / disabled */ }
+    // Likely too large (image data URLs) — cache without them so layout/colours
+    // still paint instantly; the images then load when the network resolves.
+    try {
+      const lite = JSON.parse(JSON.stringify(data));
+      if (lite.branding) lite.branding.logo = null;
+      if (lite.search) lite.search.backgroundImage = null;
+      lite.platformLogo = null;
+      localStorage.setItem(CACHE_KEY, JSON.stringify(lite));
+    } catch (_) { /* give up — fall back to the lazy load */ }
+  }
+
   function rgba(c) {
     if (!c || !c.color) return 'transparent';
     const o = (c.opacity == null ? 100 : c.opacity) / 100;
@@ -485,9 +505,38 @@
       if (userZoomed) applyZoom(zoom); else fitZoom();
     }
 
+    // Instant-load cache: snapshot the saved website config (not the per-page
+    // builder state) and write it debounced so live edits/saves stay current.
+    const cacheSnapshot = () => ({
+      navigation: state.navigation,
+      header: state.header,
+      footer: state.footer,
+      typography: state.typography,
+      branding: state.branding,
+      search: state.search,
+      platformLogo: state.platformLogo,
+    });
+    let cacheTimer = null;
+    const scheduleCacheWrite = () => {
+      if (cacheTimer) return;
+      cacheTimer = setTimeout(() => { cacheTimer = null; writeCache(cacheSnapshot()); }, 400);
+    };
+
+    // Paint immediately from the last-known config so there is no flash of the
+    // defaults before the network resolves.
+    const cached = readCache();
+    if (cached) {
+      if (cached.navigation) state.navigation = cached.navigation;
+      if (cached.header) state.header = cached.header;
+      if (cached.footer) state.footer = cached.footer;
+      if (cached.typography) state.typography = cached.typography;
+      if (cached.branding) state.branding = cached.branding;
+      if (cached.search) state.search = cached.search;
+      if ('platformLogo' in cached) state.platformLogo = cached.platformLogo;
+    }
     render();
 
-    // ---- Load saved configuration ----
+    // ---- Load saved configuration (revalidate the cache) ----
     const get = (url) => fetch(url, { credentials: 'include' }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
     Promise.all([
       get('/api/website/navigation'),
@@ -506,14 +555,20 @@
       if (search) state.search = search.saved || search.defaults || SEARCH_D;
       state.platformLogo = (pbrand && pbrand.saved && pbrand.saved.logo) || null;
       render();
+      writeCache(cacheSnapshot());
     });
 
     return {
-      update(partial) { Object.assign(state, partial || {}); render(); },
+      update(partial) {
+        Object.assign(state, partial || {});
+        render();
+        scheduleCacheWrite(); // keep the instant-load cache current with live edits/saves
+      },
       destroy() {
         document.removeEventListener('keydown', onKeyDown);
         document.removeEventListener('keyup', onKeyUp);
         window.removeEventListener('blur', onBlur);
+        if (cacheTimer) clearTimeout(cacheTimer);
         if (ro) ro.disconnect();
         container.innerHTML = '';
       },
