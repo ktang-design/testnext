@@ -206,6 +206,48 @@
       const blr = state.builder || { sections: [] };
       const colOf = (e) => (Number(e.column) === 1 ? 1 : 0);
 
+      // Drag-to-reorder elements (within a section; across columns in 50/50).
+      // The dragged element's id; null when no drag is in progress.
+      let dragId = null;
+      const clearDropMarks = () => {
+        body.querySelectorAll('.is-dropbefore').forEach((n) => n.classList.remove('is-dropbefore'));
+        body.querySelectorAll('.is-dropend').forEach((n) => n.classList.remove('is-dropend'));
+      };
+      // The element to drop in front of inside container (null = drop at the end).
+      // Compares against rendered (scaled) positions, so zoom doesn't matter.
+      const dropBeforeEl = (container, y) => {
+        const els = Array.prototype.filter.call(container.children,
+          (n) => n.classList && n.classList.contains('wsprev__el') && n.dataset.id !== dragId);
+        for (let i = 0; i < els.length; i++) {
+          const r = els[i].getBoundingClientRect();
+          if (y < r.top + r.height / 2) return els[i];
+        }
+        return null;
+      };
+      function makeDropZone(container, section, column) {
+        container.addEventListener('dragover', (e) => {
+          if (dragId == null) return;
+          e.preventDefault();
+          if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+          clearDropMarks();
+          const before = dropBeforeEl(container, e.clientY);
+          if (before) before.classList.add('is-dropbefore');
+          else container.classList.add('is-dropend');
+        });
+        container.addEventListener('dragleave', (e) => {
+          if (!container.contains(e.relatedTarget)) clearDropMarks();
+        });
+        container.addEventListener('drop', (e) => {
+          if (dragId == null) return;
+          e.preventDefault();
+          e.stopPropagation();
+          const before = dropBeforeEl(container, e.clientY);
+          const id = dragId;
+          clearDropMarks();
+          cb.onReorderElement && cb.onReorderElement(section.id, id, column, before ? before.dataset.id : null);
+        });
+      }
+
       function buildElement(element, section) {
         const elt = el('div', 'wsprev__el');
         elt.dataset.id = element.id;
@@ -215,6 +257,23 @@
           () => cb.onEditElement && cb.onEditElement(section.id, element.id),
           () => cb.onDeleteElement && cb.onDeleteElement(section.id, element.id)
         ));
+        // The grip arms native dragging; the element drags only when grabbed there.
+        const grip = elt.querySelector('.wsprev__tbgrip');
+        if (grip) {
+          grip.addEventListener('mousedown', () => { elt.draggable = true; });
+          grip.addEventListener('mouseup', () => { elt.draggable = false; });
+        }
+        elt.addEventListener('dragstart', (e) => {
+          dragId = element.id;
+          if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = 'move';
+            try { e.dataTransfer.setData('text/plain', element.id); } catch (_) {}
+          }
+          elt.classList.add('is-dragging');
+        });
+        elt.addEventListener('dragend', () => {
+          dragId = null; elt.draggable = false; elt.classList.remove('is-dragging'); clearDropMarks();
+        });
         if (element.displayTitle && element.title) {
           const t = el('h3', 'wsprev__eltitle', element.title);
           const h = element.style && element.style.heading;
@@ -265,12 +324,14 @@
             const column = el('div', 'wsprev__col');
             elements.filter((e) => colOf(e) === col).forEach((element) => column.appendChild(buildElement(element, section)));
             if (active) column.appendChild(cta('Add element', () => cb.onAddElement && cb.onAddElement(section.id, col)));
+            makeDropZone(column, section, col);
             grid.appendChild(column);
           }
           sec.appendChild(grid);
         } else {
           const wrap = el('div', 'wsprev__elements');
           elements.forEach((element) => wrap.appendChild(buildElement(element, section)));
+          makeDropZone(wrap, section, 0);
           sec.appendChild(wrap);
           if (active) sec.appendChild(cta('Add element', () => cb.onAddElement && cb.onAddElement(section.id, 0)));
         }

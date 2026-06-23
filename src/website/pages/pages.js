@@ -452,6 +452,26 @@
     sec.elements = orderedIds.map((id) => map[id]).filter(Boolean);
     afterFieldEdit();
   }
+  // Drag-reorder an element within its section. In a 50/50 section it can also
+  // move to the other column (targetColumn). beforeId is the element to drop in
+  // front of within the target column (null = append to the end of that column).
+  function moveElement(secId, draggedId, targetColumn, beforeId) {
+    const sec = findSection(secId);
+    if (!sec) return;
+    const elc = sec.elements.find((e) => e.id === draggedId);
+    if (!elc || draggedId === beforeId) return;
+    sec.elements = sec.elements.filter((e) => e.id !== draggedId);
+    elc.column = sec.columns === 2 ? (Number(targetColumn) === 1 ? 1 : 0) : 0;
+    // The flat array's relative order drives each column's visual order (render
+    // filters by column), so inserting before beforeId positions it correctly.
+    if (beforeId == null) {
+      sec.elements.push(elc);
+    } else {
+      const idx = sec.elements.findIndex((e) => e.id === beforeId);
+      sec.elements.splice(idx < 0 ? sec.elements.length : idx, 0, elc);
+    }
+    afterFieldEdit();
+  }
 
   // ---- element type chooser (cards) on the shared modal chrome ----
   function chooseElementType() {
@@ -887,6 +907,7 @@
         onEditElement: (sid, elId) => editElement(sid, elId),
         onDeleteSection: deleteSection,
         onDeleteElement: deleteElement,
+        onReorderElement: (sid, draggedId, col, beforeId) => moveElement(sid, draggedId, col, beforeId),
       },
     });
   }
