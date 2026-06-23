@@ -109,7 +109,6 @@
 .pgb__input:focus-visible { outline: none; border-color: #3e75cf; box-shadow: 0 0 0 2px var(--blue-50, #e9effa); }
 .pgb__textarea { resize: vertical; min-height: 96px; line-height: 1.5; }
 .pgb__textarea--mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
-.pgb__count { align-self: flex-end; font-size: 13px; color: var(--gray-500); font-variant-numeric: tabular-nums; }
 .pgb__check { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--gray-700); cursor: pointer; }
 .pgb__check input { width: 16px; height: 16px; accent-color: #3e75cf; cursor: pointer; }
 .pgb__divider { height: 1px; background: var(--gray-200); margin: 4px 0; }

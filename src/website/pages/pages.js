@@ -582,16 +582,11 @@
     input.type = 'text';
     input.className = 'pgb__input';
     input.id = id;
-    input.maxLength = maxLen;
+    input.maxLength = maxLen; // still capped; the counter is just not shown
     input.value = value || '';
-    const count = document.createElement('div');
-    count.className = 'pgb__count';
-    const draw = () => { count.textContent = `${input.value.length}/${maxLen}`; };
-    draw();
-    input.addEventListener('input', () => { draw(); onInput(input.value); });
+    input.addEventListener('input', () => onInput(input.value));
     field.appendChild(lab);
     field.appendChild(input);
-    field.appendChild(count);
     return field;
   }
   function buildTextarea(labelText, value, maxLen, onInput, mono, hint) {
