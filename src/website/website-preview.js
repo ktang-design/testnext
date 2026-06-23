@@ -22,6 +22,7 @@
   const FOOTER_D = { showLogo: false, showNavigation: false, links: [] };
   const TYPO_D = { fontFamily: 'Inter', headingSize: 'default', headingWeight: 'default', bodySize: 'default', bodyWeight: 'default' };
   const BRAND_D = { logo: null, primary: { color: '#255096', opacity: 100 }, secondary: { color: '#3D3F42', opacity: 100 }, heading: { color: '#3D3F42', opacity: 100 }, body: { color: '#55585D', opacity: 100 }, link: { color: '#255096', opacity: 100 } };
+  const SEARCH_D = { background: { color: '#255096', opacity: 100 }, backgroundImage: null, searches: [] };
 
   function rgba(c) {
     if (!c || !c.color) return 'transparent';
@@ -109,6 +110,7 @@
       footer: FOOTER_D,
       typography: TYPO_D,
       branding: BRAND_D,
+      search: SEARCH_D,
       platformLogo: null,
       builder: null,          // { sections, selectedSectionId, selectedElementId } when editing a page
       builderCallbacks: {},   // { onAddSection, onAddElement, onSelectSection, onSelectElement, onDeleteSection, onDeleteElement }
@@ -415,6 +417,41 @@
       header.appendChild(hNav);
       root.appendChild(header);
 
+      // ---- Search bar (below the navigation), shown when a search is configured.
+      // Each configured search is an option in the dropdown beside the input. ----
+      const s = state.search || SEARCH_D;
+      if (s.searches && s.searches.length) {
+        const sec = el('section', 'wsprev__search');
+        sec.style.background = rgba(s.background);
+        if (s.backgroundImage) {
+          sec.style.backgroundImage = `url("${s.backgroundImage}")`;
+          sec.style.backgroundSize = 'cover';
+          sec.style.backgroundPosition = 'center';
+        }
+        const bar = el('div', 'wsprev__searchbar');
+        const select = el('select', 'wsprev__searchselect');
+        s.searches.forEach((se) => {
+          const o = el('option', null, se.displayLabel || se.name);
+          o.value = se.id;
+          select.appendChild(o);
+        });
+        const input = el('input', 'wsprev__searchinput');
+        input.type = 'text';
+        input.placeholder = 'Search…';
+        const btn = el('button', 'wsprev__searchbtn', s.searches[0].buttonLabel || 'Search');
+        btn.type = 'button';
+        // The button label tracks the selected search (each carries its own label).
+        select.addEventListener('change', () => {
+          const sel = s.searches.find((x) => x.id === select.value);
+          btn.textContent = (sel && sel.buttonLabel) || 'Search';
+        });
+        bar.appendChild(select);
+        bar.appendChild(input);
+        bar.appendChild(btn);
+        sec.appendChild(bar);
+        root.appendChild(sec);
+      }
+
       // ---- Page body: empty in list view; the content builder fills it ----
       const body = el('main', 'wsprev__body');
       if (state.builder) renderBuilderBody(body);
@@ -455,13 +492,15 @@
       get('/api/website/footer'),
       get('/api/website/typography'),
       get('/api/website/branding'),
+      get('/api/website/search'),
       get('/api/branding'),
-    ]).then(([nav, header, footer, typo, wbrand, pbrand]) => {
+    ]).then(([nav, header, footer, typo, wbrand, search, pbrand]) => {
       if (nav && Array.isArray(nav.navigation)) state.navigation = nav.navigation;
       if (header) state.header = header.saved || header.defaults || HEADER_D;
       if (footer) state.footer = footer.saved || footer.defaults || FOOTER_D;
       if (typo) state.typography = typo.saved || typo.defaults || TYPO_D;
       if (wbrand) state.branding = wbrand.saved || wbrand.defaults || BRAND_D;
+      if (search) state.search = search.saved || search.defaults || SEARCH_D;
       state.platformLogo = (pbrand && pbrand.saved && pbrand.saved.logo) || null;
       render();
     });

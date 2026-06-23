@@ -108,6 +108,11 @@ const SCHEMA = [
     data       TEXT NOT NULL,
     updated_at TEXT NOT NULL
   )`,
+  `CREATE TABLE IF NOT EXISTS website_search (
+    user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    data       TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  )`,
 ];
 
 // Columns introduced after the initial release. CREATE TABLE above already has

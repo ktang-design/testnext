@@ -67,10 +67,26 @@ const WEBSITE_BRANDING_DEFAULTS = {
 };
 const WEBSITE_BRANDING_COLORS = ['primary', 'secondary', 'heading', 'body', 'link'];
 
+// Search: the search bar that appears below the navigation. Each configured
+// search becomes an option in the bar's dropdown. A search has a name (the
+// dropdown label), an optional display label, a URL with a SEARCH_TERM token
+// (replaced with the user's query), whether to urlencode that term, and the
+// search button label. `type` is 'eds' (EBSCO Discovery Service) or 'custom'.
+const SEARCH_NAME_MAX = 120;
+const SEARCH_LABEL_MAX = 120;
+const SEARCH_BUTTON_MAX = 60;
+const MAX_SEARCHES = 20;
+const SEARCH_DEFAULTS = {
+  background: { color: '#255096', opacity: 100 },
+  backgroundImage: null,
+  searches: [],
+};
+
 module.exports = {
   DEFAULT_PAGES, LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH,
   TITLE_MAX, DESCRIPTION_MAX, MAX_PAGES,
   SECTION_TITLE_MAX, ELEMENT_TITLE_MAX, ELEMENT_BODY_MAX, MAX_SECTIONS, MAX_ELEMENTS,
   HEADER_DEFAULTS, FOOTER_DEFAULTS, TYPOGRAPHY_DEFAULTS, TYPOGRAPHY_OPTIONS,
   WEBSITE_BRANDING_DEFAULTS, WEBSITE_BRANDING_COLORS,
+  SEARCH_DEFAULTS, SEARCH_NAME_MAX, SEARCH_LABEL_MAX, SEARCH_BUTTON_MAX, MAX_SEARCHES,
 };

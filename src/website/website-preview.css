@@ -37,6 +37,28 @@
 .wsprev__nav { display: flex; flex-wrap: wrap; gap: 28px; align-items: center; }
 .wsprev__navlink { font-weight: 600; font-size: 15px; white-space: nowrap; }
 
+/* Search bar — appears below the navigation when a search is configured. The
+   section background is the configured colour (and optional image); the bar is a
+   white field with the search dropdown + input + button. */
+.wsprev__search { padding: 32px 48px; background: #255096; }
+.wsprev__searchbar {
+  display: flex; align-items: stretch; max-width: 760px; margin: 0 auto;
+  background: #fff; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 4px rgba(16, 24, 40, 0.2);
+}
+.wsprev__searchselect {
+  flex: none; max-width: 220px; border: 0; border-right: 1px solid var(--gray-200, #d7d8da);
+  background: #fff; padding: 0 14px; font: 600 15px/1 "Noto Sans", Arial, sans-serif; color: #3d3f42; cursor: pointer;
+}
+.wsprev__searchinput {
+  flex: 1; min-width: 0; border: 0; padding: 14px 16px;
+  font: 400 15px "Noto Sans", Arial, sans-serif; color: #3d3f42; background: #fff;
+}
+.wsprev__searchinput:focus { outline: none; }
+.wsprev__searchbtn {
+  flex: none; border: 0; padding: 0 24px; cursor: pointer;
+  background: #255096; color: #fff; font: 600 15px "Noto Sans", Arial, sans-serif;
+}
+
 /* Page body — empty in list view; the content builder fills it. */
 .wsprev__body { flex: 1; min-height: 460px; background: #fff; }
 

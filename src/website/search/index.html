@@ -3,14 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Header — StacksNext</title>
+  <title>Search — StacksNext</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/components/navigation/navigation.css" />
   <link rel="stylesheet" href="../website.css" />
   <link rel="stylesheet" href="../website-preview.css" />
-  <link rel="stylesheet" href="header.css" />
+  <link rel="stylesheet" href="/shared/popover.css" />
+  <link rel="stylesheet" href="search.css" />
   <link rel="stylesheet" href="/shared/app-shell.css" />
 </head>
 <body>
@@ -57,7 +58,7 @@
             </a>
           </li>
           <li>
-            <a class="nav-item nav-item--interactive is-active" href="#" aria-current="page">
+            <a class="nav-item nav-item--interactive" href="/website/header/">
               <span class="nav-item__icon"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="2.6" width="12.4" height="10.8" rx="1.5"/><path d="M1.8 6.2h12.4"/></svg></span>
               <span class="nav-item__label">Header</span>
             </a>
@@ -81,7 +82,7 @@
             </a>
           </li>
           <li>
-            <a class="nav-item nav-item--interactive" href="/website/search/">
+            <a class="nav-item nav-item--interactive is-active" href="#" aria-current="page">
               <span class="nav-item__icon"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.2"/><path d="m10.2 10.2 3 3"/></svg></span>
               <span class="nav-item__label">Search</span>
             </a>
@@ -92,64 +93,36 @@
 
     <div class="content">
       <div class="navworkspace">
-        <section class="navpanel" aria-labelledby="hdr-title">
-          <h1 class="navpanel__title" id="hdr-title">Header</h1>
-          <p class="navpanel__desc">Configure the positioning of your logo and navigation</p>
+        <section class="navpanel" aria-labelledby="ws-title">
+          <div class="navpanel__head">
+            <h1 class="navpanel__title" id="ws-title">Search</h1>
+            <button type="button" class="navpanel__add" data-add-search aria-label="Add search">
+              <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
+            </button>
+          </div>
+          <p class="navpanel__desc">Configure search functionality for your website. The search will appear below your navigation.</p>
 
-          <!-- Live preview of the header layout -->
-          <div class="hdr-field">
-            <span class="hdr-field__label">Preview</span>
-            <div class="hdr-preview">
-              <div class="hdr-preview__bar" data-preview-bar>
-                <img class="hdr-preview__logo" src="../assets/stacks-logo.svg" alt="" aria-hidden="true" />
-                <span class="hdr-preview__nav" data-preview-nav>
-                  <span class="hdr-preview__pill" data-preview-pill></span>
-                  <span class="hdr-preview__pill" data-preview-pill></span>
-                </span>
+          <ul class="ws-list" data-search-list hidden></ul>
+
+          <div class="ws-divider"></div>
+
+          <!-- Background colour (built by search.js into this row) -->
+          <div data-bg-color></div>
+
+          <!-- Background image -->
+          <div class="ws-field">
+            <span class="ws-label">Background image</span>
+            <p class="ws-help">The image will automatically adjust to fit the available space across different screen sizes.</p>
+            <button type="button" class="btn btn--secondary" data-img-choose>Choose an image</button>
+            <div class="ws-img" data-img-preview hidden>
+              <div class="ws-img__box"><img data-img-el alt="Background image preview" /></div>
+              <div class="ws-img__actions">
+                <button type="button" class="btn btn--secondary" data-img-replace>Replace image</button>
+                <button type="button" class="btn--link" data-img-remove>Remove</button>
               </div>
             </div>
-          </div>
-
-          <!-- Logo placement -->
-          <div class="hdr-field">
-            <span class="hdr-field__label" id="logo-label">Logo</span>
-            <div class="seg" role="radiogroup" aria-labelledby="logo-label" data-seg="logo">
-              <button type="button" class="seg__opt" role="radio" data-value="left" aria-checked="true">Left</button>
-              <button type="button" class="seg__opt" role="radio" data-value="center" aria-checked="false" tabindex="-1">Center</button>
-            </div>
-          </div>
-
-          <!-- Navigation placement (second option depends on logo) -->
-          <div class="hdr-field">
-            <span class="hdr-field__label" id="nav-label">Navigation</span>
-            <div class="seg" role="radiogroup" aria-labelledby="nav-label" data-seg="nav">
-              <button type="button" class="seg__opt" role="radio" data-value="left" aria-checked="true">Left</button>
-              <button type="button" class="seg__opt" role="radio" data-value="aligned" aria-checked="false" tabindex="-1" data-nav-second>Inline</button>
-            </div>
-          </div>
-
-          <hr class="hdr-divider" />
-
-          <!-- Colours -->
-          <div class="colorrow" data-color="background">
-            <span class="colorrow__label">Background</span>
-            <span class="colorrow__controls">
-              <input type="color" class="colorrow__swatch" data-color-swatch value="#FFFFFF" aria-label="Background colour" />
-              <input type="text" class="colorrow__hex" data-color-hex value="#FFFFFF" maxlength="7" spellcheck="false" aria-label="Background colour hex" />
-              <span class="colorrow__opacity">
-                <input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="Background opacity percent" /><span aria-hidden="true">%</span>
-              </span>
-            </span>
-          </div>
-          <div class="colorrow" data-color="links">
-            <span class="colorrow__label">Links</span>
-            <span class="colorrow__controls">
-              <input type="color" class="colorrow__swatch" data-color-swatch value="#3D3F42" aria-label="Links colour" />
-              <input type="text" class="colorrow__hex" data-color-hex value="#3D3F42" maxlength="7" spellcheck="false" aria-label="Links colour hex" />
-              <span class="colorrow__opacity">
-                <input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="Links opacity percent" /><span aria-hidden="true">%</span>
-              </span>
-            </span>
+            <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif" data-img-input hidden />
+            <p class="ws-error" data-img-error role="alert" hidden></p>
           </div>
         </section>
 
@@ -190,7 +163,8 @@
 
   <script src="/shared/app-shell.js"></script>
   <script src="/shared/auth-client.js"></script>
+  <script src="/shared/popover.js"></script>
   <script src="../website-preview.js"></script>
-  <script src="header.js"></script>
+  <script src="search.js"></script>
 </body>
 </html>
