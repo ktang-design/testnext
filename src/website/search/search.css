@@ -18,6 +18,13 @@
   font: inherit; color: var(--gray-700); word-break: break-word;
 }
 .pageitem__open:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); border-radius: 2px; }
+/* Trailing actions: a gold star on the default search + the actions kebab. */
+.pageitem__actions { display: inline-flex; align-items: center; gap: 2px; }
+.pageitem__star { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; color: #f9a814; }
+.pageitem__star svg { fill: currentColor; stroke: currentColor; stroke-width: 1.3; stroke-linejoin: round; }
+
+/* Bold the Background colour label so it matches the other field labels. */
+[data-bg-color] .colorrow__label { font-weight: 600; }
 
 /* Background image field. */
 .ws-field { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 20px; }

@@ -25,6 +25,8 @@
   const IMAGE_MAX = 3 * 1024 * 1024; // 3 MB
 
   const DEFAULTS = { background: { color: '#255096', opacity: 100 }, backgroundImage: null, searches: [] };
+  const CACHE_KEY = 'ws-search-config'; // last-known config, for instant load
+  const cacheConfig = (saved) => { try { localStorage.setItem(CACHE_KEY, JSON.stringify(saved || null)); } catch (_) { /* ignore */ } };
 
   let config = null;
   let baseline = '';
@@ -134,6 +136,39 @@
     const map = Object.fromEntries(config.searches.map((s) => [s.id, s]));
     config.searches = orderedIds.map((id) => map[id]).filter(Boolean);
   }
+  // Exactly one search is the default (starred). It is pre-selected in the
+  // preview's dropdown; deleting it promotes the first remaining search.
+  function makeDefault(id) {
+    config.searches.forEach((s) => { s.isDefault = s.id === id; });
+    renderList(); onChange();
+  }
+  function deleteSearch(id) {
+    const wasDefault = config.searches.find((s) => s.id === id && s.isDefault);
+    config.searches = config.searches.filter((s) => s.id !== id);
+    if (wasDefault && config.searches.length && !config.searches.some((s) => s.isDefault)) {
+      config.searches[0].isDefault = true;
+    }
+    renderList(); onChange();
+  }
+  // Trailing row actions: a star on the default search + the actions kebab.
+  function rowActions(s) {
+    const wrap = document.createElement('span');
+    wrap.className = 'pageitem__actions';
+    if (s.isDefault) {
+      const star = document.createElement('span');
+      star.className = 'pageitem__star';
+      star.setAttribute('role', 'img');
+      star.setAttribute('aria-label', 'Default search');
+      star.title = 'Default search';
+      star.appendChild(svg('<path d="M8 2.1 9.85 5.85 14 6.46 11 9.38 11.71 13.5 8 11.56 4.29 13.5 5 9.38 2 6.46 6.15 5.85Z"/>'));
+      wrap.appendChild(star);
+    }
+    const items = [{ label: 'Edit', onSelect: () => openSearchModal(s.type, s.id) }];
+    if (!s.isDefault) items.push({ label: 'Make default search', onSelect: () => makeDefault(s.id) });
+    items.push({ label: 'Delete', danger: true, onSelect: () => deleteSearch(s.id) });
+    wrap.appendChild(rowKebab(labelOf(s), items));
+    return wrap;
+  }
 
   function renderList() {
     if (tree) { tree.destroy(); tree = null; }
@@ -147,13 +182,7 @@
       ariaLabel: 'Searches',
       labelOf: (it) => { const s = config.searches.find((x) => x.id === it.id); return s ? labelOf(s) : 'Search'; },
       renderContent: (it) => { const s = config.searches.find((x) => x.id === it.id); return rowLabel(s ? labelOf(s) : 'Search', () => openSearchModal(s.type, s.id)); },
-      renderTrailing: (it) => {
-        const s = config.searches.find((x) => x.id === it.id);
-        return rowKebab(s && labelOf(s), [
-          { label: 'Edit', onSelect: () => openSearchModal(s.type, s.id) },
-          { label: 'Delete', danger: true, onSelect: () => { config.searches = config.searches.filter((x) => x.id !== s.id); renderList(); onChange(); } },
-        ]);
-      },
+      renderTrailing: (it) => { const s = config.searches.find((x) => x.id === it.id); return s ? rowActions(s) : null; },
       onChange: () => { reorderSearches(tree.getItems().map((it) => it.id)); onChange(); },
     });
   }
@@ -173,7 +202,8 @@
     const existing = editId ? config.searches.find((s) => s.id === editId) : null;
     const draft = existing
       ? clone(existing)
-      : { id: uid(), type, name: type === 'eds' ? 'EBSCO Discovery Service' : '', displayLabel: '', url: '', urlencode: true, buttonLabel: 'Search' };
+      // The first search created is the default (starred).
+      : { id: uid(), type, name: type === 'eds' ? 'EBSCO Discovery Service' : '', displayLabel: '', url: '', urlencode: true, buttonLabel: 'Search', isDefault: config.searches.length === 0 };
     const noun = type === 'eds' ? 'EBSCO Discovery Service' : 'custom search';
     const prev = document.activeElement;
 
@@ -315,6 +345,7 @@
       const data = await res.json();
       config = data.saved;
       baseline = serialize();
+      cacheConfig(config); // keep the instant-load cache in sync
       saving = false; saveError = null;
       applyToControls();
       updateSaveBar();
@@ -356,17 +387,26 @@
   buildBgColor();
   setupNavGuard();
 
+  // Paint the saved configuration instantly from a local cache (panel + preview)
+  // instead of waiting for the network — then revalidate against the server and
+  // adopt it only if the user hasn't started editing. This removes the visible
+  // "pop-in" of saved changes on load.
+  let cached = null;
+  try { cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (_) { /* ignore */ }
+  config = clone(cached || DEFAULTS);
+  baseline = serialize();
+  applyToControls();
+  updateSaveBar();
+
   fetch('/api/website/search', { credentials: 'include' })
     .then((r) => (r.ok ? r.json() : Promise.reject()))
     .then((data) => {
+      cacheConfig(data.saved);
+      if (isDirty()) return; // the user already started editing — keep their work
       config = clone(data.saved || data.defaults || DEFAULTS);
       baseline = serialize();
       applyToControls();
       updateSaveBar();
     })
-    .catch(() => {
-      config = clone(DEFAULTS);
-      baseline = serialize();
-      applyToControls();
-    });
+    .catch(() => { /* keep the cached/default view already rendered */ });
 })();

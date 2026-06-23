@@ -49,7 +49,7 @@ function cleanSearch(raw, used) {
   let id = /^[\w-]{1,64}$/.test(str(s.id)) ? str(s.id) : '';
   if (!id || used.has(id)) { do { id = 'search-' + crypto.randomUUID(); } while (used.has(id)); }
   used.add(id);
-  return { id, type, name, displayLabel, url, urlencode: s.urlencode == null ? true : bool(s.urlencode), buttonLabel };
+  return { id, type, name, displayLabel, url, urlencode: s.urlencode == null ? true : bool(s.urlencode), buttonLabel, isDefault: bool(s.isDefault) };
 }
 
 function normalize(raw) {
@@ -61,10 +61,16 @@ function normalize(raw) {
   const rawList = Array.isArray(b.searches) ? b.searches : [];
   if (rawList.length > MAX_SEARCHES) throw new ValidationError('Too many searches.');
   const used = new Set();
+  const searches = rawList.map((s) => cleanSearch(s, used));
+  // Exactly one default search (the starred one). Default to the first when none
+  // is flagged, so the list always has a default once it is non-empty.
+  let di = searches.findIndex((s) => s.isDefault);
+  if (di === -1 && searches.length) di = 0;
+  searches.forEach((s, i) => { s.isDefault = i === di; });
   return {
     background: cleanColor(b.background, SEARCH_DEFAULTS.background),
     backgroundImage: image || null,
-    searches: rawList.map((s) => cleanSearch(s, used)),
+    searches,
   };
 }
 

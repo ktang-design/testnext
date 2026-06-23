@@ -428,17 +428,20 @@
           sec.style.backgroundSize = 'cover';
           sec.style.backgroundPosition = 'center';
         }
+        // The default (starred) search is pre-selected; the button shows its label.
+        const def = s.searches.find((x) => x.isDefault) || s.searches[0];
         const bar = el('div', 'wsprev__searchbar');
         const select = el('select', 'wsprev__searchselect');
         s.searches.forEach((se) => {
           const o = el('option', null, se.displayLabel || se.name);
           o.value = se.id;
+          if (se.id === def.id) o.selected = true;
           select.appendChild(o);
         });
         const input = el('input', 'wsprev__searchinput');
         input.type = 'text';
         input.placeholder = 'Search…';
-        const btn = el('button', 'wsprev__searchbtn', s.searches[0].buttonLabel || 'Search');
+        const btn = el('button', 'wsprev__searchbtn', def.buttonLabel || 'Search');
         btn.type = 'button';
         // The button label tracks the selected search (each carries its own label).
         select.addEventListener('change', () => {
