@@ -238,6 +238,35 @@
     </div>
   </div>
 
+  <!-- Apply the last-saved branding before first paint (runs inline during parse,
+       no network) so saved colours/options show immediately instead of the
+       factory defaults flashing while branding.js downloads. branding.js holds the
+       factory default itself, so pre-filling the inputs here is safe. -->
+  <script>
+    (function () {
+      try {
+        var c = JSON.parse(localStorage.getItem('platform-branding-config') || 'null');
+        var cfg = c && (c.saved || c.defaults);
+        if (!cfg) return;
+        var setColor = function (sel, hex) {
+          if (!hex) return;
+          var input = document.querySelector(sel);
+          if (!input) return;
+          input.value = hex;
+          var swatch = input.closest('.swatch');
+          if (swatch) swatch.style.setProperty('--swatch', hex);
+          var card = input.closest('.color-card__value');
+          var hexLabel = card && card.querySelector('.color-card__hex');
+          if (hexLabel) hexLabel.textContent = hex.toUpperCase();
+        };
+        setColor('[aria-label="Primary color"]', cfg.primaryColor);
+        setColor('[aria-label="Secondary color"]', cfg.secondaryColor);
+        var ss = document.querySelector('[data-opt="showSiteName"]'); if (ss) ss.checked = !!cfg.showSiteName;
+        var dec = document.querySelector('[data-opt="decorative"]'); if (dec) dec.checked = !!cfg.decorative;
+        var alt = document.getElementById('logo-alt'); if (alt && cfg.altText != null) alt.value = cfg.altText;
+      } catch (e) { /* no cache / disabled — fall back to JS hydration */ }
+    })();
+  </script>
   <script src="../shared/app-shell.js"></script>
   <script src="../shared/auth-client.js"></script>
   <script src="branding.js"></script>

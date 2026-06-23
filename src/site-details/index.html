@@ -110,6 +110,29 @@
             </div>
           </div>
 
+          <!-- Apply the last-saved values before first paint (runs inline during
+               parse, no network) so the saved name/description show immediately
+               instead of the factory defaults flashing while the page JS loads.
+               The factory default is stashed on data-factory for the page JS. -->
+          <script>
+            (function () {
+              try {
+                var c = JSON.parse(localStorage.getItem('site-details-config') || 'null');
+                var cfg = c && (c.saved || c.defaults);
+                if (!cfg) return;
+                var set = function (el, val, countSel) {
+                  if (!el || val == null) return;
+                  el.dataset.factory = el.value;
+                  el.value = val;
+                  var cnt = document.querySelector(countSel);
+                  if (cnt) cnt.textContent = String(val).length;
+                };
+                set(document.getElementById('site-name'), cfg.name, '[data-count-for="site-name"]');
+                set(document.getElementById('site-description'), cfg.description, '[data-count-for="site-description"]');
+              } catch (e) { /* no cache / disabled — fall back to JS hydration */ }
+            })();
+          </script>
+
           <!-- Site URL (read-only) -->
           <div class="field" data-node-id="1:1270">
             <label class="field__label" for="site-url">Site URL</label>

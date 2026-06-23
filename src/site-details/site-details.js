@@ -25,8 +25,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const nameError = document.querySelector('[data-error-for="site-name"]');
   const descError = document.querySelector('[data-error-for="site-description"]');
 
-  // Fallbacks until the server responds.
-  let systemDefault = { name: nameInput.value, description: descInput.value };
+  // Fallbacks until the server responds. The factory default may have been
+  // stashed on data-factory by the pre-paint hydration script (which sets the
+  // input to the saved value) — prefer it so "Reset to default" stays correct.
+  let systemDefault = {
+    name: nameInput.dataset.factory != null ? nameInput.dataset.factory : nameInput.value,
+    description: descInput.dataset.factory != null ? descInput.dataset.factory : descInput.value,
+  };
   let lastSaved = null; // null = never saved
   let mode = 'reset'; // 'reset' | 'undo'
   let saving = false;
