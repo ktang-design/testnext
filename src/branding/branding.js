@@ -50,6 +50,20 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastSaved = null;
   let mode = 'reset';
   let saving = false, justSaved = false, saveError = null;
+  let touched = false; // set once the user edits, so revalidation won't clobber
+
+  // Instant-load cache: paint the saved branding from the last-known value before
+  // the network resolves, then revalidate. Avoids the flash of defaults on load.
+  const CACHE_KEY = 'platform-branding-config';
+  const readCache = () => { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (_) { return null; } };
+  const writeCache = (data) => {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); return; } catch (_) { /* quota/disabled */ }
+    try { // too large (logo/favicon data URLs) — cache without them
+      const lite = JSON.parse(JSON.stringify(data));
+      if (lite.saved) { lite.saved.logo = null; lite.saved.favicon = null; }
+      localStorage.setItem(CACHE_KEY, JSON.stringify(lite));
+    } catch (_) { /* give up */ }
+  };
 
   const current = () => ({
     primaryColor: (colorInputs.primary.value || '').toUpperCase(),
@@ -187,6 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
     mode = 'reset';
     justSaved = false;
     saveError = null;
+    touched = true;
     render();
   }
 
@@ -266,6 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       const data = await res.json();
       lastSaved = data.saved || current();
+      writeCache({ defaults: systemDefault, saved: lastSaved });
       mode = 'reset'; justSaved = true;
     } catch (err) {
       saveError = err.message || 'Couldn’t save. Try again.';
@@ -274,8 +290,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Initial paint + hydrate from the account.
-  applyConfig(systemDefault);
+  // Initial paint from the local cache (instant), then hydrate/revalidate.
+  const cached = readCache();
+  if (cached) {
+    if (cached.defaults) systemDefault = cached.defaults;
+    lastSaved = cached.saved || null;
+    applyConfig(baseline());
+  } else {
+    applyConfig(systemDefault);
+  }
   render();
   (async () => {
     try {
@@ -284,10 +307,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       systemDefault = data.defaults || systemDefault;
       lastSaved = data.saved || null;
+      writeCache({ defaults: systemDefault, saved: lastSaved });
+      if (touched) return; // the user already started editing — keep their work
       mode = 'reset';
       applyConfig(baseline());
       render();
-    } catch (_) { /* keep fallback */ }
+    } catch (_) { /* keep the cached/fallback view */ }
   })();
 
   // ---- Unsaved-changes navigation guard (mirrors Site details) ----

@@ -32,6 +32,13 @@ document.addEventListener('DOMContentLoaded', () => {
   let saving = false;
   let justSaved = false;
   let saveError = null;
+  let touched = false; // set once the user edits, so revalidation won't clobber
+
+  // Instant-load cache: paint the saved values from the last-known value before
+  // the network resolves, then revalidate. Avoids the flash of defaults on load.
+  const CACHE_KEY = 'site-details-config';
+  const readCache = () => { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (_) { return null; } };
+  const writeCache = (data) => { try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (_) { /* ignore */ } };
 
   const current = () => ({ name: nameInput.value, description: descInput.value });
   const eq = (a, b) => !!a && !!b && a.name === b.name && a.description === b.description;
@@ -108,6 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     mode = 'reset'; // a manual edit exits "undo reset" mode
     justSaved = false;
     saveError = null;
+    touched = true;
     refreshDerived();
     render();
   }
@@ -126,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     justSaved = false;
     saveError = null;
+    touched = true;
     render();
   });
 
@@ -154,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       const data = await res.json();
       lastSaved = data.saved || current(); // new last-saved baseline
+      writeCache({ defaults: systemDefault, saved: lastSaved });
       mode = 'reset';
       justSaved = true;
     } catch (err) {
@@ -164,8 +174,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Initial paint, then hydrate from the server (system default + last saved).
-  refreshDerived();
+  // Initial paint from the local cache (instant), then hydrate/revalidate.
+  const cached = readCache();
+  if (cached) {
+    if (cached.defaults) systemDefault = cached.defaults;
+    lastSaved = cached.saved || null;
+    setInputs(baseline());
+  } else {
+    refreshDerived();
+  }
   render();
 
   (async () => {
@@ -175,11 +192,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       systemDefault = data.defaults || systemDefault;
       lastSaved = data.saved || null;
+      writeCache({ defaults: systemDefault, saved: lastSaved });
+      if (touched) return; // the user already started editing — keep their work
       mode = 'reset';
       setInputs(baseline());
       render();
     } catch (_) {
-      /* keep fallback */
+      /* keep the cached/fallback view */
     }
   })();
 
