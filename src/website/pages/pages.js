@@ -296,12 +296,13 @@
     selectedElementId = e.id;
     afterContentChange();
   }
-  // Edit icon: richtext opens the focused content modal; code selects (panel).
+  // Edit icon opens the element's focused content modal (richtext or code).
   function editElement(secId, elId) {
     const elc = findElement(secId, elId);
     if (!elc) return;
     selectElement(secId, elId);
-    if (elc.type === 'richtext') openRichtextModal(secId, elId);
+    if (elc.type === 'code') openCodeModal(secId, elId);
+    else openRichtextModal(secId, elId);
   }
 
   // Focused "Edit richtext" modal — a small WYSIWYG editor. Cannot be dismissed
@@ -434,6 +435,110 @@
     }
     document.addEventListener('keydown', onKey, true);
     editor.focus();
+  }
+
+  // Focused "Edit code" modal — a code textarea with a line-number gutter. Like
+  // the richtext modal it can't be dismissed by clicking outside the dialog.
+  function openCodeModal(secId, elId) {
+    const elc = findElement(secId, elId);
+    if (!elc || elc.type !== 'code') return;
+    const prev = document.activeElement;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Edit code');
+    const modal = document.createElement('div');
+    modal.className = 'modal modal--code';
+    overlay.appendChild(modal);
+    modal.innerHTML =
+      '<div class="modal__header"><h2 class="modal__title">Edit code</h2>' +
+      '<button type="button" class="modal__close" aria-label="Close dialog"><img src="/shared/close.svg" alt="" /></button></div>';
+
+    const body = document.createElement('div');
+    body.className = 'modal__body';
+    const fieldId = uid('code');
+    const lab = document.createElement('label');
+    lab.className = 'pgb__label';
+    lab.textContent = 'Custom code';
+    lab.setAttribute('for', fieldId);
+    body.appendChild(lab);
+
+    // Editor: a fixed line-number gutter + a monospace textarea. The gutter is
+    // kept in sync with the textarea's content (line count) and vertical scroll.
+    const wrap = document.createElement('div');
+    wrap.className = 'codeedit';
+    const gutter = document.createElement('div');
+    gutter.className = 'codeedit__gutter';
+    gutter.setAttribute('aria-hidden', 'true');
+    const nums = document.createElement('div');
+    nums.className = 'codeedit__nums';
+    gutter.appendChild(nums);
+    const area = document.createElement('textarea');
+    area.className = 'codeedit__area';
+    area.id = fieldId;
+    area.spellcheck = false;
+    area.wrap = 'off';
+    area.setAttribute('autocomplete', 'off');
+    area.setAttribute('autocapitalize', 'off');
+    area.setAttribute('autocorrect', 'off');
+    area.maxLength = limits.body;
+    area.value = elc.code || '';
+    wrap.appendChild(gutter);
+    wrap.appendChild(area);
+    body.appendChild(wrap);
+    modal.appendChild(body);
+
+    const MIN_LINES = 15; // fill the editor height even when empty (per design)
+    const drawNums = () => {
+      const count = Math.max(MIN_LINES, area.value.split('\n').length);
+      let out = '';
+      for (let i = 1; i <= count; i++) out += i + '\n';
+      nums.textContent = out;
+    };
+    const syncScroll = () => { nums.style.transform = `translateY(${-area.scrollTop}px)`; };
+    area.addEventListener('input', drawNums);
+    area.addEventListener('scroll', syncScroll);
+    drawNums();
+
+    const footer = document.createElement('div');
+    footer.className = 'modal__footer';
+    footer.innerHTML =
+      '<button type="button" class="modal__btn modal__btn--cancel">Cancel</button>' +
+      '<button type="button" class="modal__btn modal__btn--primary" data-save>Save</button>';
+    modal.appendChild(footer);
+
+    document.body.appendChild(overlay);
+    document.body.classList.add('is-locked');
+
+    function close() {
+      document.removeEventListener('keydown', onKey, true);
+      overlay.remove();
+      document.body.classList.remove('is-locked');
+      if (prev && prev.focus) prev.focus();
+    }
+    modal.querySelector('.modal__close').addEventListener('click', close);
+    footer.querySelector('.modal__btn--cancel').addEventListener('click', close);
+    footer.querySelector('[data-save]').addEventListener('click', () => {
+      const target = findElement(secId, elId);
+      if (target) { target.code = area.value; afterContentChange(); }
+      close();
+    });
+    // Deliberately NO overlay-click handler — the user can't click outside to exit.
+    function onKey(e) {
+      if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+      if (e.key === 'Tab') {
+        const f = Array.from(modal.querySelectorAll('button, textarea')).filter((el) => el.offsetParent !== null);
+        if (!f.length) return;
+        const first = f[0];
+        const last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    }
+    document.addEventListener('keydown', onKey, true);
+    area.focus();
   }
 
   function deleteElement(secId, elId) {
@@ -587,26 +692,6 @@
     input.addEventListener('input', () => onInput(input.value));
     field.appendChild(lab);
     field.appendChild(input);
-    return field;
-  }
-  function buildTextarea(labelText, value, maxLen, onInput, mono, hint) {
-    const field = document.createElement('div');
-    field.className = 'pgb__field';
-    const id = uid('f');
-    const lab = document.createElement('label');
-    lab.className = 'pgb__label';
-    lab.textContent = labelText;
-    lab.setAttribute('for', id);
-    field.appendChild(lab);
-    if (hint) { const h = document.createElement('p'); h.className = 'pgb__hint'; h.textContent = hint; field.appendChild(h); }
-    const ta = document.createElement('textarea');
-    ta.className = 'pgb__input pgb__textarea' + (mono ? ' pgb__textarea--mono' : '');
-    ta.id = id;
-    ta.rows = mono ? 8 : 6;
-    ta.maxLength = maxLen;
-    ta.value = value || '';
-    ta.addEventListener('input', () => onInput(ta.value));
-    field.appendChild(ta);
     return field;
   }
   function buildRadio(labelText, options, value, onChange) {
@@ -856,9 +941,10 @@
     const settings = document.createElement('div');
     settings.className = 'pgb__settings';
     if (elc.type === 'code') {
+      // Code content is edited via the toolbar edit icon → "Edit code" modal,
+      // so the panel only carries the title + display toggle.
       settings.appendChild(buildTextField('Title', elc.title, limits.elementTitle, (v) => { elc.title = v; afterFieldEdit(); }));
       settings.appendChild(buildCheckbox('Display element title', elc.displayTitle, (v) => { elc.displayTitle = v; afterFieldEdit(); }));
-      settings.appendChild(buildTextarea('Code', elc.code, limits.body, (v) => { elc.code = v; afterFieldEdit(); }, true));
     } else {
       // Richtext: title + colours + border, in 3 groups (2rem apart; colours are
       // a compact sub-group). Content is edited via the toolbar edit icon.

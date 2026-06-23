@@ -281,11 +281,15 @@
           elt.appendChild(t);
         }
         if (element.type === 'code') {
-          const pre = el('pre', 'wsprev__code');
-          const code = document.createElement('code');
-          code.textContent = element.code || '';
-          pre.appendChild(code);
-          elt.appendChild(pre);
+          if (String(element.code || '').trim()) {
+            const pre = el('pre', 'wsprev__code');
+            const code = document.createElement('code');
+            code.textContent = element.code;
+            pre.appendChild(code);
+            elt.appendChild(pre);
+          } else {
+            elt.appendChild(el('div', 'wsprev__codeempty', 'Your code will appear in the preview of this block'));
+          }
         } else {
           const html = String(element.body || '');
           const hasContent = html.replace(/<[^>]*>/g, '').trim() || /<(br|img|hr)/i.test(html);

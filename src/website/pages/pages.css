@@ -195,3 +195,21 @@
 .rt__editor td, .rt__editor th { border: 1px solid var(--gray-200); padding: 6px 8px; min-width: 40px; }
 /* The wider toolbar wraps to multiple rows. */
 .rt__tool { font-weight: 600; }
+
+/* Edit code modal — a monospace textarea with a fixed line-number gutter. */
+.modal.modal--code { width: min(800px, 94vw); }
+.codeedit {
+  display: flex; border: 1px solid var(--gray-200); border-radius: 6px; overflow: hidden;
+  background: #fff; font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.codeedit__gutter {
+  flex: none; overflow: hidden; padding: 12px 0;
+  background: #fafafa; border-right: 1px solid var(--gray-200);
+  color: var(--gray-500); text-align: right; user-select: none;
+}
+.codeedit__nums { padding: 0 10px; min-width: 1.5ch; white-space: pre; }
+.codeedit__area {
+  flex: 1; min-width: 0; height: 320px; resize: none;
+  border: 0; outline: none; padding: 12px 14px;
+  font: inherit; color: var(--gray-800); white-space: pre; overflow: auto; tab-size: 2;
+}

@@ -105,6 +105,11 @@
   background: #1e2433; color: #e6e9f0; overflow: auto;
   font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
+/* Placeholder shown in a code block until the user adds code (Edit code modal). */
+.wsprev__codeempty {
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  min-height: 96px; color: #55585d; font-size: 15px;
+}
 
 /* Floating toolbar (Figma component 83:5303 / mockup 666:12297) — horizontally
    centered and straddling the TOP edge of the block; shown only on the selected
