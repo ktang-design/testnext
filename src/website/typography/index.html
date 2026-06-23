@@ -189,6 +189,22 @@
     </div>
   </div>
 
+  <!-- Apply saved typography before first paint (inline, no network) so the
+       font/size/weight controls don't flash defaults while the page JS loads. -->
+  <script>
+    (function () {
+      try {
+        var c = JSON.parse(localStorage.getItem('ws-preview-config') || 'null');
+        var t = c && c.typography; if (!t) return;
+        var set = function (id, val) { var el = document.getElementById(id); if (el && val != null) el.value = val; };
+        set('font-family', t.fontFamily);
+        set('heading-size', t.headingSize);
+        set('heading-weight', t.headingWeight);
+        set('body-size', t.bodySize);
+        set('body-weight', t.bodyWeight);
+      } catch (e) { /* no cache / disabled — fall back to JS hydration */ }
+    })();
+  </script>
   <script src="/shared/app-shell.js"></script>
   <script src="/shared/auth-client.js"></script>
   <script src="../website-preview.js"></script>

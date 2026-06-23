@@ -155,6 +155,18 @@
     </div>
   </div>
 
+  <!-- Apply the saved footer toggles before first paint (inline, no network) so
+       they don't flash their default (unchecked) state while the page JS loads. -->
+  <script>
+    (function () {
+      try {
+        var c = JSON.parse(localStorage.getItem('ws-preview-config') || 'null');
+        var f = c && c.footer; if (!f) return;
+        var lg = document.querySelector('[data-el="logo"]'); if (lg) lg.checked = !!f.showLogo;
+        var nv = document.querySelector('[data-el="navigation"]'); if (nv) nv.checked = !!f.showNavigation;
+      } catch (e) { /* no cache / disabled — fall back to JS hydration */ }
+    })();
+  </script>
   <script src="/shared/app-shell.js"></script>
   <script src="/shared/auth-client.js"></script>
   <script src="/shared/popover.js"></script>

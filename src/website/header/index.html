@@ -188,6 +188,37 @@
     </div>
   </div>
 
+  <!-- Apply the saved header config before first paint (runs inline during parse,
+       no network) so the toggles/colours don't flash their defaults while the
+       page JS downloads. Reads the preview's shared cache; header.js re-applies
+       the same values from the server afterwards. -->
+  <script>
+    (function () {
+      try {
+        var c = JSON.parse(localStorage.getItem('ws-preview-config') || 'null');
+        var h = c && c.header; if (!h) return;
+        var seg = function (name, value) {
+          if (!value) return;
+          document.querySelectorAll('[data-seg="' + name + '"] .seg__opt').forEach(function (b) {
+            var on = b.dataset.value === value;
+            b.setAttribute('aria-checked', on ? 'true' : 'false');
+            b.tabIndex = on ? 0 : -1;
+          });
+        };
+        var color = function (key, cc) {
+          if (!cc) return;
+          var row = document.querySelector('.colorrow[data-color="' + key + '"]'); if (!row) return;
+          var sw = row.querySelector('[data-color-swatch]'), hx = row.querySelector('[data-color-hex]'), op = row.querySelector('[data-color-opacity]');
+          if (cc.color) { if (sw) sw.value = cc.color; if (hx) hx.value = cc.color; }
+          if (cc.opacity != null && op) op.value = cc.opacity;
+        };
+        seg('logo', h.logo);
+        seg('nav', h.nav);
+        color('background', h.background);
+        color('links', h.links);
+      } catch (e) { /* no cache / disabled — fall back to JS hydration */ }
+    })();
+  </script>
   <script src="/shared/app-shell.js"></script>
   <script src="/shared/auth-client.js"></script>
   <script src="../website-preview.js"></script>
