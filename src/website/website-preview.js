@@ -38,6 +38,46 @@
     return n;
   }
 
+  // A Code element renders its custom markup live. The user's code is arbitrary
+  // HTML/CSS/JS, so it runs inside a sandboxed iframe (script-isolated, no access
+  // to this app's DOM/origin). A small reporter posts the rendered height up so
+  // the frame can size to its content.
+  function codeFrameSrcdoc(code) {
+    const reporter =
+      '<script>(function(){function s(){try{var h=Math.max(' +
+      'document.documentElement.scrollHeight,(document.body?document.body.scrollHeight:0));' +
+      'parent.postMessage({__wsprevCodeHeight:h},"*");}catch(e){}}' +
+      'window.addEventListener("load",s);window.addEventListener("resize",s);' +
+      'if(window.ResizeObserver){try{new ResizeObserver(s).observe(document.documentElement);}catch(e){}}' +
+      'setTimeout(s,60);setTimeout(s,300);setTimeout(s,1000);})();<\/script>';
+    return '<!doctype html><html><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+      '<style>html,body{margin:0;padding:0}body{font-family:"Noto Sans",Arial,sans-serif}</style>' +
+      '</head><body>' + code + reporter + '</body></html>';
+  }
+  let codeResizeBound = false;
+  function bindCodeFrameResize() {
+    if (codeResizeBound) return;
+    codeResizeBound = true;
+    window.addEventListener('message', (e) => {
+      const h = e.data && e.data.__wsprevCodeHeight;
+      if (typeof h !== 'number' || !(h >= 0)) return;
+      document.querySelectorAll('iframe.wsprev__codeframe').forEach((f) => {
+        if (f.contentWindow === e.source) f.style.height = Math.min(Math.max(h, 24), 4000) + 'px';
+      });
+    });
+  }
+  function buildCodeFrame(element) {
+    bindCodeFrameResize();
+    const frame = document.createElement('iframe');
+    frame.className = 'wsprev__codeframe';
+    frame.title = element.title || 'Custom code';
+    frame.setAttribute('sandbox', 'allow-scripts'); // run scripts, but isolated
+    frame.setAttribute('scrolling', 'no');
+    frame.srcdoc = codeFrameSrcdoc(String(element.code || ''));
+    return frame;
+  }
+
   // Apply a richtext element's style (colours + border) — only when a value is
   // actually set (opacity > 0 / a width chosen), otherwise the CSS defaults win.
   function applyRichtextStyle(elt, rt, st) {
@@ -282,11 +322,7 @@
         }
         if (element.type === 'code') {
           if (String(element.code || '').trim()) {
-            const pre = el('pre', 'wsprev__code');
-            const code = document.createElement('code');
-            code.textContent = element.code;
-            pre.appendChild(code);
-            elt.appendChild(pre);
+            elt.appendChild(buildCodeFrame(element));
           } else {
             elt.appendChild(el('div', 'wsprev__codeempty', 'Your code will appear in the preview of this block'));
           }

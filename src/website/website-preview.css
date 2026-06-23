@@ -100,10 +100,12 @@
 .wsprev__richtext table { width: 100%; border-collapse: collapse; margin: 0 0 12px; }
 .wsprev__richtext td, .wsprev__richtext th { border: 1px solid var(--gray-200, #d7d8da); padding: 6px 8px; text-align: left; }
 .wsprev__richtext sub, .wsprev__richtext sup { font-size: 0.75em; }
-.wsprev__code {
-  margin: 0; padding: 16px; border-radius: 6px;
-  background: #1e2433; color: #e6e9f0; overflow: auto;
-  font: 13px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+/* A Code element renders its custom markup live in a sandboxed iframe, auto-sized
+   to its content. pointer-events: none keeps the block itself clickable (to
+   select/edit) — the live embed is interactive on the published site. */
+.wsprev__codeframe {
+  display: block; width: 100%; border: 0; min-height: 60px;
+  background: #fff; pointer-events: none;
 }
 /* Placeholder shown in a code block until the user adds code (Edit code modal). */
 .wsprev__codeempty {
