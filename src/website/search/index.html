@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="../website.css" />
   <link rel="stylesheet" href="../website-preview.css" />
   <link rel="stylesheet" href="/shared/popover.css" />
+  <link rel="stylesheet" href="/shared/sortable-tree.css" />
   <link rel="stylesheet" href="search.css" />
   <link rel="stylesheet" href="/shared/app-shell.css" />
 </head>
@@ -102,7 +103,7 @@
           </div>
           <p class="navpanel__desc">Configure search functionality for your website. The search will appear below your navigation.</p>
 
-          <ul class="ws-list" data-search-list hidden></ul>
+          <div class="ws-tree" data-search-list></div>
 
           <div class="ws-divider"></div>
 
@@ -164,6 +165,7 @@
   <script src="/shared/app-shell.js"></script>
   <script src="/shared/auth-client.js"></script>
   <script src="/shared/popover.js"></script>
+  <script src="/shared/sortable-tree.js"></script>
   <script src="../website-preview.js"></script>
   <script src="search.js"></script>
 </body>

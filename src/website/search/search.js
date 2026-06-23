@@ -100,29 +100,61 @@
   imgReplace.addEventListener('click', pickImage);
   imgRemove.addEventListener('click', () => { config.backgroundImage = null; hide(imgError); renderImage(); onChange(); });
 
-  // ---------- searches list ----------
-  const PENCIL = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M10.8 2.6 13.4 5.2 5.4 13.2H2.8v-2.6z"/></svg>';
-  const TRASH = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5h10M6 4.5V3h4v1.5M4.8 4.5 5.4 13h5.2l.6-8.5"/></svg>';
+  // ---------- searches list (shared SortableTree, like sections / pages / nav) ----------
+  let tree = null;
+  const labelOf = (s) => s.displayLabel || s.name || 'Untitled search';
+
+  function svg(paths) {
+    const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    s.setAttribute('viewBox', '0 0 16 16');
+    s.setAttribute('width', '16');
+    s.setAttribute('height', '16');
+    s.setAttribute('aria-hidden', 'true');
+    s.innerHTML = paths;
+    return s;
+  }
+  function rowLabel(text, onClick) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'navtree__label pageitem__open';
+    b.textContent = text;
+    b.addEventListener('click', (e) => { e.stopPropagation(); onClick(); });
+    return b;
+  }
+  function rowKebab(name, items) {
+    const k = document.createElement('button');
+    k.type = 'button';
+    k.className = 'navtree__kebab';
+    k.setAttribute('aria-label', `Actions for ${name || 'search'}`);
+    k.appendChild(svg('<circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/>'));
+    window.Popover.attach(k, () => items, { align: 'right', label: `Actions for ${name || 'search'}` });
+    return k;
+  }
+  function reorderSearches(orderedIds) {
+    const map = Object.fromEntries(config.searches.map((s) => [s.id, s]));
+    config.searches = orderedIds.map((id) => map[id]).filter(Boolean);
+  }
 
   function renderList() {
+    if (tree) { tree.destroy(); tree = null; }
     listEl.innerHTML = '';
     const items = config.searches || [];
     listEl.hidden = items.length === 0;
-    items.forEach((s) => {
-      const li = document.createElement('li');
-      li.className = 'ws-item';
-      li.innerHTML =
-        `<span class="ws-item__name">${esc(s.displayLabel || s.name)}</span>` +
-        '<span class="ws-item__actions">' +
-        `<button type="button" class="ws-iconbtn" data-edit aria-label="Edit search">${PENCIL}</button>` +
-        `<button type="button" class="ws-iconbtn" data-del aria-label="Delete search">${TRASH}</button>` +
-        '</span>';
-      li.querySelector('[data-edit]').addEventListener('click', () => openSearchModal(s.type, s.id));
-      li.querySelector('[data-del]').addEventListener('click', () => {
-        config.searches = config.searches.filter((x) => x.id !== s.id);
-        renderList(); onChange();
-      });
-      listEl.appendChild(li);
+    if (!items.length) return;
+    tree = window.SortableTree.create(listEl, {
+      items: items.map((s) => ({ id: s.id, children: [] })),
+      maxDepth: 1,
+      ariaLabel: 'Searches',
+      labelOf: (it) => { const s = config.searches.find((x) => x.id === it.id); return s ? labelOf(s) : 'Search'; },
+      renderContent: (it) => { const s = config.searches.find((x) => x.id === it.id); return rowLabel(s ? labelOf(s) : 'Search', () => openSearchModal(s.type, s.id)); },
+      renderTrailing: (it) => {
+        const s = config.searches.find((x) => x.id === it.id);
+        return rowKebab(s && labelOf(s), [
+          { label: 'Edit', onSelect: () => openSearchModal(s.type, s.id) },
+          { label: 'Delete', danger: true, onSelect: () => { config.searches = config.searches.filter((x) => x.id !== s.id); renderList(); onChange(); } },
+        ]);
+      },
+      onChange: () => { reorderSearches(tree.getItems().map((it) => it.id)); onChange(); },
     });
   }
 

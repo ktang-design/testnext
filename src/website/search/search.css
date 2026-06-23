@@ -5,21 +5,19 @@
 /* Divider between the searches/header and the background styling. */
 .ws-divider { height: 1px; background: var(--gray-200); margin: 20px 0; }
 
-/* List of configured searches (each becomes a dropdown option in the preview). */
-.ws-list { list-style: none; margin: 0 0 4px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-.ws-item {
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  padding: 8px 10px; border: 1px solid var(--gray-200); border-radius: 6px; background: #fff;
+/* Configured searches use the shared SortableTree (.navtree__* from
+   sortable-tree.css), exactly like the sections / pages / navigation lists.
+   These two tweaks match the sections list: an always-visible kebab and a
+   full-width clickable label. */
+.ws-tree { margin: 0 0 4px; }
+.navtree__kebab { opacity: 1; }
+.pageitem__open {
+  display: block; width: 100%; box-sizing: border-box; text-align: left;
+  padding: 7px 0; margin: -7px 0;
+  background: none; border: 0; cursor: pointer;
+  font: inherit; color: var(--gray-700); word-break: break-word;
 }
-.ws-item__name { font-size: 14px; color: var(--gray-700); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ws-item__actions { display: inline-flex; gap: 2px; flex: none; }
-.ws-iconbtn {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px; border: 0; border-radius: 4px; background: none;
-  color: var(--gray-600); cursor: pointer;
-}
-.ws-iconbtn:hover { background: var(--gray-100); color: var(--gray-700); }
-.ws-iconbtn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); }
+.pageitem__open:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); border-radius: 2px; }
 
 /* Background image field. */
 .ws-field { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 20px; }
