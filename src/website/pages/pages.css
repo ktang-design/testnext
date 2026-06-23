@@ -92,8 +92,10 @@
 .pgb__radio { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--gray-700); cursor: pointer; }
 .pgb__radio input { width: 16px; height: 16px; accent-color: #3e75cf; cursor: pointer; }
 
-/* Settings fields in the panel. */
-.pgb__settings { display: flex; flex-direction: column; gap: 16px; margin: 4px 0 8px; }
+/* Settings fields in the panel. The top-level gap separates the distinct areas
+   (Title, Column layout, Background, Colours, Border…); sub-fields inside a group
+   stay closer together. */
+.pgb__settings { display: flex; flex-direction: column; gap: 24px; margin: 4px 0 8px; }
 .pgb__group { display: flex; flex-direction: column; gap: 16px; }
 /* Colour rows — a compact group with no per-row padding. */
 .pgb__colors { display: flex; flex-direction: column; gap: 12px; }
