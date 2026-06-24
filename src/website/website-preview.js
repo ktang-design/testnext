@@ -73,10 +73,20 @@
       'window.addEventListener("load",s);window.addEventListener("resize",s);' +
       'if(window.ResizeObserver){try{new ResizeObserver(s).observe(document.documentElement);}catch(e){}}' +
       'setTimeout(s,60);setTimeout(s,300);setTimeout(s,1000);})();<\/script>';
+    const c = String(code || '');
+    // If the user pasted a complete HTML document, render it as-is (just add the
+    // height reporter) so its <head> resources — <link rel="stylesheet">,
+    // <script src>, <meta>, fonts — load exactly as authored. Otherwise wrap the
+    // snippet in a minimal document.
+    if (/<!doctype\s+html|<html[\s>]/i.test(c)) {
+      if (/<\/body>/i.test(c)) return c.replace(/<\/body>/i, reporter + '</body>');
+      if (/<\/html>/i.test(c)) return c.replace(/<\/html>/i, reporter + '</html>');
+      return c + reporter;
+    }
     return '<!doctype html><html><head><meta charset="utf-8">' +
       '<meta name="viewport" content="width=device-width,initial-scale=1">' +
       '<style>html,body{margin:0;padding:0}body{font-family:"Noto Sans",Arial,sans-serif}</style>' +
-      '</head><body>' + code + reporter + '</body></html>';
+      '</head><body>' + c + reporter + '</body></html>';
   }
   let codeResizeBound = false;
   function bindCodeFrameResize() {
