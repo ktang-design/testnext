@@ -42,33 +42,39 @@
 /* Search bar — appears below the navigation when a search is configured. The
    section background is the configured colour (and optional image); the bar is a
    white field with the search dropdown + input + button. */
-.wsprev__search { padding: 32px 48px; background: #255096; }
-/* Optional heading + description (from the Header panel) shown above the bar. */
-.wsprev__searchheading {
-  margin: 0 auto 8px; max-width: 760px; text-align: center;
-  font-size: 28px; font-weight: 700; line-height: 1.3; color: #fff;
+/* Search / hero section (Figma 1810:1063). Heading + description sit above the
+   bar; the section background is the configured colour. */
+.wsprev__search {
+  display: flex; flex-direction: column; align-items: stretch; gap: 32px;
+  padding: 64px 48px 32px; background: #255096;
 }
-.wsprev__searchdesc {
-  margin: 0 auto 20px; max-width: 760px; text-align: center;
-  font-size: 16px; line-height: 1.5; color: #fff; white-space: pre-wrap;
-}
-.wsprev__searchbar {
-  display: flex; align-items: stretch; max-width: 760px; margin: 0 auto;
-  background: #fff; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 4px rgba(16, 24, 40, 0.2);
-}
+.wsprev__search--baronly { padding-top: 32px; }
+.wsprev__searchhero { text-align: center; }
+.wsprev__searchheading { margin: 0; font: 400 40px/48px "Noto Sans", Arial, sans-serif; color: #fff; }
+.wsprev__searchdesc { margin: 8px 0 0; font: italic 400 20px/30px "Noto Sans", Arial, sans-serif; color: #fff; white-space: pre-wrap; }
+/* Bar: a dropdown box + a search box, 8px apart. */
+.wsprev__searchbar { display: flex; gap: 8px; max-width: 1152px; width: 100%; margin: 0 auto; }
 .wsprev__searchselect {
-  flex: none; max-width: 220px; border: 0; border-right: 1px solid var(--gray-200, #d7d8da);
-  background: #fff; padding: 0 14px; font: 600 15px/1 "Noto Sans", Arial, sans-serif; color: #3d3f42; cursor: pointer;
+  flex: none; width: 200px; height: 48px; box-sizing: border-box;
+  border: 0; border-radius: 4px; background-color: #fff; color: #55585d;
+  padding: 0 40px 0 16px; font: 400 16px/48px "Noto Sans", Arial, sans-serif;
+  appearance: none; -webkit-appearance: none; cursor: pointer;
+  background-image: url(/shared/chevron-down.svg); background-repeat: no-repeat;
+  background-position: right 14px center; background-size: 16px;
 }
+.wsprev__searchbox { flex: 1; min-width: 0; display: flex; align-items: center; height: 48px; background: #fff; border-radius: 4px; }
 .wsprev__searchinput {
-  flex: 1; min-width: 0; border: 0; padding: 14px 16px;
-  font: 400 15px "Noto Sans", Arial, sans-serif; color: #3d3f42; background: #fff;
+  flex: 1; min-width: 0; border: 0; background: transparent; padding: 0 8px 0 16px;
+  font: 400 16px "Noto Sans", Arial, sans-serif; color: #3d3f42;
 }
+.wsprev__searchinput::placeholder { color: #55585d; }
 .wsprev__searchinput:focus { outline: none; }
 .wsprev__searchbtn {
-  flex: none; border: 0; padding: 0 24px; cursor: pointer;
-  background: #255096; color: #fff; font: 600 15px "Noto Sans", Arial, sans-serif;
+  flex: none; width: 36px; height: 36px; margin-right: 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 4px; background: transparent; cursor: pointer;
 }
+.wsprev__searchbtn svg { display: block; }
 
 /* Page body — empty in list view; the content builder fills it. */
 .wsprev__body { flex: 1; min-height: 460px; background: #fff; }

@@ -469,16 +469,22 @@
       const hasSearch = !!(s.searches && s.searches.length);
       if (hasSearch || heading || description) {
         const sec = el('section', 'wsprev__search');
+        if (!heading && !description) sec.classList.add('wsprev__search--baronly');
         sec.style.background = rgba(s.background);
         if (s.backgroundImage) {
           sec.style.backgroundImage = `url("${s.backgroundImage}")`;
           sec.style.backgroundSize = 'cover';
           sec.style.backgroundPosition = 'center';
         }
-        if (heading) sec.appendChild(el('h2', 'wsprev__searchheading', heading));
-        if (description) sec.appendChild(el('p', 'wsprev__searchdesc', description));
+        if (heading || description) {
+          const hero = el('div', 'wsprev__searchhero');
+          if (heading) hero.appendChild(el('h2', 'wsprev__searchheading', heading));
+          if (description) hero.appendChild(el('p', 'wsprev__searchdesc', description));
+          sec.appendChild(hero);
+        }
         if (hasSearch) {
-          // The default (starred) search is pre-selected; the button shows its label.
+          // The default (starred) search is pre-selected; the search button carries
+          // its label as the accessible name (the visible control is a search icon).
           const def = s.searches.find((x) => x.isDefault) || s.searches[0];
           const bar = el('div', 'wsprev__searchbar');
           const select = el('select', 'wsprev__searchselect');
@@ -488,19 +494,23 @@
             if (se.id === def.id) o.selected = true;
             select.appendChild(o);
           });
+          const box = el('div', 'wsprev__searchbox');
           const input = el('input', 'wsprev__searchinput');
           input.type = 'text';
-          input.placeholder = 'Search…';
-          const btn = el('button', 'wsprev__searchbtn', def.buttonLabel || 'Search');
+          input.placeholder = 'Search articles, books, journals & more';
+          const btn = el('button', 'wsprev__searchbtn');
           btn.type = 'button';
-          // The button label tracks the selected search (each carries its own label).
+          btn.innerHTML = '<svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="#2d62b7" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg>';
+          const setBtnLabel = (lbl) => { btn.setAttribute('aria-label', lbl); btn.title = lbl; };
+          setBtnLabel(def.buttonLabel || 'Search');
           select.addEventListener('change', () => {
             const sel = s.searches.find((x) => x.id === select.value);
-            btn.textContent = (sel && sel.buttonLabel) || 'Search';
+            setBtnLabel((sel && sel.buttonLabel) || 'Search');
           });
+          box.appendChild(input);
+          box.appendChild(btn);
           bar.appendChild(select);
-          bar.appendChild(input);
-          bar.appendChild(btn);
+          bar.appendChild(box);
           sec.appendChild(bar);
         }
         root.appendChild(sec);
