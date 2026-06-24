@@ -60,9 +60,11 @@
   }
 
   // A Code element renders its custom markup live. The user's code is arbitrary
-  // HTML/CSS/JS, so it runs inside a sandboxed iframe (script-isolated, no access
-  // to this app's DOM/origin). A small reporter posts the rendered height up so
-  // the frame can size to its content.
+  // HTML/CSS/JS, so it runs inside a sandboxed iframe. Scripts run and external
+  // resources load (e.g. <script src> like jQuery, <link rel="stylesheet">, web
+  // fonts) — nothing is stripped — but the frame keeps an opaque origin so the
+  // embed can't reach this app's DOM/cookies. A small reporter posts the rendered
+  // height up so the frame can size to its content.
   function codeFrameSrcdoc(code) {
     const reporter =
       '<script>(function(){function s(){try{var h=Math.max(' +
@@ -93,7 +95,10 @@
     const frame = document.createElement('iframe');
     frame.className = 'wsprev__codeframe';
     frame.title = element.title || 'Custom code';
-    frame.setAttribute('sandbox', 'allow-scripts'); // run scripts, but isolated
+    // Run scripts + load external resources, and allow the things real embeds
+    // need (forms, popups, modals, downloads). Deliberately NO allow-same-origin:
+    // the embed stays isolated from this app's origin (cookies/DOM/APIs).
+    frame.setAttribute('sandbox', 'allow-scripts allow-popups allow-forms allow-modals allow-downloads allow-popups-to-escape-sandbox');
     frame.setAttribute('scrolling', 'no');
     frame.srcdoc = codeFrameSrcdoc(String(element.code || ''));
     return frame;
