@@ -35,7 +35,10 @@ html.has-sysfooter, body.has-sysfooter { height: 100%; min-height: 0; overflow: 
    body) scrolls. The Website pages already set this; Platform pages need it too. */
 body.has-sysfooter .layout { min-height: 0; }
 .content.has-sysfooter { overflow-y: auto; min-height: 0; }
-.content.has-sysfooter > :first-child { min-height: 100%; }
+/* The working area fills the viewport (so the footer stays below the fold) but is
+   allowed to grow with its content (so a tall form is never clipped) — hence
+   flex: 0 0 auto rather than the default grow/shrink, which would cap it. */
+.content.has-sysfooter > :first-child { flex: 0 0 auto; min-height: 100%; }
 .sysfooter {
   flex: 0 0 auto;
   padding: 28px 24px 32px;
