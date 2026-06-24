@@ -22,10 +22,10 @@
         <img src="../assets/stacks-logo.svg" alt="Stacks" width="127" height="24" />
       </a>
       <nav class="topnav__menu" aria-label="Primary">
-        <button type="button" class="navpill navpill--active" aria-current="page">
+        <a href="/website/pages/" class="navpill navpill--active" aria-current="page">
           <span class="navpill__icon navpill__icon--website" aria-hidden="true"></span>
           <span class="navpill__label">Website</span>
-        </button>
+        </a>
         <button type="button" class="navpill">
           <span class="navpill__icon navpill__icon--features" aria-hidden="true"></span>
           <span class="navpill__label">Features</span>
@@ -122,8 +122,17 @@
           <div data-builder-view hidden></div>
         </section>
 
-        <div class="navpreview" role="img" aria-label="Live website preview">
-          <div data-website-preview></div>
+        <div class="navpreview-col">
+          <!-- Above the preview (builder only): the Publish action. Disabled for
+               now; hovering it explains why. -->
+          <div class="navpreview-bar" data-publish-bar hidden>
+            <span class="publish-tip" data-tooltip="Users cannot publish at this current time" tabindex="0">
+              <button type="button" class="btn btn--secondary" data-action="publish" disabled>Publish page</button>
+            </span>
+          </div>
+          <div class="navpreview" role="img" aria-label="Live website preview">
+            <div data-website-preview></div>
+          </div>
         </div>
       </div>
 
@@ -132,7 +141,6 @@
         <div class="pageactions__inner">
           <span class="save-status" data-save-status role="status" aria-live="polite" hidden>Unsaved changes</span>
           <button type="button" class="btn btn--secondary" data-action="back" hidden>Back to pages</button>
-          <button type="button" class="btn btn--secondary" data-action="publish" hidden>Publish page</button>
           <button type="button" class="btn btn--primary" data-action="save" disabled>
             <span class="btn__spinner" aria-hidden="true"></span>
             <span class="btn__label">Save</span>

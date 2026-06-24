@@ -16,7 +16,7 @@
   const addBtn = document.querySelector('[data-add]');
   const saveBtn = document.querySelector('[data-action="save"]');
   const backBtn = document.querySelector('[data-action="back"]');
-  const publishBtn = document.querySelector('[data-action="publish"]');
+  const publishBar = document.querySelector('[data-publish-bar]');
   const statusEl = document.querySelector('[data-save-status]');
   if (!treeMount) return;
 
@@ -1053,24 +1053,11 @@
     listView.hidden = builderMode;
     builderView.hidden = !builderMode;
     backBtn.hidden = !builderMode;
-    publishBtn.hidden = !builderMode;
-    if (builderMode) {
-      const p = currentPage();
-      publishBtn.disabled = !!(p && p.status === 'published');
-      publishBtn.textContent = p && p.status === 'published' ? 'Published' : 'Publish page';
-      renderBuilderPanel();
-    }
+    // The Publish action lives above the preview and is shown only while building.
+    if (publishBar) publishBar.hidden = !builderMode;
+    if (builderMode) renderBuilderPanel();
     updateSaveBar();
     pushPreview();
-  }
-
-  function publishPage() {
-    const items = tree.getItems();
-    const p = findById(items, builderPageId);
-    if (!p || p.status === 'published') return;
-    p.status = 'published';
-    tree.setItems(pinHomepage(items));
-    renderAll();
   }
 
   // ---- save ----
@@ -1147,7 +1134,6 @@
   saveBtn.addEventListener('click', save);
   addBtn.addEventListener('click', openAdd);
   backBtn.addEventListener('click', exitBuilder);
-  publishBtn.addEventListener('click', publishPage);
 
   fetch('/api/website/pages', { credentials: 'include' })
     .then((r) => (r.ok ? r.json() : Promise.reject()))

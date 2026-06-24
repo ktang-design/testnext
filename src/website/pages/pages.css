@@ -1,6 +1,31 @@
 /* Pages builder — only the bits specific to this page. Layout, panel, save bar
    and the reorderable list all come from website.css + sortable-tree.css. */
 
+/* Preview column: a bar (with the Publish action) above the website preview. */
+.navpreview-col { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.navpreview-bar { display: flex; justify-content: flex-end; align-items: center; padding: 12px 16px 0; }
+.navpreview-bar[hidden] { display: none; }
+/* The Publish action is disabled; hovering/focusing the wrapper shows why. */
+.publish-tip { position: relative; display: inline-flex; }
+.publish-tip[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute; top: calc(100% + 8px); right: 0;
+  padding: 5px 8px; border-radius: 4px;
+  background: var(--gray-700, #3d3f42); color: #fff;
+  font: 400 13px/1.4 "Noto Sans", Arial, sans-serif; white-space: nowrap;
+}
+.publish-tip[data-tooltip]::before {
+  content: ""; position: absolute; top: calc(100% + 3px); right: 12px;
+  border: 5px solid transparent; border-bottom-color: var(--gray-700, #3d3f42);
+}
+.publish-tip[data-tooltip]::after,
+.publish-tip[data-tooltip]::before { opacity: 0; visibility: hidden; transition: opacity 0.12s ease; pointer-events: none; z-index: 30; }
+.publish-tip[data-tooltip]:hover::after,
+.publish-tip[data-tooltip]:hover::before,
+.publish-tip[data-tooltip]:focus-visible::after,
+.publish-tip[data-tooltip]:focus-visible::before { opacity: 1; visibility: visible; }
+.publish-tip .btn[disabled] { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+
 /* Add (+) button: a clearly rounded hover highlight + an "Add page" tooltip.
    Scoped here so the navigation page's + (which opens a menu) is unaffected.
    The tooltip is right-aligned to the button because the panel clips overflow
