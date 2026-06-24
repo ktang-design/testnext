@@ -990,11 +990,14 @@
   }
 
   // ---- preview ----
+  // The pages (with content) the preview renders read-only when not building.
+  const livePages = () => strip(tree ? tree.getItems() : []);
   function pushPreview() {
     if (!preview) return;
-    if (view !== 'builder') { preview.update({ builder: null }); return; }
+    if (view !== 'builder') { preview.update({ builder: null, pages: livePages() }); return; }
     preview.update({
       builder: { sections: getSections(), selectedSectionId, selectedElementId },
+      pages: livePages(),
       builderCallbacks: {
         onAddSection: addSection,
         onAddElement: (sid, col) => addElement(sid, col),
@@ -1084,6 +1087,8 @@
         if (selectedSectionId && !findSection(selectedSectionId)) { selectedSectionId = null; selectedElementId = null; }
         else if (selectedElementId && !findElement(selectedSectionId, selectedElementId)) { selectedElementId = null; }
         renderAll();
+      } else {
+        pushPreview(); // reflect the saved content in the read-only preview
       }
     } catch (err) {
       saving = false;
@@ -1135,6 +1140,7 @@
       baseline = JSON.stringify(strip(data.pages || []));
       loaded = true;
       mountTree(data.pages || []);
+      pushPreview(); // give the read-only preview the loaded pages + content
     })
     .catch(() => {
       loaded = true;

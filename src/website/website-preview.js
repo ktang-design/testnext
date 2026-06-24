@@ -149,6 +149,8 @@
       platformLogo: null,
       siteName: '',
       showSiteName: false,    // Branding "Show site name beside logo"
+      pages: [],              // published pages (with content) for the read-only view
+      viewPageId: null,       // which page the preview is currently showing (defaults to the homepage)
       builder: null,          // { sections, selectedSectionId, selectedElementId } when editing a page
       builderCallbacks: {},   // { onAddSection, onAddElement, onSelectSection, onSelectElement, onDeleteSection, onDeleteElement }
     };
@@ -422,11 +424,68 @@
       if (!(blr.sections || []).length) body.appendChild(cta('Add section', () => cb.onAddSection && cb.onAddSection()));
     }
 
+    // The page the read-only preview currently shows: the chosen one, else the
+    // homepage, else the first page.
+    function currentViewPage() {
+      const pages = state.pages || [];
+      if (!pages.length) return null;
+      return pages.find((p) => p.id === state.viewPageId)
+        || pages.find((p) => p.isHomepage) || pages[0];
+    }
+
+    // Read-only render of a published page's sections + elements (no editing
+    // chrome) — what visitors see. Mirrors the builder body's content rendering.
+    function renderPublishedBody(body, sections) {
+      const buildEl = (element) => {
+        const elt = el('div', 'wsprev__el');
+        if (element.displayTitle && element.title) {
+          const t = el('h3', 'wsprev__eltitle', element.title);
+          const hd = element.style && element.style.heading;
+          if (hd && hd.opacity > 0) t.style.color = rgba(hd);
+          elt.appendChild(t);
+        }
+        if (element.type === 'code') {
+          if (String(element.code || '').trim()) elt.appendChild(buildCodeFrame(element));
+        } else {
+          const html = String(element.body || '');
+          const hasContent = html.replace(/<[^>]*>/g, '').trim() || /<(br|img|hr)/i.test(html);
+          if (hasContent) {
+            const rt = el('div', 'wsprev__richtext');
+            rt.innerHTML = window.RichText ? window.RichText.sanitize(html) : '';
+            applyRichtextStyle(elt, rt, element.style);
+            elt.appendChild(rt);
+          }
+        }
+        return elt;
+      };
+      (sections || []).forEach((section) => {
+        const sec = el('div', 'wsprev__section');
+        sec.style.background = rgba(section.background);
+        if (section.displayTitle && section.title) sec.appendChild(el('h2', 'wsprev__sectitle', section.title));
+        const elements = section.elements || [];
+        if (Number(section.columns) === 2) {
+          const grid = el('div', 'wsprev__elements wsprev__elements--split');
+          for (let col = 0; col < 2; col++) {
+            const column = el('div', 'wsprev__col');
+            elements.filter((e) => (Number(e.column) === 1 ? 1 : 0) === col).forEach((element) => column.appendChild(buildEl(element)));
+            grid.appendChild(column);
+          }
+          sec.appendChild(grid);
+        } else {
+          const wrap = el('div', 'wsprev__elements');
+          elements.forEach((element) => wrap.appendChild(buildEl(element)));
+          sec.appendChild(wrap);
+        }
+        body.appendChild(sec);
+      });
+    }
+
     function render() {
       const h = state.header || HEADER_D;
       const f = state.footer || FOOTER_D;
       const t = state.typography || TYPO_D;
-      const navLabels = (state.navigation || []).map((i) => i.label).filter(Boolean);
+      const navItems = (state.navigation || []).filter((i) => i.label);
+      const navLabels = navItems.map((i) => i.label);
 
       root.style.fontFamily = `${t.fontFamily || 'Inter'}, "Noto Sans", Arial, sans-serif`;
       root.innerHTML = '';
@@ -437,7 +496,15 @@
       header.classList.add(inline ? 'wsprev__header--inline' : 'wsprev__header--stacked');
       header.style.background = rgba(h.background);
 
-      const hLogo = el('span', 'wsprev__logo');
+      // In the read-only (non-builder) view the logo + page links navigate the
+      // preview between published pages; the homepage is the default.
+      const live = !state.builder;
+      const goTo = (pageId) => { state.viewPageId = pageId; render(); };
+      const homepage = (state.pages || []).find((p) => p.isHomepage) || (state.pages || [])[0];
+      const viewId = currentViewPage() ? currentViewPage().id : null;
+
+      const hLogo = el(live && homepage ? 'a' : 'span', 'wsprev__logo');
+      if (live && homepage) { hLogo.href = '#'; hLogo.addEventListener('click', (e) => { e.preventDefault(); goTo(homepage.id); }); }
       hLogo.appendChild(logoImg());
       // Branding "Show site name beside logo" → the site name sits beside the logo.
       if (state.showSiteName && state.siteName) {
@@ -446,10 +513,15 @@
         hLogo.appendChild(name);
       }
       const hNav = el('nav', 'wsprev__nav');
-      // Only the user's real navigation items appear — no placeholder links.
-      navLabels.forEach((label) => {
-        const a = el('span', 'wsprev__navlink', label);
+      navItems.forEach((item) => {
+        const pageLink = live && item.type === 'page' && item.pageId && (state.pages || []).some((p) => p.id === item.pageId);
+        const a = el(pageLink ? 'a' : 'span', 'wsprev__navlink', item.label);
         a.style.color = textColor(h.links, '#3D3F42');
+        if (pageLink) {
+          a.href = '#';
+          if (item.pageId === viewId) a.classList.add('is-current');
+          a.addEventListener('click', (e) => { e.preventDefault(); goTo(item.pageId); });
+        }
         hNav.appendChild(a);
       });
       if (!inline) {
@@ -516,9 +588,16 @@
         root.appendChild(sec);
       }
 
-      // ---- Page body: empty in list view; the content builder fills it ----
+      // ---- Page body: the content builder while editing; otherwise the
+      // read-only published content of the page being viewed (default homepage).
       const body = el('main', 'wsprev__body');
-      if (state.builder) renderBuilderBody(body);
+      if (state.builder) {
+        renderBuilderBody(body);
+      } else {
+        body.classList.add('wsprev__body--published');
+        const page = currentViewPage();
+        if (page && page.content && page.content.sections) renderPublishedBody(body, page.content.sections);
+      }
       root.appendChild(body);
 
       // ---- Footer (Figma 1802:561) ----
@@ -609,7 +688,8 @@
       get('/api/website/search'),
       get('/api/branding'),
       get('/api/site-settings'),
-    ]).then(([nav, header, footer, typo, wbrand, search, pbrand, site]) => {
+      get('/api/website/pages'),
+    ]).then(([nav, header, footer, typo, wbrand, search, pbrand, site, pages]) => {
       if (nav && Array.isArray(nav.navigation)) state.navigation = nav.navigation;
       if (header) state.header = header.saved || header.defaults || HEADER_D;
       if (footer) state.footer = footer.saved || footer.defaults || FOOTER_D;
@@ -619,6 +699,9 @@
       state.platformLogo = (pbrand && pbrand.saved && pbrand.saved.logo) || null;
       state.showSiteName = !!(pbrand && pbrand.saved && pbrand.saved.showSiteName);
       state.siteName = (site && ((site.saved && site.saved.name) || (site.defaults && site.defaults.name))) || '';
+      // Pages are owned by the Pages page (which pushes live edits); only adopt the
+      // fetched set when the host hasn't already provided one.
+      if (pages && Array.isArray(pages.pages) && !(state.pages && state.pages.length)) state.pages = pages.pages;
       render();
       writeCache(cacheSnapshot());
     });

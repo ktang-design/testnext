@@ -38,6 +38,10 @@
 .wsprev__logoimg--custom { width: auto; height: 40px; max-width: 220px; object-fit: contain; }
 .wsprev__nav { display: flex; flex-wrap: wrap; gap: 32px; align-items: center; }
 .wsprev__navlink { font-weight: 400; font-size: 16px; line-height: 24px; white-space: nowrap; }
+/* In the read-only preview the logo + page links navigate between pages. */
+a.wsprev__navlink, a.wsprev__logo { cursor: pointer; text-decoration: none; }
+a.wsprev__navlink:hover { text-decoration: underline; text-underline-offset: 4px; }
+a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset: 4px; }
 
 /* Search bar — appears below the navigation when a search is configured. The
    section background is the configured colour (and optional image); the bar is a
@@ -102,6 +106,10 @@
 .wsprev__el.is-selected { outline: 2px solid #e0489b; outline-offset: -2px; border-radius: 4px; }
 .wsprev__section:hover:not(.is-selected),
 .wsprev__el:hover:not(.is-selected) { outline: 1px dashed #cdd6e6; outline-offset: -1px; border-radius: 4px; }
+/* The read-only (published) view has no editing affordances. */
+.wsprev__body--published .wsprev__el { cursor: default; }
+.wsprev__body--published .wsprev__section:hover,
+.wsprev__body--published .wsprev__el:hover { outline: none; }
 
 /* Element layout within a section (Column layout: 100% vs 50% / 50%). In split
    mode each column holds its own elements + a 50%-wide Add element area. */
