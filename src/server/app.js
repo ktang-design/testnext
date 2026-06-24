@@ -83,7 +83,16 @@ app.use((req, res, next) => {
 
 // ---- Static front-end -----------------------------------------------------
 app.get('/', (req, res) => res.redirect('/site-details/'));
-app.use(express.static(SRC_DIR, { extensions: ['html'] }));
+app.use(express.static(SRC_DIR, {
+  extensions: ['html'],
+  setHeaders: (res, filePath) => {
+    // HTML pages must never be served from cache (browser/edge/bfcache): they are
+    // the app shell and change on every deploy, so a stale copy shows outdated
+    // chrome (e.g. an old side-nav order) when navigating between pages. CSS/JS/
+    // images keep their default caching.
+    if (filePath.endsWith('.html')) res.setHeader('Cache-Control', 'no-store, must-revalidate');
+  },
+}));
 
 // ---- Fallbacks ------------------------------------------------------------
 app.use((req, res) => res.status(404).send('Not found'));
