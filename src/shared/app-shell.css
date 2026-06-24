@@ -24,6 +24,44 @@
 .pageactions { padding-left: 24px; padding-right: 24px; }
 .pageactions__inner { margin: 0 auto; }
 
+/* ---- System footer (injected by app-shell.js) -----------------------------
+   Sits at the bottom of the content column, below the sticky actions. Making
+   .content the scroll area + the working area at least one viewport tall keeps
+   the footer below the fold until the user scrolls to the very end. */
+/* Fixed viewport so .content is the scroll area (the Website pages already do
+   this; this normalizes the Platform pages, whose body otherwise grows). */
+html.has-sysfooter, body.has-sysfooter { height: 100%; min-height: 0; overflow: hidden; }
+/* The flex chain must be allowed to shrink to the viewport so .content (not the
+   body) scrolls. The Website pages already set this; Platform pages need it too. */
+body.has-sysfooter .layout { min-height: 0; }
+.content.has-sysfooter { overflow-y: auto; min-height: 0; }
+.content.has-sysfooter > :first-child { min-height: 100%; }
+.sysfooter {
+  flex: 0 0 auto;
+  padding: 28px 24px 32px;
+  border-top: 1px solid var(--gray-200, #e4e7ec);
+  background: var(--white, #fff);
+  text-align: center;
+}
+.sysfooter__links {
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center;
+  gap: 8px 24px;
+}
+.sysfooter__link {
+  position: relative;
+  font-size: 14px; line-height: 20px;
+  color: var(--gray-700, #3d3f42); text-decoration: underline; text-underline-offset: 2px;
+}
+.sysfooter__link:hover { color: var(--blue-700, #2d62b7); }
+/* Vertical divider between adjacent links. */
+.sysfooter__link:not(:last-child)::after {
+  content: ""; position: absolute; right: -12px; top: 50%; transform: translateY(-50%);
+  width: 1px; height: 14px; background: var(--gray-300, #d0d5dd);
+}
+.sysfooter__copy {
+  margin: 12px 0 0; font-size: 14px; line-height: 20px; color: var(--gray-600, #667085);
+}
+
 /* Collapse/expand button — injected into the panel, shown only on wide desktop.
    The panel's own `position: sticky` (set per page) already establishes the
    containing block for this absolutely-placed button, so we must NOT override

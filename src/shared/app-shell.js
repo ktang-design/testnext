@@ -120,6 +120,47 @@
     });
   }
 
+  // ---- System footer ----
+  // Lives at the very bottom of the content column, below the sticky actions, and
+  // is only reached by scrolling to the end (CSS makes .content the scroll area).
+  // Injected here so it stays consistent across every settings/builder page.
+  const content = document.querySelector('.content');
+  if (content && content.querySelector('.pageactions') && !content.querySelector('.sysfooter')) {
+    const LINKS = [
+      ['EBSCO Connect', 'https://connect.ebsco.com'],
+      ['Privacy Policy', 'https://www.ebsco.com/company/privacy-policy'],
+      ['Terms of use', 'https://www.ebsco.com/terms-of-use'],
+      ['Copyright', 'https://www.ebsco.com/terms-of-use'],
+    ];
+    const footer = document.createElement('footer');
+    footer.className = 'sysfooter';
+    const links = document.createElement('nav');
+    links.className = 'sysfooter__links';
+    links.setAttribute('aria-label', 'System');
+    LINKS.forEach(([label, href]) => {
+      const a = document.createElement('a');
+      a.className = 'sysfooter__link';
+      a.href = href;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.textContent = label;
+      links.appendChild(a);
+    });
+    footer.appendChild(links);
+    const copy = document.createElement('p');
+    copy.className = 'sysfooter__copy';
+    copy.textContent = `Software © ${new Date().getFullYear()} EBSCO Industries, LLC. All rights reserved`;
+    footer.appendChild(copy);
+    content.appendChild(footer);
+    content.classList.add('has-sysfooter');
+    // Make the body a fixed viewport so .content (not the body) is the scroll
+    // area — this is already true on the Website pages; it normalizes the
+    // Platform pages (which otherwise grow the body) so the sticky actions stay
+    // pinned and the footer is reached by scrolling to the end of the content.
+    document.documentElement.classList.add('has-sysfooter');
+    document.body.classList.add('has-sysfooter');
+  }
+
   // The account / sign-out dropdown itself lives in shared/auth-client.js;
   // it toggles aria-expanded on .usermenu, which the caret CSS keys off of.
 
