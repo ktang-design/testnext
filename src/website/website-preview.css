@@ -160,17 +160,26 @@
 .wsprev__tbbtn svg { fill: none; }
 
 /* Footer */
-.wsprev__footer {
-  border-top: 1px solid var(--gray-200); background: #fafbfc;
-  padding: 36px 48px 26px; display: flex; flex-direction: column; gap: 20px;
-}
-.wsprev__fmain { display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
+.wsprev__footer { background: #fff; padding: 24px 48px 20px; display: flex; flex-direction: column; gap: 20px; }
+/* Top options area: logo (left) + menu (right). */
+.wsprev__foptions { display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
 .wsprev__flogo { display: inline-flex; }
-.wsprev__flogo .wsprev__logoimg { width: auto; height: 32px; }
-.wsprev__flogo .wsprev__logoimg--custom { width: auto; height: 26px; }
-.wsprev__flinks { display: flex; flex-wrap: wrap; gap: 12px 26px; }
-.wsprev__flink { font-size: 14px; color: var(--gray-600); white-space: nowrap; }
-.wsprev__copyright { border-top: 1px solid var(--gray-200); padding-top: 18px; font-size: 13px; color: var(--gray-500); }
+.wsprev__flogo .wsprev__logoimg { width: auto; height: 54px; }
+.wsprev__flogo .wsprev__logoimg--custom { width: auto; height: 40px; }
+.wsprev__flinks { display: flex; flex-wrap: wrap; gap: 8px 32px; }
+.wsprev__flink { font-size: 16px; font-weight: 400; line-height: 24px; color: #3d3f42; white-space: nowrap; }
+/* Divider between the options area and the copyright row (only present when the
+   options area has content). */
+.wsprev__fdivider { height: 1px; background: #d7d8da; }
+/* Required copyright row: copyright (left) + policy links (right). */
+.wsprev__frow { display: flex; align-items: center; justify-content: space-between; gap: 16px 24px; flex-wrap: wrap; }
+.wsprev__copyright { font-size: 14px; font-weight: 400; line-height: 21px; color: #55585d; }
+.wsprev__fpolicy { display: flex; align-items: center; flex-wrap: wrap; gap: 24px; }
+.wsprev__fpolicylink { position: relative; font-size: 14px; line-height: 21px; color: #255096; white-space: nowrap; }
+.wsprev__fpolicylink:not(:last-child)::after {
+  content: ""; position: absolute; right: -12px; top: 50%; transform: translateY(-50%);
+  width: 1px; height: 14px; background: #d7d8da;
+}
 
 /* HUD overlay — zoom hint + current zoom level. */
 .wsprev-hud {

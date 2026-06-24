@@ -503,13 +503,16 @@
       if (state.builder) renderBuilderBody(body);
       root.appendChild(body);
 
-      // ---- Footer ----
+      // ---- Footer (Figma 1802:561) ----
       const footer = el('footer', 'wsprev__footer');
-      const fMain = el('div', 'wsprev__fmain');
+      // Top "options" area: logo (left) + menu (right). The divider above the
+      // copyright row only appears when this area has content — when neither the
+      // logo nor the menu is enabled there is no divider.
+      const fOptions = el('div', 'wsprev__foptions');
       if (f.showLogo) {
         const fLogo = el('span', 'wsprev__flogo');
         fLogo.appendChild(logoImg());
-        fMain.appendChild(fLogo);
+        fOptions.appendChild(fLogo);
       }
       const fLabels = [];
       if (f.showNavigation) fLabels.push(...navLabels);
@@ -517,10 +520,21 @@
       if (fLabels.length) {
         const fLinks = el('div', 'wsprev__flinks');
         fLabels.forEach((label) => fLinks.appendChild(el('span', 'wsprev__flink', label)));
-        fMain.appendChild(fLinks);
+        fOptions.appendChild(fLinks);
       }
-      if (fMain.children.length) footer.appendChild(fMain);
-      footer.appendChild(el('div', 'wsprev__copyright', `© ${new Date().getFullYear()} Stacks. All rights reserved.`));
+      if (fOptions.children.length) {
+        footer.appendChild(fOptions);
+        footer.appendChild(el('div', 'wsprev__fdivider'));
+      }
+      // Required copyright row: copyright (left) + policy links (right).
+      const fRow = el('div', 'wsprev__frow');
+      fRow.appendChild(el('span', 'wsprev__copyright', `Copyright © ${new Date().getFullYear()} EBSCO StacksNext. All rights reserved`));
+      const fPolicy = el('div', 'wsprev__fpolicy');
+      ['Privacy policy', 'License agreement', 'Manage my cookies'].forEach((label) => {
+        fPolicy.appendChild(el('span', 'wsprev__fpolicylink', label));
+      });
+      fRow.appendChild(fPolicy);
+      footer.appendChild(fRow);
       root.appendChild(footer);
 
       // Re-measure and re-apply zoom (fit unless the user has zoomed manually).
