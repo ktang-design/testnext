@@ -20,7 +20,6 @@
 
   const NAME_MAX = 120;
   const LABEL_MAX = 120;
-  const BUTTON_MAX = 60;
   const MAX_SEARCHES = 20;
   const IMAGE_MAX = 3 * 1024 * 1024; // 3 MB
 
@@ -187,14 +186,11 @@
     });
   }
 
-  // The "+" opens a menu to pick the search type, each of which opens the modal.
+  // The "+" opens the custom-search modal directly.
   addBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (config.searches.length >= MAX_SEARCHES) return;
-    window.Popover.open(addBtn, [
-      { label: 'EBSCO Discovery Service', onSelect: () => openSearchModal('eds') },
-      { label: 'Custom search', onSelect: () => openSearchModal('custom') },
-    ], { align: 'left', label: 'Add search' });
+    openSearchModal('custom');
   });
 
   // ---------- add / edit search modal ----------
@@ -203,8 +199,8 @@
     const draft = existing
       ? clone(existing)
       // The first search created is the default (starred).
-      : { id: uid(), type, name: type === 'eds' ? 'EBSCO Discovery Service' : '', displayLabel: '', url: '', urlencode: true, buttonLabel: 'Search', isDefault: config.searches.length === 0 };
-    const noun = type === 'eds' ? 'EBSCO Discovery Service' : 'custom search';
+      : { id: uid(), type, name: '', displayLabel: '', url: '', urlencode: true, buttonLabel: 'Search', isDefault: config.searches.length === 0 };
+    const noun = 'custom search';
     const prev = document.activeElement;
 
     const overlay = document.createElement('div');
@@ -235,10 +231,6 @@
           '<button type="button" class="btn btn--secondary ws-term" data-term>Add SEARCH_TERM</button>' +
         '</div>' +
         '<label class="ws-check"><input type="checkbox" data-urlencode /> <span>urlencode the user’s search term</span></label>' +
-        '<div class="ws-mfield">' +
-          '<label class="ws-label" for="ws-btn">Button label</label>' +
-          '<input type="text" class="ws-input" id="ws-btn" maxlength="' + BUTTON_MAX + '" />' +
-        '</div>' +
       '</div>' +
       '<div class="modal__footer">' +
         '<button type="button" class="modal__btn modal__btn--cancel" data-cancel>Cancel</button>' +
@@ -254,13 +246,11 @@
     const labelI = modal.querySelector('#ws-label');
     const urlI = modal.querySelector('#ws-url');
     const encI = modal.querySelector('[data-urlencode]');
-    const btnI = modal.querySelector('#ws-btn');
 
     nameI.value = draft.name;
     labelI.value = draft.displayLabel;
     urlI.value = draft.url;
     encI.checked = !!draft.urlencode;
-    btnI.value = draft.buttonLabel;
     // Show the display-label field when one already exists; otherwise offer the link.
     if (draft.displayLabel) { show(labelWrap); hide(labelBtn); } else { show(labelBtn); hide(labelWrap); }
 
@@ -285,7 +275,7 @@
       draft.displayLabel = labelWrap.hidden ? '' : labelI.value.trim();
       draft.url = urlI.value.trim();
       draft.urlencode = encI.checked;
-      draft.buttonLabel = btnI.value.trim() || 'Search';
+      draft.buttonLabel = draft.buttonLabel || 'Search'; // no longer user-set; keep a sensible default
       if (existing) {
         const i = config.searches.findIndex((s) => s.id === existing.id);
         if (i !== -1) config.searches[i] = draft;
