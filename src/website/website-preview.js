@@ -523,6 +523,9 @@
         fOptions.appendChild(fLinks);
       }
       if (fOptions.children.length) {
+        // With a logo the menu sits opposite it (logo left, menu right); with no
+        // logo the menu is centered.
+        if (!f.showLogo) fOptions.classList.add('wsprev__foptions--center');
         footer.appendChild(fOptions);
         footer.appendChild(el('div', 'wsprev__fdivider'));
       }

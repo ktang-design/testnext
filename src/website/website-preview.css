@@ -163,6 +163,7 @@
 .wsprev__footer { background: #fff; padding: 24px 48px 20px; display: flex; flex-direction: column; gap: 20px; }
 /* Top options area: logo (left) + menu (right). */
 .wsprev__foptions { display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
+.wsprev__foptions--center { justify-content: center; }
 .wsprev__flogo { display: inline-flex; }
 .wsprev__flogo .wsprev__logoimg { width: auto; height: 54px; }
 .wsprev__flogo .wsprev__logoimg--custom { width: auto; height: 40px; }
