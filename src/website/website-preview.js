@@ -132,6 +132,8 @@
       branding: BRAND_D,
       search: SEARCH_D,
       platformLogo: null,
+      siteName: '',
+      showSiteName: false,    // Branding "Show site name beside logo"
       builder: null,          // { sections, selectedSectionId, selectedElementId } when editing a page
       builderCallbacks: {},   // { onAddSection, onAddElement, onSelectSection, onSelectElement, onDeleteSection, onDeleteElement }
     };
@@ -422,6 +424,12 @@
 
       const hLogo = el('span', 'wsprev__logo');
       hLogo.appendChild(logoImg());
+      // Branding "Show site name beside logo" → the site name sits beside the logo.
+      if (state.showSiteName && state.siteName) {
+        const name = el('span', 'wsprev__sitename', state.siteName);
+        name.style.color = textColor(h.links, '#3D3F42');
+        hLogo.appendChild(name);
+      }
       const hNav = el('nav', 'wsprev__nav');
       // Only the user's real navigation items appear — no placeholder links.
       navLabels.forEach((label) => {
@@ -515,6 +523,8 @@
       branding: state.branding,
       search: state.search,
       platformLogo: state.platformLogo,
+      siteName: state.siteName,
+      showSiteName: state.showSiteName,
     });
     let cacheTimer = null;
     const scheduleCacheWrite = () => {
@@ -533,6 +543,8 @@
       if (cached.branding) state.branding = cached.branding;
       if (cached.search) state.search = cached.search;
       if ('platformLogo' in cached) state.platformLogo = cached.platformLogo;
+      if ('siteName' in cached) state.siteName = cached.siteName;
+      if ('showSiteName' in cached) state.showSiteName = cached.showSiteName;
     }
     render();
 
@@ -546,7 +558,8 @@
       get('/api/website/branding'),
       get('/api/website/search'),
       get('/api/branding'),
-    ]).then(([nav, header, footer, typo, wbrand, search, pbrand]) => {
+      get('/api/site-settings'),
+    ]).then(([nav, header, footer, typo, wbrand, search, pbrand, site]) => {
       if (nav && Array.isArray(nav.navigation)) state.navigation = nav.navigation;
       if (header) state.header = header.saved || header.defaults || HEADER_D;
       if (footer) state.footer = footer.saved || footer.defaults || FOOTER_D;
@@ -554,6 +567,8 @@
       if (wbrand) state.branding = wbrand.saved || wbrand.defaults || BRAND_D;
       if (search) state.search = search.saved || search.defaults || SEARCH_D;
       state.platformLogo = (pbrand && pbrand.saved && pbrand.saved.logo) || null;
+      state.showSiteName = !!(pbrand && pbrand.saved && pbrand.saved.showSiteName);
+      state.siteName = (site && ((site.saved && site.saved.name) || (site.defaults && site.defaults.name))) || '';
       render();
       writeCache(cacheSnapshot());
     });
