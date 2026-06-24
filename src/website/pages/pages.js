@@ -283,6 +283,23 @@
     getContent().sections = orderedIds.map((id) => map[id]).filter(Boolean);
     afterFieldEdit();
   }
+  // Placeholder richtext a new richtext element starts with — real content (not a
+  // CSS hint), so it shows in the preview and in the WYSIWYG when re-editing.
+  const PLACEHOLDER_RICHTEXT =
+    '<h2>Explore our digital collections</h2>' +
+    '<p>Access authoritative resources designed to support learning, research, and lifelong discovery. Whether you’re exploring a new topic, conducting academic research, or seeking reliable information, the library provides trusted digital content to help you succeed.</p>' +
+    '<ul>' +
+    '<li>Access thousands of eBooks and audiobooks</li>' +
+    '<li>Search scholarly journals, articles, and reference materials</li>' +
+    '<li>Discover trusted databases covering a wide range of subjects</li>' +
+    '<li>Learn new skills through online courses and educational resources</li>' +
+    '<li>Save, organize, and revisit your research anytime</li>' +
+    '</ul>' +
+    '<blockquote>“Reliable information is the foundation of informed decisions, successful research, and lifelong learning.”</blockquote>' +
+    '<h3>Why use library resources?</h3>' +
+    '<p>Our curated collections provide access to high-quality, authoritative content selected by information professionals to support your academic, professional, and personal goals.</p>' +
+    '<p><a href="#">Explore online resources</a></p>';
+
   async function addElement(sectionId, column) {
     const sec = findSection(sectionId);
     if (!sec || sec.elements.length >= limits.maxElements) return;
@@ -291,7 +308,7 @@
     const col = column === 1 ? 1 : 0; // which 50% column (ignored in 100% layout)
     const e = type === 'code'
       ? { id: uid('el'), type: 'code', title: 'Code', displayTitle: false, column: col, code: '' }
-      : { id: uid('el'), type: 'richtext', title: 'Richtext', displayTitle: false, column: col, body: '', style: defaultRichtextStyle() };
+      : { id: uid('el'), type: 'richtext', title: 'Richtext', displayTitle: false, column: col, body: PLACEHOLDER_RICHTEXT, style: defaultRichtextStyle() };
     sec.elements.push(e);
     selectedSectionId = sectionId;
     selectedElementId = e.id;
