@@ -97,6 +97,9 @@
    stay closer together. */
 .pgb__settings { display: flex; flex-direction: column; gap: 24px; margin: 4px 0 8px; }
 .pgb__group { display: flex; flex-direction: column; gap: 16px; }
+/* Title input + its "Display … title" checkbox are a tight pair (separated from
+   the surrounding settings by the 24px .pgb__settings gap). */
+.pgb__namegroup { display: flex; flex-direction: column; gap: 12px; }
 /* Colour rows — a compact group with no per-row padding. */
 .pgb__colors { display: flex; flex-direction: column; gap: 12px; }
 .pgb__colors .colorrow { padding: 0; }

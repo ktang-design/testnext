@@ -264,7 +264,7 @@
   function addSection() {
     const secs = getSections();
     if (secs.length >= limits.maxSections) return;
-    const s = { id: uid('sec'), title: `Section ${secs.length + 1}`, displayTitle: true, columns: 1, background: { color: '#FFFFFF', opacity: 100 }, elements: [] };
+    const s = { id: uid('sec'), title: `Section ${secs.length + 1}`, displayTitle: false, columns: 1, background: { color: '#FFFFFF', opacity: 100 }, elements: [] };
     secs.push(s);
     selectedSectionId = s.id;
     selectedElementId = null;
@@ -924,8 +924,11 @@
 
     const settings = document.createElement('div');
     settings.className = 'pgb__settings';
-    settings.appendChild(buildTextField('Title', sec.title, limits.sectionTitle, (v) => { sec.title = v; afterFieldEdit(); }));
-    settings.appendChild(buildCheckbox('Display section title', sec.displayTitle, (v) => { sec.displayTitle = v; afterFieldEdit(); }));
+    const secName = document.createElement('div');
+    secName.className = 'pgb__namegroup';
+    secName.appendChild(buildTextField('Title', sec.title, limits.sectionTitle, (v) => { sec.title = v; afterFieldEdit(); }));
+    secName.appendChild(buildCheckbox('Display section title', sec.displayTitle, (v) => { sec.displayTitle = v; afterFieldEdit(); }));
+    settings.appendChild(secName);
     settings.appendChild(buildRadio('Column layout', [{ value: 1, label: '100%' }, { value: 2, label: '50% / 50%' }], sec.columns || 1, (v) => { sec.columns = v; afterFieldEdit(); }));
     settings.appendChild(makeColorRow('Background', sec.background, afterFieldEdit));
     builderView.appendChild(settings);
@@ -952,8 +955,11 @@
     if (elc.type === 'code') {
       // Code content is edited via the toolbar edit icon → "Edit code" modal,
       // so the panel only carries the title + display toggle.
-      settings.appendChild(buildTextField('Title', elc.title, limits.elementTitle, (v) => { elc.title = v; afterFieldEdit(); }));
-      settings.appendChild(buildCheckbox('Display element title', elc.displayTitle, (v) => { elc.displayTitle = v; afterFieldEdit(); }));
+      const codeName = document.createElement('div');
+      codeName.className = 'pgb__namegroup';
+      codeName.appendChild(buildTextField('Title', elc.title, limits.elementTitle, (v) => { elc.title = v; afterFieldEdit(); }));
+      codeName.appendChild(buildCheckbox('Display element title', elc.displayTitle, (v) => { elc.displayTitle = v; afterFieldEdit(); }));
+      settings.appendChild(codeName);
     } else {
       // Richtext: title + colours + border, in 3 groups (2rem apart; colours are
       // a compact sub-group). Content is edited via the toolbar edit icon.
@@ -961,7 +967,7 @@
       const st = rtStyle(elc);
       const grp = (cls) => { const g = document.createElement('div'); g.className = cls; return g; };
 
-      const top = grp('pgb__group');
+      const top = grp('pgb__namegroup');
       top.appendChild(buildTextField('Title', elc.title, limits.elementTitle, (v) => { elc.title = v; afterFieldEdit(); }));
       top.appendChild(buildCheckbox('Display element title', elc.displayTitle, (v) => { elc.displayTitle = v; afterFieldEdit(); }));
 
