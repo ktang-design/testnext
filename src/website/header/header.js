@@ -8,7 +8,7 @@
   const logoImg = bar.querySelector('.hdr-preview__logo');
   const navEl = $('[data-preview-nav]');
   const navSecond = $('[data-nav-second]');
-  const DEFAULTS = { logo: 'left', nav: 'left', background: { color: '#FFFFFF', opacity: 100 }, links: { color: '#3D3F42', opacity: 100 } };
+  const DEFAULTS = { logo: 'left', nav: 'left', background: { color: '#FFFFFF', opacity: 100 }, links: { color: '#3D3F42', opacity: 100 }, heading: '', description: '' };
   // Shared website preview in the main area (header + body + footer).
   const preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'));
 
@@ -86,12 +86,23 @@
   const bgColor = setupColor('background');
   const linksColor = setupColor('links');
 
+  // ---------- text fields (Heading / Description) ----------
+  function setupField(key) {
+    const input = document.querySelector(`[data-field="${key}"]`);
+    input.addEventListener('input', () => { config[key] = input.value; saveError = null; refresh(); });
+    return { set: () => { input.value = config[key] || ''; } };
+  }
+  const headingField = setupField('heading');
+  const descriptionField = setupField('description');
+
   // ---------- render ----------
   function applyToControls() {
     logoSeg.paint(config.logo);
     navSeg.paint(config.nav);
     bgColor.set();
     linksColor.set();
+    headingField.set();
+    descriptionField.set();
     refresh();
   }
 

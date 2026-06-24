@@ -43,6 +43,15 @@
    section background is the configured colour (and optional image); the bar is a
    white field with the search dropdown + input + button. */
 .wsprev__search { padding: 32px 48px; background: #255096; }
+/* Optional heading + description (from the Header panel) shown above the bar. */
+.wsprev__searchheading {
+  margin: 0 auto 8px; max-width: 760px; text-align: center;
+  font-size: 28px; font-weight: 700; line-height: 1.3; color: #fff;
+}
+.wsprev__searchdesc {
+  margin: 0 auto 20px; max-width: 760px; text-align: center;
+  font-size: 16px; line-height: 1.5; color: #fff; white-space: pre-wrap;
+}
 .wsprev__searchbar {
   display: flex; align-items: stretch; max-width: 760px; margin: 0 auto;
   background: #fff; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 4px rgba(16, 24, 40, 0.2);

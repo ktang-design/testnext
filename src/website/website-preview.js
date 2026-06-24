@@ -460,10 +460,14 @@
       header.appendChild(hNav);
       root.appendChild(header);
 
-      // ---- Search bar (below the navigation), shown when a search is configured.
-      // Each configured search is an option in the dropdown beside the input. ----
+      // ---- Search / hero section (below the navigation). Shown when a search is
+      // configured and/or a heading or description (from the Header panel) is set.
+      // Heading + description sit above the search bar in this one section. ----
       const s = state.search || SEARCH_D;
-      if (s.searches && s.searches.length) {
+      const heading = (h.heading || '').trim();
+      const description = (h.description || '').trim();
+      const hasSearch = !!(s.searches && s.searches.length);
+      if (hasSearch || heading || description) {
         const sec = el('section', 'wsprev__search');
         sec.style.background = rgba(s.background);
         if (s.backgroundImage) {
@@ -471,30 +475,34 @@
           sec.style.backgroundSize = 'cover';
           sec.style.backgroundPosition = 'center';
         }
-        // The default (starred) search is pre-selected; the button shows its label.
-        const def = s.searches.find((x) => x.isDefault) || s.searches[0];
-        const bar = el('div', 'wsprev__searchbar');
-        const select = el('select', 'wsprev__searchselect');
-        s.searches.forEach((se) => {
-          const o = el('option', null, se.displayLabel || se.name);
-          o.value = se.id;
-          if (se.id === def.id) o.selected = true;
-          select.appendChild(o);
-        });
-        const input = el('input', 'wsprev__searchinput');
-        input.type = 'text';
-        input.placeholder = 'Search…';
-        const btn = el('button', 'wsprev__searchbtn', def.buttonLabel || 'Search');
-        btn.type = 'button';
-        // The button label tracks the selected search (each carries its own label).
-        select.addEventListener('change', () => {
-          const sel = s.searches.find((x) => x.id === select.value);
-          btn.textContent = (sel && sel.buttonLabel) || 'Search';
-        });
-        bar.appendChild(select);
-        bar.appendChild(input);
-        bar.appendChild(btn);
-        sec.appendChild(bar);
+        if (heading) sec.appendChild(el('h2', 'wsprev__searchheading', heading));
+        if (description) sec.appendChild(el('p', 'wsprev__searchdesc', description));
+        if (hasSearch) {
+          // The default (starred) search is pre-selected; the button shows its label.
+          const def = s.searches.find((x) => x.isDefault) || s.searches[0];
+          const bar = el('div', 'wsprev__searchbar');
+          const select = el('select', 'wsprev__searchselect');
+          s.searches.forEach((se) => {
+            const o = el('option', null, se.displayLabel || se.name);
+            o.value = se.id;
+            if (se.id === def.id) o.selected = true;
+            select.appendChild(o);
+          });
+          const input = el('input', 'wsprev__searchinput');
+          input.type = 'text';
+          input.placeholder = 'Search…';
+          const btn = el('button', 'wsprev__searchbtn', def.buttonLabel || 'Search');
+          btn.type = 'button';
+          // The button label tracks the selected search (each carries its own label).
+          select.addEventListener('change', () => {
+            const sel = s.searches.find((x) => x.id === select.value);
+            btn.textContent = (sel && sel.buttonLabel) || 'Search';
+          });
+          bar.appendChild(select);
+          bar.appendChild(input);
+          bar.appendChild(btn);
+          sec.appendChild(bar);
+        }
         root.appendChild(sec);
       }
 
