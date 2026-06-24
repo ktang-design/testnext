@@ -14,7 +14,7 @@
 //
 // Logo precedence: Website branding logo → Platform branding logo → default.
 (function () {
-  const DEFAULT_LOGO = '/website/assets/stacks-logo.svg';
+  const DEFAULT_LOGO = '/website/assets/stacks-from-ebsco.svg';
   const DEVICE_W = 1280;            // desktop canvas width
   const MIN_Z = 0.1, MAX_Z = 2.5;
 

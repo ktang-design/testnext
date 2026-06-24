@@ -27,15 +27,16 @@
   box-shadow: 0 6px 28px rgba(16, 24, 40, 0.14);
 }
 
-/* Header / navigation bar */
-.wsprev__header { display: flex; align-items: center; gap: 28px; padding: 22px 48px; }
+/* Header / navigation bar (Figma 1775:26668: padding 48×24, logo 180×54,
+   nav 16/400, all gaps 32). */
+.wsprev__header { display: flex; align-items: center; gap: 32px; padding: 24px 48px; }
 .wsprev__header--inline { justify-content: space-between; }
-.wsprev__header--stacked { flex-direction: column; align-items: stretch; gap: 16px; }
+.wsprev__header--stacked { flex-direction: column; align-items: stretch; gap: 32px; }
 .wsprev__logo { display: inline-flex; align-items: center; }
-.wsprev__logoimg { width: 116px; height: 22px; display: block; }
-.wsprev__logoimg--custom { width: auto; height: 30px; max-width: 180px; object-fit: contain; }
-.wsprev__nav { display: flex; flex-wrap: wrap; gap: 28px; align-items: center; }
-.wsprev__navlink { font-weight: 600; font-size: 15px; white-space: nowrap; }
+.wsprev__logoimg { width: auto; height: 54px; display: block; }
+.wsprev__logoimg--custom { width: auto; height: 40px; max-width: 220px; object-fit: contain; }
+.wsprev__nav { display: flex; flex-wrap: wrap; gap: 32px; align-items: center; }
+.wsprev__navlink { font-weight: 400; font-size: 16px; line-height: 24px; white-space: nowrap; }
 
 /* Search bar — appears below the navigation when a search is configured. The
    section background is the configured colour (and optional image); the bar is a
@@ -164,7 +165,7 @@
 }
 .wsprev__fmain { display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
 .wsprev__flogo { display: inline-flex; }
-.wsprev__flogo .wsprev__logoimg { width: 104px; height: 20px; }
+.wsprev__flogo .wsprev__logoimg { width: auto; height: 32px; }
 .wsprev__flogo .wsprev__logoimg--custom { width: auto; height: 26px; }
 .wsprev__flinks { display: flex; flex-wrap: wrap; gap: 12px 26px; }
 .wsprev__flink { font-size: 14px; color: var(--gray-600); white-space: nowrap; }
