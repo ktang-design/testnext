@@ -16,6 +16,7 @@
   let showNavigation = false;
   let tree = null;
   let baseline = '';
+  let loaded = false; // true once the saved config has loaded — no "dirty" before then
   let saving = false;
   let saveError = null;
 
@@ -26,7 +27,7 @@
   const stripLinks = (items) => (items || []).map((it) => ({ id: it.id, url: it.url, label: it.label }));
   const current = () => ({ showLogo, showNavigation, links: stripLinks(tree ? tree.getItems() : []) });
   const serialize = () => JSON.stringify(current());
-  const isDirty = () => serialize() !== baseline;
+  const isDirty = () => loaded && serialize() !== baseline;
 
   // ---------- rendering ----------
   function svgIcon(paths) {
@@ -211,6 +212,7 @@
     .then((ftr) => {
       applyConfig((ftr && (ftr.saved || ftr.defaults)) || { showLogo: false, showNavigation: false, links: [] });
       baseline = serialize();
+      loaded = true;
       updateSaveBar();
     });
 })();

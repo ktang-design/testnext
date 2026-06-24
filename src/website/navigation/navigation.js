@@ -14,6 +14,7 @@
   let publishedPages = [];
   let tree = null;
   let baseline = '[]';
+  let loaded = false; // true once the saved navigation has loaded — no "dirty" before then
   let saving = false;
   let saveError = null;
 
@@ -32,7 +33,7 @@
     }));
   }
   const serialize = () => JSON.stringify(strip(tree ? tree.getItems() : []));
-  const isDirty = () => serialize() !== baseline;
+  const isDirty = () => loaded && serialize() !== baseline;
 
   // Permissive client mirror of the server URL check.
   const validUrl = (v) => /^(https?:\/\/|\/|#|mailto:|tel:)/i.test(String(v || '').trim());
@@ -310,6 +311,7 @@
     .then((data) => {
       publishedPages = data.publishedPages || [];
       baseline = JSON.stringify(strip(data.navigation || []));
+      loaded = true;
       mountTree(data.navigation || []);
 
       // The + opens a Page/Custom menu when there are published pages to link;
@@ -330,6 +332,7 @@
       }
     })
     .catch(() => {
+      loaded = true;
       emptyEl.hidden = false;
       emptyEl.textContent = 'Couldn’t load navigation. Refresh to try again.';
     });

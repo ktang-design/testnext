@@ -24,6 +24,7 @@
 
   let config = null;
   let baseline = '';
+  let loaded = false; // true once the saved config has loaded — no "dirty" before then
   let saving = false;
   let saveError = null;
   let preview = null;
@@ -31,7 +32,7 @@
 
   const clone = (x) => JSON.parse(JSON.stringify(x));
   const serialize = () => JSON.stringify(config);
-  const isDirty = () => serialize() !== baseline;
+  const isDirty = () => loaded && serialize() !== baseline;
   const show = (el) => { el.hidden = false; };
   const hide = (el) => { el.hidden = true; };
 
@@ -180,12 +181,14 @@
     .then((data) => {
       config = clone(data.saved || data.defaults);
       baseline = serialize();
+      loaded = true;
       applyToControls();
       updateSaveBar();
     })
     .catch(() => {
       config = clone({ logo: null, primary: { color: '#255096', opacity: 100 }, secondary: { color: '#3D3F42', opacity: 100 }, heading: { color: '#3D3F42', opacity: 100 }, body: { color: '#55585D', opacity: 100 }, link: { color: '#255096', opacity: 100 } });
       baseline = serialize();
+      loaded = true;
       applyToControls();
     });
 })();

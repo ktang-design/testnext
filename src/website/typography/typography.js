@@ -8,12 +8,13 @@
 
   let config = null;
   let baseline = '';
+  let loaded = false; // true once the saved config has loaded — no "dirty" before then
   let saving = false;
   let saveError = null;
 
   const clone = (x) => JSON.parse(JSON.stringify(x));
   const serialize = () => JSON.stringify(config);
-  const isDirty = () => serialize() !== baseline;
+  const isDirty = () => loaded && serialize() !== baseline;
 
   function applyToControls() {
     fields.forEach((el) => { const k = el.dataset.field; if (config[k] != null) el.value = config[k]; });
@@ -98,12 +99,14 @@
     .then((data) => {
       config = clone(data.saved || data.defaults);
       baseline = serialize();
+      loaded = true;
       applyToControls();
       updateSaveBar();
     })
     .catch(() => {
       config = { fontFamily: 'Inter', headingSize: 'default', headingWeight: 'default', bodySize: 'default', bodyWeight: 'default' };
       baseline = serialize();
+      loaded = true;
       applyToControls();
     });
 })();

@@ -14,11 +14,12 @@
 
   let config = null;
   let baseline = '';
+  let loaded = false; // true once the saved config has loaded — no "dirty" before then
   let saving = false;
   let saveError = null;
 
   const clone = (x) => JSON.parse(JSON.stringify(x));
-  const isDirty = () => JSON.stringify(config) !== baseline;
+  const isDirty = () => loaded && JSON.stringify(config) !== baseline;
 
   // ---------- segmented controls ----------
   function setupSeg(name, onSelect) {
@@ -186,6 +187,7 @@
     .then((hdr) => {
       config = clone((hdr && (hdr.saved || hdr.defaults)) || DEFAULTS);
       baseline = JSON.stringify(config);
+      loaded = true;
       applyToControls();
     });
 })();

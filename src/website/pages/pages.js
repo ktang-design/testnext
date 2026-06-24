@@ -23,6 +23,7 @@
   // ---- state ----
   let tree = null;          // list SortableTree
   let baseline = '[]';
+  let loaded = false;       // true once pages have loaded — no "dirty" before then
   let saving = false;
   let saveError = null;
   let limits = { title: 120, description: 160, sectionTitle: 120, elementTitle: 120, body: 20000, maxSections: 50, maxElements: 100 };
@@ -52,7 +53,7 @@
     }));
   }
   const serialize = () => JSON.stringify(strip(tree ? tree.getItems() : []));
-  const isDirty = () => serialize() !== baseline;
+  const isDirty = () => loaded && serialize() !== baseline;
   function findById(items, id) { return items.find((p) => p.id === id) || null; }
 
   function svg(paths, opts) {
@@ -1126,9 +1127,11 @@
       if (data.limits) limits = data.limits;
       (data.pages || []).forEach((p) => { contentById[p.id] = p.content || { sections: [] }; });
       baseline = JSON.stringify(strip(data.pages || []));
+      loaded = true;
       mountTree(data.pages || []);
     })
     .catch(() => {
+      loaded = true;
       emptyEl.hidden = false;
       emptyEl.textContent = 'Couldn’t load pages. Refresh to try again.';
     });
