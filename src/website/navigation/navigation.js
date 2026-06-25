@@ -266,6 +266,7 @@
       saveError = null;
       baseline = JSON.stringify(strip(data.saved));
       mountTree(data.saved); // refresh availability from the server
+      writeNavCache();       // keep the instant-load cache in sync with the saved state
     } catch (err) {
       saving = false;
       saveError = err.message || 'Couldn’t save. Try again.';
@@ -305,35 +306,66 @@
   const preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'));
   saveBtn.addEventListener('click', save);
 
+  // Instant-load cache for the left-panel tree, so the saved items paint without
+  // waiting on the network (mirrors the website preview's cache). It holds only
+  // the last-saved navigation + published pages; the fetch below revalidates it.
+  const NAV_CACHE = 'ws-nav-cache';
+  const readNavCache = () => { try { return JSON.parse(localStorage.getItem(NAV_CACHE) || 'null'); } catch (_) { return null; } };
+  const writeNavCache = () => {
+    try { localStorage.setItem(NAV_CACHE, JSON.stringify({ navigation: strip(tree ? tree.getItems() : []), publishedPages })); } catch (_) { /* quota / disabled */ }
+  };
+
+  // The + opens a Page/Custom menu when there are published pages to link; with
+  // none, it goes straight to the custom-link modal. Wired once, after the
+  // network resolves (authoritative publishedPages).
+  let addMenuWired = false;
+  function wireAddMenu() {
+    if (addMenuWired) return;
+    addMenuWired = true;
+    if (publishedPages.length) {
+      window.Popover.attach(
+        addBtn,
+        () => [
+          { label: 'Page', onSelect: openAddPage },
+          { label: 'Custom link', onSelect: openAddCustom },
+        ],
+        { align: 'right', label: 'Add navigation item' }
+      );
+    } else {
+      addBtn.addEventListener('click', () => openAddCustom());
+    }
+  }
+
+  const cached = readNavCache();
+  if (cached && Array.isArray(cached.navigation)) {
+    publishedPages = cached.publishedPages || [];
+    baseline = JSON.stringify(strip(cached.navigation));
+    loaded = true;
+    mountTree(cached.navigation);
+  }
+
   fetch('/api/website/navigation', { credentials: 'include' })
     .then((r) => (r.ok ? r.json() : Promise.reject()))
     .then((data) => {
       publishedPages = data.publishedPages || [];
-      baseline = JSON.stringify(strip(data.navigation || []));
-      loaded = true;
-      mountTree(data.navigation || []);
-
-      // The + opens a Page/Custom menu when there are published pages to link;
-      // with none, it goes straight to the custom-link modal.
-      if (publishedPages.length) {
-        window.Popover.attach(
-          addBtn,
-          () => [
-            { label: 'Page', onSelect: openAddPage },
-            { label: 'Custom link', onSelect: openAddCustom },
-          ],
-          { align: 'right', label: 'Add navigation item' }
-        );
-      } else {
-        // No pages to link → a "Page" can't be added, so the + opens the
-        // custom-link form directly.
-        addBtn.addEventListener('click', () => openAddCustom());
+      const fresh = JSON.stringify(strip(data.navigation || []));
+      // Re-mount only if the saved data changed and the user hasn't started
+      // editing the cached paint — never discard in-progress edits.
+      if (!isDirty()) {
+        if (fresh !== baseline || !tree) mountTree(data.navigation || []);
       }
+      baseline = fresh;
+      loaded = true;
+      wireAddMenu();
+      writeNavCache();
     })
     .catch(() => {
       loaded = true;
-      emptyEl.hidden = false;
-      emptyEl.textContent = 'Couldn’t load navigation. Refresh to try again.';
+      wireAddMenu(); // still let the user add items from the (cached) tree
+      if (!tree) {
+        emptyEl.hidden = false;
+        emptyEl.textContent = 'Couldn’t load navigation. Refresh to try again.';
+      }
     });
 
   setupNavGuard();

@@ -18,6 +18,21 @@
   const DEVICE_W = 1280;            // desktop canvas width
   const MIN_Z = 0.1, MAX_Z = 2.5;
 
+  // The preview renders in Inter (the website typography font). Load it as a
+  // parallel <link> — not a render-blocking @import — and only on pages that ship
+  // this script. It's applied solely inside the preview root, so the surrounding
+  // product chrome keeps Noto Sans.
+  (function loadPreviewFont() {
+    try {
+      if (document.getElementById('wsprev-font')) return;
+      const link = document.createElement('link');
+      link.id = 'wsprev-font';
+      link.rel = 'stylesheet';
+      link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
+      document.head.appendChild(link);
+    } catch (_) { /* head not ready / blocked — falls back to Noto Sans */ }
+  })();
+
   const HEADER_D = { logo: 'left', nav: 'left', background: { color: '#FFFFFF', opacity: 100 }, links: { color: '#3D3F42', opacity: 100 } };
   const FOOTER_D = { showLogo: false, showNavigation: false, links: [] };
   const TYPO_D = { fontFamily: 'Inter', headingSize: 'default', headingWeight: 'default', bodySize: 'default', bodyWeight: 'default' };
@@ -40,6 +55,7 @@
       if (lite.branding) lite.branding.logo = null;
       if (lite.search) lite.search.backgroundImage = null;
       lite.platformLogo = null;
+      lite.pages = null; // page content can be large (code/richtext) — drop it first
       localStorage.setItem(CACHE_KEY, JSON.stringify(lite));
     } catch (_) { /* give up — fall back to the lazy load */ }
   }
@@ -154,6 +170,11 @@
       builder: null,          // { sections, selectedSectionId, selectedElementId } when editing a page
       builderCallbacks: {},   // { onAddSection, onAddElement, onSelectSection, onSelectElement, onDeleteSection, onDeleteElement }
     };
+    // True once the host (the Pages builder) has pushed live pages, so the saved
+    // /api/website/pages fetch won't clobber the in-progress edits. On other
+    // panels it stays false, so the fetched (authoritative) pages always win over
+    // the instant-load cache.
+    let hostProvidedPages = false;
 
     // ---- Canvas scaffold: viewport > sizer > site mock, plus a HUD overlay ----
     container.innerHTML = '';
@@ -654,6 +675,9 @@
       platformLogo: state.platformLogo,
       siteName: state.siteName,
       showSiteName: state.showSiteName,
+      // Cached so the published homepage body paints instantly and identically
+      // on every panel (the /api/website/pages fetch then revalidates it).
+      pages: state.pages,
     });
     let cacheTimer = null;
     const scheduleCacheWrite = () => {
@@ -674,6 +698,7 @@
       if ('platformLogo' in cached) state.platformLogo = cached.platformLogo;
       if ('siteName' in cached) state.siteName = cached.siteName;
       if ('showSiteName' in cached) state.showSiteName = cached.showSiteName;
+      if (Array.isArray(cached.pages)) state.pages = cached.pages;
     }
     render();
 
@@ -699,15 +724,18 @@
       state.platformLogo = (pbrand && pbrand.saved && pbrand.saved.logo) || null;
       state.showSiteName = !!(pbrand && pbrand.saved && pbrand.saved.showSiteName);
       state.siteName = (site && ((site.saved && site.saved.name) || (site.defaults && site.defaults.name))) || '';
-      // Pages are owned by the Pages page (which pushes live edits); only adopt the
-      // fetched set when the host hasn't already provided one.
-      if (pages && Array.isArray(pages.pages) && !(state.pages && state.pages.length)) state.pages = pages.pages;
+      // Pages are owned by the Pages page (which pushes live edits); adopt the
+      // fetched set unless the host has already provided one this session. (The
+      // instant-load cache may have pre-populated state.pages, but the fetch is
+      // authoritative, so a cache alone must not block it.)
+      if (pages && Array.isArray(pages.pages) && !hostProvidedPages) state.pages = pages.pages;
       render();
       writeCache(cacheSnapshot());
     });
 
     return {
       update(partial) {
+        if (partial && 'pages' in partial) hostProvidedPages = true;
         Object.assign(state, partial || {});
         render();
         scheduleCacheWrite(); // keep the instant-load cache current with live edits/saves

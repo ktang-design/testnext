@@ -1,11 +1,6 @@
 /* Shared website preview (website-preview.js).
    A fixed desktop-width site rendered inside a pan/zoom canvas. */
 
-/* The website typography font (Inter). Loaded here so it ships only with the
-   preview stylesheet and is applied solely inside the preview root — the product
-   chrome keeps using Noto Sans. */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 /* The container ([data-website-preview]) fills .navpreview and anchors the HUD. */
 [data-website-preview] { flex: 1; min-width: 0; display: flex; position: relative; }
 
