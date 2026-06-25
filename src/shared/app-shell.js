@@ -136,11 +136,13 @@
   }
 
   // ---- System footer ----
-  // Lives at the very bottom of the content column, below the sticky actions, and
-  // is only reached by scrolling to the end (CSS makes .content the scroll area).
-  // Injected here so it stays consistent across every settings/builder page.
+  // Sits at the very bottom of the content column, reached by scrolling to the
+  // end. Only on the Platform settings pages, which scroll the document: the
+  // Website builder is a fixed-viewport tool (its panel + preview stay pinned and
+  // the page scrolls only enough to hide the top nav), so there is no room for it.
   const content = document.querySelector('.content');
-  if (content && content.querySelector('.pageactions') && !content.querySelector('.sysfooter')) {
+  const isBuilder = !!document.querySelector('[data-website-preview]');
+  if (!isBuilder && content && content.querySelector('.pageactions') && !document.querySelector('.sysfooter')) {
     const LINKS = [
       ['EBSCO Connect', 'https://connect.ebsco.com'],
       ['Privacy Policy', 'https://www.ebsco.com/company/privacy-policy'],
@@ -168,15 +170,6 @@
     footer.appendChild(copy);
     content.appendChild(footer);
     content.classList.add('has-sysfooter');
-    // Website builder pages are a fixed-viewport tool (their own CSS sets the page
-    // to never scroll); there .content is the scroll area and the footer is reached
-    // by scrolling it, while the chrome stays put. Platform settings pages scroll
-    // the document naturally, so the top nav scrolls away under the sticky system
-    // message — leave the viewport unfixed there.
-    if (getComputedStyle(document.documentElement).overflow === 'hidden') {
-      document.documentElement.classList.add('has-sysfooter');
-      document.body.classList.add('has-sysfooter');
-    }
   }
 
   // The account / sign-out dropdown itself lives in shared/auth-client.js;
