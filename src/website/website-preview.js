@@ -524,6 +524,22 @@
       const homepage = (state.pages || []).find((p) => p.isHomepage) || (state.pages || [])[0];
       const viewId = currentViewPage() ? currentViewPage().id : null;
 
+      // Resolve a nav item to the preview page it should open: a page item by its
+      // pageId, or a custom item whose URL matches a page's slug (so a "Home" link
+      // to "/" navigates to the homepage, "/about-us" to that page, and so on).
+      // External URLs / anchors match nothing and stay non-navigating labels.
+      const normSlug = (s) => { s = String(s || '').trim(); return s.length > 1 ? s.replace(/\/+$/, '') : s; };
+      const navTargetId = (item) => {
+        const pages = state.pages || [];
+        if (item.type === 'page' && item.pageId && pages.some((p) => p.id === item.pageId)) return item.pageId;
+        if (item.type === 'custom' && item.url) {
+          const target = normSlug(item.url);
+          const match = pages.find((p) => p.slug && normSlug(p.slug) === target);
+          if (match) return match.id;
+        }
+        return null;
+      };
+
       const hLogo = el(live && homepage ? 'a' : 'span', 'wsprev__logo');
       if (live && homepage) { hLogo.href = '#'; hLogo.addEventListener('click', (e) => { e.preventDefault(); goTo(homepage.id); }); }
       hLogo.appendChild(logoImg());
@@ -535,13 +551,13 @@
       }
       const hNav = el('nav', 'wsprev__nav');
       navItems.forEach((item) => {
-        const pageLink = live && item.type === 'page' && item.pageId && (state.pages || []).some((p) => p.id === item.pageId);
-        const a = el(pageLink ? 'a' : 'span', 'wsprev__navlink', item.label);
+        const targetId = live ? navTargetId(item) : null;
+        const a = el(targetId ? 'a' : 'span', 'wsprev__navlink', item.label);
         a.style.color = textColor(h.links, '#3D3F42');
-        if (pageLink) {
+        if (targetId) {
           a.href = '#';
-          if (item.pageId === viewId) a.classList.add('is-current');
-          a.addEventListener('click', (e) => { e.preventDefault(); goTo(item.pageId); });
+          if (targetId === viewId) a.classList.add('is-current');
+          a.addEventListener('click', (e) => { e.preventDefault(); goTo(targetId); });
         }
         hNav.appendChild(a);
       });
