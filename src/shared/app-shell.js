@@ -136,13 +136,9 @@
   }
 
   // ---- System footer ----
-  // Sits at the very bottom of the content column, reached by scrolling to the
-  // end. Only on the Platform settings pages, which scroll the document: the
-  // Website builder is a fixed-viewport tool (its panel + preview stay pinned and
-  // the page scrolls only enough to hide the top nav), so there is no room for it.
+  // Sits at the very bottom of the page, reached by scrolling to the end.
   const content = document.querySelector('.content');
-  const isBuilder = !!document.querySelector('[data-website-preview]');
-  if (!isBuilder && content && content.querySelector('.pageactions') && !document.querySelector('.sysfooter')) {
+  if (content && content.querySelector('.pageactions') && !document.querySelector('.sysfooter')) {
     const LINKS = [
       ['EBSCO Connect', 'https://connect.ebsco.com'],
       ['Privacy Policy', 'https://www.ebsco.com/company/privacy-policy'],
@@ -168,8 +164,18 @@
     copy.className = 'sysfooter__copy';
     copy.textContent = `Software © ${new Date().getFullYear()} EBSCO Industries, LLC. All rights reserved`;
     footer.appendChild(copy);
-    content.appendChild(footer);
-    content.classList.add('has-sysfooter');
+    // On the Website builder the tool (.layout) is a viewport-height block pinned
+    // under the system message; the footer goes in the page flow just below it, so
+    // the panel + preview stay fixed during normal scrolling and the footer is
+    // reached by continuing to scroll past the tool. On the Platform pages the
+    // document scrolls, so the footer sits at the end of the content column.
+    const layout = document.querySelector('.layout');
+    if (document.querySelector('[data-website-preview]') && layout) {
+      layout.insertAdjacentElement('afterend', footer);
+    } else {
+      content.appendChild(footer);
+      content.classList.add('has-sysfooter');
+    }
   }
 
   // The account / sign-out dropdown itself lives in shared/auth-client.js;
