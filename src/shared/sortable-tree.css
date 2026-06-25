@@ -70,7 +70,7 @@
 /* Unavailable item (e.g. linked page unpublished/missing): greyed + tooltip */
 .navtree__item.is-unavailable > .navtree__row .navtree__label { color: var(--gray-400); }
 .navtree__tip {
-  position: absolute; left: 28px; bottom: calc(100% + 6px); z-index: 30;
+  position: absolute; left: 28px; bottom: calc(100% + 6px); z-index: 2000;
   max-width: 240px; padding: 8px 10px;
   background: #2b2e33; color: #fff; border-radius: 6px;
   font-size: 12px; line-height: 16px; text-align: center;

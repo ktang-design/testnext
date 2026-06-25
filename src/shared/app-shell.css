@@ -52,7 +52,9 @@
   background: var(--gray-700, #3d3f42); color: #fff;
   font: 400 13px/1.4 "Noto Sans", Arial, sans-serif; white-space: nowrap;
   opacity: 0; visibility: hidden; transition: opacity 0.12s ease;
-  pointer-events: none; z-index: 60;
+  /* Above every other layer (popover menus are the next highest at 1000) so a
+     tooltip is never clipped behind the banner, a dropdown, a panel, or a menu. */
+  pointer-events: none; z-index: 2000;
 }
 [data-tooltip][data-tip-pos="bottom-end"]::after { left: auto; right: 0; }
 [data-tooltip][data-tip-pos="bottom"]::after { left: 50%; transform: translateX(-50%); }
