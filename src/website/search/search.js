@@ -127,6 +127,8 @@
     k.type = 'button';
     k.className = 'navtree__kebab';
     k.setAttribute('aria-label', `Actions for ${name || 'search'}`);
+    k.setAttribute('data-tooltip', 'More options');
+    k.setAttribute('data-tip-pos', 'bottom-end');
     k.appendChild(svg('<circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/>'));
     window.Popover.attach(k, () => items, { align: 'right', label: `Actions for ${name || 'search'}` });
     return k;

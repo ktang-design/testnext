@@ -103,6 +103,8 @@
     kebab.type = 'button';
     kebab.className = 'navtree__kebab';
     kebab.setAttribute('aria-label', `Actions for ${page.title}`);
+    kebab.setAttribute('data-tooltip', 'More options');
+    kebab.setAttribute('data-tip-pos', 'bottom-end');
     kebab.appendChild(svg('<circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/>'));
     window.Popover.attach(
       kebab,
@@ -709,6 +711,7 @@
       b.className = 'navpanel__add pgb__add';
       b.setAttribute('aria-label', addLabel);
       b.setAttribute('data-tooltip', addLabel);
+      b.setAttribute('data-tip-pos', 'bottom-end');
       b.innerHTML = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>';
       b.addEventListener('click', onAdd);
       head.appendChild(b);

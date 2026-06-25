@@ -66,11 +66,15 @@
     sidenav.appendChild(collapseBtn);
 
     // When collapsed the labels are hidden, so expose each item's destination
-    // as a hover/focus tooltip (CSS shows it only in the collapsed state).
+    // as a hover/focus tooltip (the shared tooltip component; shown only in the
+    // collapsed state, positioned to the right of the rail).
     sidenav.querySelectorAll('.nav-item').forEach((item) => {
       const label = item.querySelector('.nav-item__label');
       const text = label && label.textContent.trim();
-      if (text && !item.hasAttribute('data-tooltip')) item.setAttribute('data-tooltip', text);
+      if (text && !item.hasAttribute('data-tooltip')) {
+        item.setAttribute('data-tooltip', text);
+        item.setAttribute('data-tip-pos', 'right');
+      }
     });
 
     try {

@@ -89,6 +89,8 @@
     btn.type = 'button';
     btn.className = 'navtree__kebab';
     btn.setAttribute('aria-label', `Actions for ${item.label}`);
+    btn.setAttribute('data-tooltip', 'More options');
+    btn.setAttribute('data-tip-pos', 'bottom-end');
     btn.appendChild(svgIcon('<circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/>'));
     window.Popover.attach(
       btn,

@@ -288,6 +288,9 @@
       const tb = el('div', 'wsprev__toolbar');
       const grip = el('span', 'wsprev__tbgrip');
       grip.innerHTML = GRIP;
+      // Native title here (not the styled tooltip): the preview is drawn inside a
+      // scaled canvas, where an absolutely-positioned bubble would scale/clip.
+      grip.title = 'Click to drag and reorder';
       tb.appendChild(grip);
       tb.appendChild(iconBtn('wsprev__tbbtn', 'Edit', PENCIL, onEdit));
       tb.appendChild(iconBtn('wsprev__tbbtn', 'Delete', TRASH, onDelete));

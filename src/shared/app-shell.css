@@ -29,6 +29,52 @@
 }
 
 /* ===========================================================================
+   Tooltip (shared) — the single tooltip used across the product. Any element
+   with a [data-tooltip] attribute shows a small dark bubble + arrow on hover or
+   keyboard focus. Default placement is below, left-aligned; set data-tip-pos to
+   reposition when the default would be clipped (the panels clip x-overflow) or
+   reads better elsewhere:
+     data-tip-pos="bottom-end"  right-aligned below (controls near the right edge)
+     data-tip-pos="bottom"      centered below
+     data-tip-pos="right"       to the right (e.g. collapsed sidenav icons)
+   =========================================================================== */
+[data-tooltip] { position: relative; }
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute; top: calc(100% + 8px); left: 0;
+  padding: 5px 8px; border-radius: 4px;
+  background: var(--gray-700, #3d3f42); color: #fff;
+  font: 400 13px/1.4 "Noto Sans", Arial, sans-serif; white-space: nowrap;
+}
+[data-tooltip]::before {
+  content: ""; position: absolute; top: calc(100% + 3px); left: 6px;
+  border: 5px solid transparent; border-bottom-color: var(--gray-700, #3d3f42);
+}
+[data-tooltip][data-tip-pos="bottom-end"]::after { left: auto; right: 0; }
+[data-tooltip][data-tip-pos="bottom-end"]::before { left: auto; right: 9px; }
+[data-tooltip][data-tip-pos="bottom"]::after { left: 50%; transform: translateX(-50%); }
+[data-tooltip][data-tip-pos="bottom"]::before { left: 50%; margin-left: -5px; }
+[data-tooltip][data-tip-pos="right"]::after {
+  top: 50%; left: calc(100% + 10px); right: auto; transform: translateY(-50%);
+}
+[data-tooltip][data-tip-pos="right"]::before {
+  top: 50%; left: calc(100% + 1px); right: auto; transform: translateY(-50%);
+  border-color: transparent; border-right-color: var(--gray-700, #3d3f42);
+}
+[data-tooltip]::after, [data-tooltip]::before {
+  opacity: 0; visibility: hidden; transition: opacity 0.12s ease;
+  pointer-events: none; z-index: 60;
+}
+[data-tooltip]:hover::after, [data-tooltip]:hover::before,
+[data-tooltip]:focus-visible::after, [data-tooltip]:focus-visible::before {
+  opacity: 1; visibility: visible;
+}
+/* Sidenav labels are visible when expanded, so the (collapsed-only) destination
+   tooltip is suppressed there to avoid duplicating the label. */
+.sidenav:not(.sidenav--collapsed) .nav-item[data-tooltip]::after,
+.sidenav:not(.sidenav--collapsed) .nav-item[data-tooltip]::before { content: none; }
+
+/* ===========================================================================
    Centered content + collapsible side panel
    =========================================================================== */
 
@@ -124,32 +170,6 @@ body.has-sysfooter .layout { min-height: 0; }
   .sidenav--collapsed .nav-item { justify-content: center; padding: 10px 0; gap: 0; position: relative; }
   .sidenav--collapsed .nav-item__label { display: none; }
   .sidenav--collapsed .sidenav__collapse img { transform: rotate(180deg); }
-
-  /* Collapsed rail: reveal each item's destination as a hover/focus tooltip. */
-  .sidenav--collapsed .nav-item[data-tooltip]::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    left: calc(100% + 10px);
-    top: 50%;
-    transform: translateY(-50%);
-    white-space: nowrap;
-    padding: 6px 10px;
-    border-radius: 6px;
-    background: var(--gray-900, #101828);
-    color: #fff;
-    font: 500 13px/1 var(--font);
-    pointer-events: none;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.12s ease;
-    box-shadow: 0 4px 12px rgba(16, 24, 40, 0.18);
-    z-index: 60;
-  }
-  .sidenav--collapsed .nav-item[data-tooltip]:hover::after,
-  .sidenav--collapsed .nav-item[data-tooltip]:focus-visible::after {
-    opacity: 1;
-    visibility: visible;
-  }
 }
 
 /* Buttons injected by app-shell.js — hidden on desktop. */

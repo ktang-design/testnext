@@ -5,75 +5,21 @@
 .navpreview-col { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .navpreview-bar { display: flex; justify-content: flex-end; align-items: center; padding: 12px 16px 0; }
 .navpreview-bar[hidden] { display: none; }
-/* The Publish action is disabled; hovering/focusing the wrapper shows why. */
-.publish-tip { position: relative; display: inline-flex; }
-.publish-tip[data-tooltip]::after {
-  content: attr(data-tooltip);
-  position: absolute; top: calc(100% + 8px); right: 0;
-  padding: 5px 8px; border-radius: 4px;
-  background: var(--gray-700, #3d3f42); color: #fff;
-  font: 400 13px/1.4 "Noto Sans", Arial, sans-serif; white-space: nowrap;
-}
-.publish-tip[data-tooltip]::before {
-  content: ""; position: absolute; top: calc(100% + 3px); right: 12px;
-  border: 5px solid transparent; border-bottom-color: var(--gray-700, #3d3f42);
-}
-.publish-tip[data-tooltip]::after,
-.publish-tip[data-tooltip]::before { opacity: 0; visibility: hidden; transition: opacity 0.12s ease; pointer-events: none; z-index: 30; }
-.publish-tip[data-tooltip]:hover::after,
-.publish-tip[data-tooltip]:hover::before,
-.publish-tip[data-tooltip]:focus-visible::after,
-.publish-tip[data-tooltip]:focus-visible::before { opacity: 1; visibility: visible; }
+/* The Publish action is disabled; hovering/focusing the wrapper shows why
+   (shared tooltip component, right-aligned via data-tip-pos). */
+.publish-tip { display: inline-flex; }
 .publish-tip .btn[disabled] { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 
-/* Add (+) button: a clearly rounded hover highlight + an "Add page" tooltip.
-   Scoped here so the navigation page's + (which opens a menu) is unaffected.
-   The tooltip is right-aligned to the button because the panel clips overflow
-   on the x-axis (overflow-y:auto), so a centered tooltip would be cut off. */
-.navpanel__add { position: relative; border-radius: 8px; }
+/* Add (+) button: a clearly rounded hover highlight. The "Add …" tooltip is the
+   shared component (right-aligned via data-tip-pos so the panel's clipped
+   x-overflow doesn't cut it off). */
+.navpanel__add { border-radius: 8px; }
 .navpanel__add:hover { background: var(--gray-100); }
 
-.navpanel__add[data-tooltip]::after {
-  content: attr(data-tooltip);
-  position: absolute; top: calc(100% + 8px); right: 0; left: auto;
-  padding: 5px 8px; border-radius: 4px;
-  background: var(--gray-700, #3d3f42); color: #fff;
-  font: 400 13px/1.4 "Noto Sans", Arial, sans-serif; white-space: nowrap;
-}
-.navpanel__add[data-tooltip]::before {
-  content: ""; position: absolute; top: calc(100% + 3px); right: 9px;
-  border: 5px solid transparent; border-bottom-color: var(--gray-700, #3d3f42);
-}
-.navpanel__add[data-tooltip]::after,
-.navpanel__add[data-tooltip]::before { opacity: 0; visibility: hidden; transition: opacity 0.12s ease; pointer-events: none; z-index: 30; }
-.navpanel__add[data-tooltip]:hover::after,
-.navpanel__add[data-tooltip]:hover::before,
-.navpanel__add[data-tooltip]:focus-visible::after,
-.navpanel__add[data-tooltip]:focus-visible::before { opacity: 1; visibility: visible; }
-
-/* The homepage's reorder handle is disabled (it's pinned to the top), with a
-   tooltip explaining why. Left-aligned to the handle so the panel's clipped
-   x-overflow (overflow-y:auto) doesn't cut it off. */
+/* The homepage's reorder handle is disabled (it's pinned to the top); its
+   explanatory tooltip uses the shared component. */
 .navtree__handle.is-locked { color: var(--gray-300, #c9cbcf); cursor: not-allowed; }
 .navtree__handle.is-locked:hover { background: none; color: var(--gray-300, #c9cbcf); }
-.navtree__handle[data-tooltip] { position: relative; }
-.navtree__handle[data-tooltip]::after {
-  content: attr(data-tooltip);
-  position: absolute; top: calc(100% + 8px); left: 0;
-  padding: 5px 8px; border-radius: 4px;
-  background: var(--gray-700, #3d3f42); color: #fff;
-  font: 400 13px/1.4 "Noto Sans", Arial, sans-serif; white-space: nowrap;
-}
-.navtree__handle[data-tooltip]::before {
-  content: ""; position: absolute; top: calc(100% + 3px); left: 6px;
-  border: 5px solid transparent; border-bottom-color: var(--gray-700, #3d3f42);
-}
-.navtree__handle[data-tooltip]::after,
-.navtree__handle[data-tooltip]::before { opacity: 0; visibility: hidden; transition: opacity 0.12s ease; pointer-events: none; z-index: 30; }
-.navtree__handle[data-tooltip]:hover::after,
-.navtree__handle[data-tooltip]:hover::before,
-.navtree__handle[data-tooltip]:focus-visible::after,
-.navtree__handle[data-tooltip]:focus-visible::before { opacity: 1; visibility: visible; }
 
 /* Trailing actions: a gold homepage indicator (shown only on the homepage row,
    non-interactive) + the actions menu. The homepage is set from that menu. */

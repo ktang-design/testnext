@@ -361,6 +361,7 @@
         handle.setAttribute('aria-describedby', instr.id);
         handle.setAttribute('aria-label',
           `Reorder ${labelOf(item)}. ${grabbedId === item.id ? 'Currently grabbed. ' : ''}${levelText(item.id)}.`);
+        handle.setAttribute('data-tooltip', attrs.handleTooltip || 'Click to drag and reorder');
         handle.addEventListener('keydown', (e) => onHandleKey(e, item.id));
         handle.addEventListener('pointerdown', (e) => onHandlePointerDown(e, item.id));
       }
