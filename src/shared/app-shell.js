@@ -168,12 +168,15 @@
     footer.appendChild(copy);
     content.appendChild(footer);
     content.classList.add('has-sysfooter');
-    // Make the body a fixed viewport so .content (not the body) is the scroll
-    // area — this is already true on the Website pages; it normalizes the
-    // Platform pages (which otherwise grow the body) so the sticky actions stay
-    // pinned and the footer is reached by scrolling to the end of the content.
-    document.documentElement.classList.add('has-sysfooter');
-    document.body.classList.add('has-sysfooter');
+    // Website builder pages are a fixed-viewport tool (their own CSS sets the page
+    // to never scroll); there .content is the scroll area and the footer is reached
+    // by scrolling it, while the chrome stays put. Platform settings pages scroll
+    // the document naturally, so the top nav scrolls away under the sticky system
+    // message — leave the viewport unfixed there.
+    if (getComputedStyle(document.documentElement).overflow === 'hidden') {
+      document.documentElement.classList.add('has-sysfooter');
+      document.body.classList.add('has-sysfooter');
+    }
   }
 
   // The account / sign-out dropdown itself lives in shared/auth-client.js;
