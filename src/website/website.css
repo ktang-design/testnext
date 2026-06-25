@@ -25,9 +25,10 @@
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-/* Lock the viewport: the page never scrolls — only the panel + preview canvas
-   do. (overflow:hidden on html clips the 100vh sidenav too.) */
-html, body { height: 100%; overflow: hidden; }
+/* The page scrolls just enough to move the top nav out of view; the tool itself
+   (panel + preview + save bar) lives in a viewport-height block that pins under
+   the sticky system message (see .layout below). */
+html, body { height: 100%; }
 body {
   margin: 0;
   font-family: var(--font);
@@ -36,9 +37,7 @@ body {
   -webkit-font-smoothing: antialiased;
   display: flex;
   flex-direction: column;
-  /* Fixed to the viewport (height:100% from above) so the page never grows: the
-     panel + preview canvas scroll internally and the save bar stays pinned. */
-  overflow: hidden;
+  min-height: 100vh;
 }
 img { display: block; }
 
@@ -80,8 +79,22 @@ img { display: block; }
 .usermenu:hover { background: #f4f5f7; }
 
 /* ===========================  Layout  =========================== */
-.layout { flex: 1; display: flex; align-items: stretch; min-height: 0; }
-.content { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+/* The whole tool is a viewport-height block that sticks just under the system
+   message, so the top nav scrolls away above it while the sidebar/panel/preview
+   stay put. Internal scrolling (panel list, footer) happens inside .content. */
+.layout {
+  position: sticky;
+  top: var(--sysmsg-h);
+  height: calc(100vh - var(--sysmsg-h));
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+}
+.content { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; }
+/* The working area fills the block (so the footer sits below the fold) but can
+   grow with its content — flex:0 0 auto + min-height:100% (mirrors the Platform
+   has-sysfooter behaviour, which the Website pages no longer opt into). */
+.content > .navworkspace { flex: 0 0 auto; min-height: 100%; }
 /* On these fixed-viewport pages the page never scrolls, so the sidenav fills its
    container (not 100vh, which would be 65px too tall and create stray overflow).
    The mobile drawer height is set in app-shell.css and still wins via @media. */
