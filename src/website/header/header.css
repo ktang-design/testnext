@@ -19,22 +19,6 @@
 .hdr-input:focus-visible { outline: none; border-color: #3e75cf; box-shadow: 0 0 0 2px var(--blue-50, #e9effa); }
 .hdr-input--area { resize: vertical; min-height: 72px; line-height: 1.5; }
 
-/* ---------------------------  Preview mock  --------------------------- */
-.hdr-preview {
-  border: 1px solid var(--gray-200); border-radius: 6px;
-  overflow: hidden; background: #fff;
-}
-.hdr-preview__bar { display: flex; padding: 14px 16px; min-height: 44px; gap: 10px; }
-.hdr-preview__bar.is-inline { flex-direction: row; align-items: center; justify-content: space-between; }
-.hdr-preview__bar.is-stacked { flex-direction: column; }
-/* The logo SVG is percentage-sized with preserveAspectRatio="none" (no usable
-   intrinsic ratio), so set both dimensions explicitly at its true ratio
-   (126.857:24) to keep it small and undistorted. */
-/* The panel mini-preview always uses the default logo (schematic). */
-.hdr-preview__logo { width: 85px; height: 16px; flex-shrink: 0; }
-.hdr-preview__nav { display: inline-flex; gap: 8px; }
-.hdr-preview__pill { display: block; width: 38px; height: 8px; border-radius: 4px; background: #cfd2d6; }
-
 /* ---------------------------  Segmented control  --------------------------- */
 .seg {
   display: flex; width: 100%; gap: 2px; padding: 2px;

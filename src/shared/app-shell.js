@@ -62,6 +62,14 @@
     collapseBtn.innerHTML = '<img src="/shared/chevron-left.svg" alt="" />';
     sidenav.appendChild(collapseBtn);
 
+    // When collapsed the labels are hidden, so expose each item's destination
+    // as a hover/focus tooltip (CSS shows it only in the collapsed state).
+    sidenav.querySelectorAll('.nav-item').forEach((item) => {
+      const label = item.querySelector('.nav-item__label');
+      const text = label && label.textContent.trim();
+      if (text && !item.hasAttribute('data-tooltip')) item.setAttribute('data-tooltip', text);
+    });
+
     try {
       if (localStorage.getItem('sn.sidenav') === 'collapsed') sidenav.classList.add('sidenav--collapsed');
     } catch (_) { /* storage unavailable */ }

@@ -4,9 +4,6 @@
   const $ = (s) => document.querySelector(s);
   const saveBtn = $('[data-action="save"]');
   const statusEl = $('[data-save-status]');
-  const bar = $('[data-preview-bar]');
-  const logoImg = bar.querySelector('.hdr-preview__logo');
-  const navEl = $('[data-preview-nav]');
   const navSecond = $('[data-nav-second]');
   const DEFAULTS = { logo: 'left', nav: 'left', background: { color: '#FFFFFF', opacity: 100 }, links: { color: '#3D3F42', opacity: 100 }, heading: '', description: '' };
   // Shared website preview in the main area (header + body + footer).
@@ -108,16 +105,7 @@
 
   function refresh() {
     navSecond.textContent = config.logo === 'left' ? 'Inline' : 'Center';
-    // Panel mini-preview reflects placement only (no colours / default logo).
-    const inline = config.logo === 'left' && config.nav === 'aligned';
-    bar.classList.toggle('is-inline', inline);
-    bar.classList.toggle('is-stacked', !inline);
-    if (inline) { logoImg.style.alignSelf = ''; navEl.style.alignSelf = ''; }
-    else {
-      logoImg.style.alignSelf = config.logo === 'center' ? 'center' : 'flex-start';
-      navEl.style.alignSelf = config.nav === 'aligned' ? 'center' : 'flex-start';
-    }
-    // Main area: the shared website preview reflects the live header config.
+    // The shared website preview reflects the live header config.
     if (preview) preview.update({ header: config });
     updateSaveBar();
   }

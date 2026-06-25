@@ -19,6 +19,14 @@
 .typo-input:focus-visible,
 .typo-select:focus-visible { outline: none; border-color: var(--blue-500); box-shadow: 0 0 0 2px var(--blue-50); }
 
+/* Font family is fixed to Inter — show it as a read-only field. */
+.typo-input--readonly {
+  background: var(--gray-50, #f9fafb);
+  color: var(--gray-500);
+  cursor: default;
+}
+.typo-input--readonly:focus-visible { border-color: var(--gray-200); box-shadow: none; }
+
 /* Native select restyled with a custom chevron. */
 .typo-selectwrap { position: relative; }
 .typo-select {

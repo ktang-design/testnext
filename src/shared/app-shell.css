@@ -101,9 +101,35 @@ body.has-sysfooter .layout { min-height: 0; }
   .sidenav__collapse:focus-visible { opacity: 1; }
 
   .sidenav--collapsed { width: 64px; }
-  .sidenav--collapsed .nav-item { justify-content: center; padding: 10px 0; gap: 0; }
+  .sidenav--collapsed .nav-item { justify-content: center; padding: 10px 0; gap: 0; position: relative; }
   .sidenav--collapsed .nav-item__label { display: none; }
   .sidenav--collapsed .sidenav__collapse img { transform: rotate(180deg); }
+
+  /* Collapsed rail: reveal each item's destination as a hover/focus tooltip. */
+  .sidenav--collapsed .nav-item[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%);
+    white-space: nowrap;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: var(--gray-900, #101828);
+    color: #fff;
+    font: 500 13px/1 var(--font);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.12s ease;
+    box-shadow: 0 4px 12px rgba(16, 24, 40, 0.18);
+    z-index: 60;
+  }
+  .sidenav--collapsed .nav-item[data-tooltip]:hover::after,
+  .sidenav--collapsed .nav-item[data-tooltip]:focus-visible::after {
+    opacity: 1;
+    visibility: visible;
+  }
 }
 
 /* Buttons injected by app-shell.js — hidden on desktop. */
