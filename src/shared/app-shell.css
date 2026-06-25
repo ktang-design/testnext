@@ -15,8 +15,14 @@
    Persistent system message (alpha notice). Sits at the very top of every
    product page, above the main navigation, and pushes the content down. It is
    intentionally not dismissible (no close control). (Figma 846:32509)
+
+   It is the only sticky element of the header stack — it stays pinned to the top
+   while the main navigation scrolls normally with the page.
    =========================================================================== */
 .sysmsg {
+  position: sticky;
+  top: 0;
+  z-index: 61;
   background: #55585d;
   color: #fff;
   padding: 15px 24px;
@@ -41,38 +47,23 @@
 [data-tooltip] { position: relative; }
 [data-tooltip]::after {
   content: attr(data-tooltip);
-  position: absolute; top: calc(100% + 8px); left: 0;
+  position: absolute; top: calc(100% + 6px); left: 0;
   padding: 5px 8px; border-radius: 4px;
   background: var(--gray-700, #3d3f42); color: #fff;
   font: 400 13px/1.4 "Noto Sans", Arial, sans-serif; white-space: nowrap;
-}
-[data-tooltip]::before {
-  content: ""; position: absolute; top: calc(100% + 3px); left: 6px;
-  border: 5px solid transparent; border-bottom-color: var(--gray-700, #3d3f42);
-}
-[data-tooltip][data-tip-pos="bottom-end"]::after { left: auto; right: 0; }
-[data-tooltip][data-tip-pos="bottom-end"]::before { left: auto; right: 9px; }
-[data-tooltip][data-tip-pos="bottom"]::after { left: 50%; transform: translateX(-50%); }
-[data-tooltip][data-tip-pos="bottom"]::before { left: 50%; margin-left: -5px; }
-[data-tooltip][data-tip-pos="right"]::after {
-  top: 50%; left: calc(100% + 10px); right: auto; transform: translateY(-50%);
-}
-[data-tooltip][data-tip-pos="right"]::before {
-  top: 50%; left: calc(100% + 1px); right: auto; transform: translateY(-50%);
-  border-color: transparent; border-right-color: var(--gray-700, #3d3f42);
-}
-[data-tooltip]::after, [data-tooltip]::before {
   opacity: 0; visibility: hidden; transition: opacity 0.12s ease;
   pointer-events: none; z-index: 60;
 }
-[data-tooltip]:hover::after, [data-tooltip]:hover::before,
-[data-tooltip]:focus-visible::after, [data-tooltip]:focus-visible::before {
-  opacity: 1; visibility: visible;
+[data-tooltip][data-tip-pos="bottom-end"]::after { left: auto; right: 0; }
+[data-tooltip][data-tip-pos="bottom"]::after { left: 50%; transform: translateX(-50%); }
+[data-tooltip][data-tip-pos="right"]::after {
+  top: 50%; left: calc(100% + 8px); right: auto; transform: translateY(-50%);
 }
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::after { opacity: 1; visibility: visible; }
 /* Sidenav labels are visible when expanded, so the (collapsed-only) destination
    tooltip is suppressed there to avoid duplicating the label. */
-.sidenav:not(.sidenav--collapsed) .nav-item[data-tooltip]::after,
-.sidenav:not(.sidenav--collapsed) .nav-item[data-tooltip]::before { content: none; }
+.sidenav:not(.sidenav--collapsed) .nav-item[data-tooltip]::after { content: none; }
 
 /* ===========================================================================
    Centered content + collapsible side panel
@@ -238,17 +229,7 @@ body.is-locked { overflow: hidden; }
 
 /* ===========================  Tablet & below (≤ 899px)  =================== */
 @media (max-width: 899px) {
-  /* The system message and top nav both stay pinned; the message sits above. */
-  .sysmsg {
-    position: sticky;
-    top: 0;
-    z-index: 61;
-  }
-  .topnav {
-    position: sticky;
-    top: var(--sysmsg-h);
-    z-index: 60;
-  }
+  /* The top nav is NOT sticky — only the system message (above) stays pinned. */
   .topnav__hamburger { display: inline-flex; }
 
   /* Sidebar becomes an off-canvas drawer below the message + top nav. */
