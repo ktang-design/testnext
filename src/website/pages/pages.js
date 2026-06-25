@@ -283,6 +283,22 @@
     getContent().sections = orderedIds.map((id) => map[id]).filter(Boolean);
     afterFieldEdit();
   }
+  // Drag-reorder a section from the preview canvas. beforeId is the section to
+  // drop in front of (null = move to the end). Mirrors moveElement.
+  function moveSection(draggedId, beforeId) {
+    const secs = getSections();
+    const dragged = secs.find((s) => s.id === draggedId);
+    if (!dragged || draggedId === beforeId) return;
+    const rest = secs.filter((s) => s.id !== draggedId);
+    if (beforeId == null) {
+      rest.push(dragged);
+    } else {
+      const idx = rest.findIndex((s) => s.id === beforeId);
+      rest.splice(idx < 0 ? rest.length : idx, 0, dragged);
+    }
+    getContent().sections = rest;
+    afterFieldEdit();
+  }
   // Placeholder richtext a new richtext element starts with — real content (not a
   // CSS hint), so it shows in the preview and in the WYSIWYG when re-editing.
   const PLACEHOLDER_RICHTEXT =
@@ -1024,6 +1040,7 @@
         onDeleteSection: deleteSection,
         onDeleteElement: deleteElement,
         onReorderElement: (sid, draggedId, col, beforeId) => moveElement(sid, draggedId, col, beforeId),
+        onReorderSection: (draggedId, beforeId) => moveSection(draggedId, beforeId),
       },
     });
   }

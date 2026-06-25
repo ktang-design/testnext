@@ -350,6 +350,45 @@
         });
       }
 
+      // Drag-to-reorder whole sections, armed via each section's toolbar grip.
+      // A section drops onto the body between other sections. Element drags use
+      // the column drop zones above and never trigger this (guarded by secDragId,
+      // which stays null unless a section itself is being dragged).
+      let secDragId = null;
+      const clearSecMarks = () => {
+        body.querySelectorAll('.is-secdropbefore').forEach((n) => n.classList.remove('is-secdropbefore'));
+        body.classList.remove('is-secdropend');
+      };
+      const sectionBefore = (y) => {
+        const secs = Array.prototype.filter.call(body.children,
+          (n) => n.classList && n.classList.contains('wsprev__section') && n.dataset.id !== secDragId);
+        for (let i = 0; i < secs.length; i++) {
+          const r = secs[i].getBoundingClientRect();
+          if (y < r.top + r.height / 2) return secs[i];
+        }
+        return null;
+      };
+      body.addEventListener('dragover', (e) => {
+        if (secDragId == null) return;
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+        clearSecMarks();
+        const before = sectionBefore(e.clientY);
+        if (before) before.classList.add('is-secdropbefore');
+        else body.classList.add('is-secdropend');
+      });
+      body.addEventListener('dragleave', (e) => {
+        if (secDragId != null && !body.contains(e.relatedTarget)) clearSecMarks();
+      });
+      body.addEventListener('drop', (e) => {
+        if (secDragId == null) return;
+        e.preventDefault();
+        const before = sectionBefore(e.clientY);
+        const id = secDragId;
+        clearSecMarks();
+        cb.onReorderSection && cb.onReorderSection(id, before ? before.dataset.id : null);
+      });
+
       function buildElement(element, section) {
         const elt = el('div', 'wsprev__el');
         elt.dataset.id = element.id;
@@ -412,10 +451,32 @@
         // section — selecting an element keeps its section active.
         const active = section.id === blr.selectedSectionId;
         sec.addEventListener('click', () => cb.onSelectSection && cb.onSelectSection(section.id));
-        sec.appendChild(blockToolbar(
+        const secToolbar = blockToolbar(
           () => cb.onSelectSection && cb.onSelectSection(section.id),
           () => cb.onDeleteSection && cb.onDeleteSection(section.id)
-        ));
+        );
+        sec.appendChild(secToolbar);
+        // The section toolbar's grip arms whole-section dragging (the section
+        // drags only when grabbed there, not when grabbing an element's grip).
+        const secGrip = secToolbar.querySelector('.wsprev__tbgrip');
+        if (secGrip) {
+          secGrip.addEventListener('mousedown', () => { sec.draggable = true; });
+          secGrip.addEventListener('mouseup', () => { sec.draggable = false; });
+        }
+        sec.addEventListener('dragstart', (e) => {
+          if (!sec.draggable) return; // an inner element drag, not the section itself
+          e.stopPropagation();
+          secDragId = section.id;
+          if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = 'move';
+            try { e.dataTransfer.setData('text/plain', section.id); } catch (_) {}
+          }
+          sec.classList.add('is-dragging');
+        });
+        sec.addEventListener('dragend', (e) => {
+          e.stopPropagation();
+          secDragId = null; sec.draggable = false; sec.classList.remove('is-dragging'); clearSecMarks();
+        });
         if (section.displayTitle && section.title) sec.appendChild(el('h2', 'wsprev__sectitle', section.title));
 
         const elements = section.elements || [];
