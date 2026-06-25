@@ -6,7 +6,27 @@
    to a drawer · 320 mobile (product nav → grid icon, heading stacks).
    =========================================================================== */
 
-:root { --topnav-h: 64px; } /* measured & overwritten by app-shell.js */
+:root {
+  --topnav-h: 64px; /* measured & overwritten by app-shell.js */
+  --sysmsg-h: 0px;  /* height of the persistent system message, measured by app-shell.js */
+}
+
+/* ===========================================================================
+   Persistent system message (alpha notice). Sits at the very top of every
+   product page, above the main navigation, and pushes the content down. It is
+   intentionally not dismissible (no close control). (Figma 846:32509)
+   =========================================================================== */
+.sysmsg {
+  background: #55585d;
+  color: #fff;
+  padding: 15px 24px;
+  text-align: center;
+}
+.sysmsg__text {
+  margin: 0 auto;
+  max-width: 1376px;
+  font: 400 14px/1.5 var(--font, "Noto Sans", Arial, sans-serif);
+}
 
 /* ===========================================================================
    Centered content + collapsible side panel
@@ -185,7 +205,7 @@ a.navpill, a.navpill:hover, a.navpill:visited { text-decoration: none; }
 /* Scrim behind the drawer / under the modal. */
 .app-scrim {
   position: fixed;
-  inset: var(--topnav-h) 0 0 0;
+  inset: calc(var(--sysmsg-h) + var(--topnav-h)) 0 0 0;
   background: rgba(0, 0, 0, 0.2);
   opacity: 0;
   visibility: hidden;
@@ -198,19 +218,25 @@ body.is-locked { overflow: hidden; }
 
 /* ===========================  Tablet & below (≤ 899px)  =================== */
 @media (max-width: 899px) {
-  .topnav {
+  /* The system message and top nav both stay pinned; the message sits above. */
+  .sysmsg {
     position: sticky;
     top: 0;
+    z-index: 61;
+  }
+  .topnav {
+    position: sticky;
+    top: var(--sysmsg-h);
     z-index: 60;
   }
   .topnav__hamburger { display: inline-flex; }
 
-  /* Sidebar becomes an off-canvas drawer below the top nav. */
+  /* Sidebar becomes an off-canvas drawer below the message + top nav. */
   .sidenav {
     position: fixed;
     left: 0;
-    top: var(--topnav-h);
-    height: calc(100% - var(--topnav-h));
+    top: calc(var(--sysmsg-h) + var(--topnav-h));
+    height: calc(100% - var(--sysmsg-h) - var(--topnav-h));
     width: 288px;
     max-width: 86vw;
     transform: translateX(-100%);

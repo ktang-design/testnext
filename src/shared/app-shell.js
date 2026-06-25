@@ -11,9 +11,12 @@
   const usermenu = topnav.querySelector('.usermenu');
   const sidenav = document.querySelector('.sidenav');
 
-  // Keep the drawer/scrim offset correct under the (variable-height) top nav.
+  // Keep the drawer/scrim offset correct under the (variable-height) top nav and
+  // the persistent system message above it (both can wrap on narrow screens).
+  const sysmsg = document.querySelector('.sysmsg');
   function syncTopnavHeight() {
     document.documentElement.style.setProperty('--topnav-h', `${topnav.offsetHeight}px`);
+    document.documentElement.style.setProperty('--sysmsg-h', `${sysmsg ? sysmsg.offsetHeight : 0}px`);
   }
 
   // ---- Scrim (shared by the drawer) ----
