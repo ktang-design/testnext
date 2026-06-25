@@ -177,7 +177,7 @@
 
   async function openAddPage() {
     const values = await window.Modal.form({
-      title: 'Add page',
+      title: 'Add navigation item',
       submitLabel: 'Add',
       fields: [
         { name: 'pageId', label: 'Page', type: 'select', placeholder: 'Select a published page', options: pageOptions(), required: true },
@@ -190,12 +190,11 @@
     addItem({ id: uid(), type: 'page', pageId: values.pageId, url: null, label, available: true, pageTitle: page ? page.title : null, children: [] });
   }
 
-  // `title` lets the no-published-pages path reuse this custom-link form while
-  // presenting as "Add page" (the only way to add an entry when there are no
-  // pages to link).
-  async function openAddCustom(title) {
+  // The custom-link form is also the only way to add an entry when there are no
+  // published pages to link.
+  async function openAddCustom() {
     const values = await window.Modal.form({
-      title: title || 'Add custom link',
+      title: 'Add navigation item',
       submitLabel: 'Add',
       fields: [
         { name: 'url', label: 'URL', type: 'url', placeholder: 'https://', required: true },
@@ -327,8 +326,8 @@
         );
       } else {
         // No pages to link → a "Page" can't be added, so the + opens the
-        // custom-link form presented as "Add page".
-        addBtn.addEventListener('click', () => openAddCustom('Add page'));
+        // custom-link form directly.
+        addBtn.addEventListener('click', () => openAddCustom());
       }
     })
     .catch(() => {

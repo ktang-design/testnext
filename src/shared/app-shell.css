@@ -319,7 +319,7 @@ body.is-locked { overflow: hidden; }
   align-items: center;
   justify-content: flex-end;
   gap: 16px;
-  padding: 24px 32px;
+  padding: 8px 32px 24px;
 }
 .modal__btn {
   padding: 7px 16px 8px;
