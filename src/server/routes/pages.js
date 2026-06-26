@@ -69,6 +69,11 @@ function cleanColor(raw) {
   return { color, opacity: Math.max(0, Math.min(100, Math.round(opacity))) };
 }
 
+// Section background image: a data:image data URL or null. ~3 MB raw → allow for
+// base64 inflation; anything else is dropped.
+const BG_IMAGE_MAX = Math.ceil(3 * 1024 * 1024 * 1.4);
+const cleanImage = (v) => (typeof v === 'string' && v.startsWith('data:image/') && v.length <= BG_IMAGE_MAX ? v : null);
+
 // Richtext element styling (colours + border). A missing colour defaults to
 // opacity 0 (no override), so absent styles don't paint anything.
 const RT_BORDER_WIDTHS = ['1', '2', '4']; // Default(1px) / Medium(2px) / Large(4px)
@@ -124,6 +129,7 @@ function normalizeContent(raw) {
       displayTitle: bool(s.displayTitle),
       columns: Number(s.columns) === 2 ? 2 : 1, // 100% (1) or 50% / 50% (2)
       background: cleanColor(s.background),
+      backgroundImage: cleanImage(s.backgroundImage),
       elements,
     };
   });

@@ -266,7 +266,7 @@
   function addSection() {
     const secs = getSections();
     if (secs.length >= limits.maxSections) return;
-    const s = { id: uid('sec'), title: `Section ${secs.length + 1}`, displayTitle: false, columns: 1, background: { color: '#FFFFFF', opacity: 100 }, elements: [] };
+    const s = { id: uid('sec'), title: `Section ${secs.length + 1}`, displayTitle: false, columns: 1, background: { color: '#FFFFFF', opacity: 100 }, backgroundImage: null, elements: [] };
     secs.push(s);
     selectedSectionId = s.id;
     selectedElementId = null;
@@ -824,6 +824,50 @@
     op.addEventListener('blur', () => { op.value = colorObj.opacity; });
     return row;
   }
+  // Background-image picker (same UX as the Search panel): choose / preview /
+  // replace / remove. The image is stored on `obj.backgroundImage` as a data URL.
+  const IMAGE_MAX = 3 * 1024 * 1024; // 3 MB
+  function buildImageField(obj, onChange) {
+    const field = document.createElement('div');
+    field.className = 'pgb__field pgb__imgfield';
+    const lab = document.createElement('span'); lab.className = 'pgb__label'; lab.textContent = 'Background image';
+    const help = document.createElement('p'); help.className = 'pgb__hint'; help.textContent = 'The image will automatically adjust to fit the available space across different screen sizes.';
+    const choose = document.createElement('button'); choose.type = 'button'; choose.className = 'btn btn--secondary'; choose.textContent = 'Choose an image';
+    const preview = document.createElement('div'); preview.className = 'pgb__img'; preview.hidden = true;
+    const box = document.createElement('div'); box.className = 'pgb__imgbox';
+    const img = document.createElement('img'); img.alt = 'Background image preview'; box.appendChild(img);
+    const actions = document.createElement('div'); actions.className = 'pgb__imgactions';
+    const replace = document.createElement('button'); replace.type = 'button'; replace.className = 'btn btn--secondary'; replace.textContent = 'Replace image';
+    const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'btn--link'; remove.textContent = 'Remove';
+    actions.appendChild(replace); actions.appendChild(remove);
+    preview.appendChild(box); preview.appendChild(actions);
+    const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/png,image/jpeg,image/svg+xml,image/webp,image/gif'; input.hidden = true;
+    const error = document.createElement('p'); error.className = 'pgb__error'; error.setAttribute('role', 'alert'); error.hidden = true;
+
+    const render = () => {
+      if (obj.backgroundImage) { img.src = obj.backgroundImage; preview.hidden = false; choose.hidden = true; }
+      else { preview.hidden = true; choose.hidden = false; }
+    };
+    const pick = () => input.click();
+    input.addEventListener('change', () => {
+      const file = input.files && input.files[0];
+      input.value = '';
+      if (!file) return;
+      error.hidden = true;
+      if (file.size > IMAGE_MAX) { error.textContent = 'Image must be 3 MB or smaller.'; error.hidden = false; return; }
+      const reader = new FileReader();
+      reader.onload = () => { obj.backgroundImage = reader.result; render(); onChange(); };
+      reader.onerror = () => { error.textContent = 'Couldn’t read that file. Try another.'; error.hidden = false; };
+      reader.readAsDataURL(file);
+    });
+    choose.addEventListener('click', pick);
+    replace.addEventListener('click', pick);
+    remove.addEventListener('click', () => { obj.backgroundImage = null; error.hidden = true; render(); onChange(); });
+
+    field.append(lab, help, choose, preview, input, error);
+    render();
+    return field;
+  }
   // ---- richtext element style (colours + border), per Figma 670:14197 ----
   const BORDER_WIDTHS = [
     { value: '1', label: 'Default' }, { value: '2', label: 'Medium' }, { value: '4', label: 'Large' },
@@ -985,6 +1029,7 @@
     settings.appendChild(secName);
     settings.appendChild(buildRadio('Column layout', [{ value: 1, label: '100%' }, { value: 2, label: '50% / 50%' }], sec.columns || 1, (v) => { sec.columns = v; afterFieldEdit(); }));
     settings.appendChild(makeColorRow('Background', sec.background, afterFieldEdit));
+    settings.appendChild(buildImageField(sec, afterFieldEdit));
     builderView.appendChild(settings);
     // Elements are managed in the preview (click to select/edit, toolbar to
     // delete), so they are intentionally not listed in the section panel.

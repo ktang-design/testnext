@@ -68,6 +68,16 @@
   }
   const textColor = (c, fallback) => (!c || c.opacity === 0 ? fallback : rgba(c));
 
+  // Section background: a colour, with an optional cover image layered on top.
+  function applySectionBg(elm, colorObj, image) {
+    elm.style.background = rgba(colorObj);
+    if (image) {
+      elm.style.backgroundImage = `url("${image}")`;
+      elm.style.backgroundSize = 'cover';
+      elm.style.backgroundPosition = 'center';
+    }
+  }
+
   function el(tag, cls, text) {
     const n = document.createElement(tag);
     if (cls) n.className = cls;
@@ -448,7 +458,8 @@
         // A selected section shows only its pink border — its background fill is
         // dropped so it reads as a clean outline (one selected block is pink).
         const sectionSelected = section.id === blr.selectedSectionId && !blr.selectedElementId;
-        sec.style.background = sectionSelected ? 'transparent' : rgba(section.background);
+        if (sectionSelected) sec.style.background = 'transparent';
+        else applySectionBg(sec, section.background, section.backgroundImage);
         if (sectionSelected) sec.classList.add('is-selected');
         // The "Add element" placeholder only shows on the active (selected)
         // section — selecting an element keeps its section active.
@@ -545,7 +556,7 @@
       };
       (sections || []).forEach((section) => {
         const sec = el('div', 'wsprev__section');
-        sec.style.background = rgba(section.background);
+        applySectionBg(sec, section.background, section.backgroundImage);
         if (section.displayTitle && section.title) sec.appendChild(el('h2', 'wsprev__sectitle', section.title));
         const elements = section.elements || [];
         if (Number(section.columns) === 2) {

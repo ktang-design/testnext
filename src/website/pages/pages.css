@@ -87,6 +87,17 @@
 .pgb__textarea--mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
 .pgb__check { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--gray-700); cursor: pointer; }
 .pgb__check input { width: 16px; height: 16px; accent-color: #3e75cf; cursor: pointer; }
+
+/* Background-image picker (section settings) — mirrors the Search panel. */
+.pgb__imgfield { align-items: flex-start; }
+.pgb__img { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.pgb__imgbox {
+  width: 100%; max-width: 280px; aspect-ratio: 16 / 9; overflow: hidden;
+  border: 1px solid var(--gray-200); border-radius: 6px; background: var(--gray-50, #f9fafb);
+}
+.pgb__imgbox img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pgb__imgactions { display: inline-flex; align-items: center; gap: 12px; }
+.pgb__error { margin: 0; font-size: 13px; color: #c0392b; }
 .pgb__divider { height: 1px; background: var(--gray-200); margin: 4px 0; }
 .pgb__select {
   width: 100%; box-sizing: border-box; padding: 7px 32px 7px 10px;
