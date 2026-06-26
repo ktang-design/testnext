@@ -206,6 +206,77 @@
   syncTopnavHeight();
   window.addEventListener('load', syncTopnavHeight);
 
+  // ---- Tooltips ----
+  // One body-level bubble, shared by every [data-tooltip] element and positioned
+  // with position:fixed, so it can never be clipped or covered by a panel, an
+  // input, the preview, or any other stacking context (a CSS pseudo-element is
+  // trapped in its element's stacking context and can be painted over). Uses event
+  // delegation, so dynamically-added elements (tree handles/kebabs) work too.
+  (function setupTooltips() {
+    let tip = null;
+    let target = null;
+    // Sidenav items carry a tooltip but should only show it while collapsed (the
+    // label is visible when expanded).
+    const allowed = (el) => (el.matches('.nav-item') ? !!(sidenav && sidenav.classList.contains('sidenav--collapsed')) : true);
+    const ensure = () => {
+      if (!tip) {
+        tip = document.createElement('div');
+        tip.className = 'app-tooltip';
+        tip.setAttribute('role', 'tooltip');
+        document.body.appendChild(tip);
+      }
+      return tip;
+    };
+    function place() {
+      if (!tip || !target || !target.isConnected) { hide(); return; }
+      const pos = target.getAttribute('data-tip-pos') || 'bottom-start';
+      const r = target.getBoundingClientRect();
+      const w = tip.offsetWidth, h = tip.offsetHeight, gap = 6;
+      let left, top;
+      if (pos === 'right') { left = r.right + 8; top = r.top + r.height / 2 - h / 2; }
+      else if (pos === 'bottom-end') { left = r.right - w; top = r.bottom + gap; }
+      else if (pos === 'bottom') { left = r.left + r.width / 2 - w / 2; top = r.bottom + gap; }
+      else { left = r.left; top = r.bottom + gap; }
+      left = Math.max(4, Math.min(left, window.innerWidth - w - 4));
+      top = Math.max(4, Math.min(top, window.innerHeight - h - 4));
+      tip.style.left = `${Math.round(left)}px`;
+      tip.style.top = `${Math.round(top)}px`;
+    }
+    function show(el) {
+      const text = el.getAttribute('data-tooltip');
+      if (!text || !allowed(el)) return;
+      target = el;
+      ensure();
+      tip.textContent = text;
+      tip.classList.remove('is-shown'); // measure while hidden, then position + show
+      place();
+      tip.classList.add('is-shown');
+    }
+    function hide() {
+      if (tip) tip.classList.remove('is-shown');
+      target = null;
+    }
+    document.addEventListener('pointerover', (e) => {
+      const el = e.target.closest && e.target.closest('[data-tooltip]');
+      if (el && el !== target) show(el);
+    });
+    document.addEventListener('pointerout', (e) => {
+      const el = e.target.closest && e.target.closest('[data-tooltip]');
+      if (el && el === target && !(e.relatedTarget && el.contains(e.relatedTarget))) hide();
+    });
+    document.addEventListener('focusin', (e) => {
+      const el = e.target.closest && e.target.closest('[data-tooltip]');
+      if (el) { try { if (!el.matches(':focus-visible')) return; } catch (_) {} show(el); }
+    });
+    document.addEventListener('focusout', (e) => {
+      const el = e.target.closest && e.target.closest('[data-tooltip]');
+      if (el && el === target) hide();
+    });
+    document.addEventListener('pointerdown', hide); // clicking (e.g. opening a menu) dismisses
+    window.addEventListener('scroll', () => { if (target) place(); }, true);
+    window.addEventListener('resize', hide);
+  })();
+
   // Expose a tiny API (used by the unsaved-changes nav guard).
   window.AppShell = { closeDrawer };
 })();

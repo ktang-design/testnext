@@ -35,37 +35,24 @@
 }
 
 /* ===========================================================================
-   Tooltip (shared) — the single tooltip used across the product. Any element
-   with a [data-tooltip] attribute shows a small dark bubble + arrow on hover or
-   keyboard focus. Default placement is below, left-aligned; set data-tip-pos to
-   reposition when the default would be clipped (the panels clip x-overflow) or
-   reads better elsewhere:
-     data-tip-pos="bottom-end"  right-aligned below (controls near the right edge)
-     data-tip-pos="bottom"      centered below
-     data-tip-pos="right"       to the right (e.g. collapsed sidenav icons)
+   Tooltip (shared) — any element with a [data-tooltip] attribute shows a small
+   dark bubble on hover / keyboard focus. The bubble is rendered as a single
+   body-level element (app-shell.js) and positioned with position:fixed, so it is
+   NEVER clipped or covered by panels, inputs, the preview, or any other stacking
+   context — a CSS ::after pseudo-element is trapped in its element's stacking
+   context and can be painted over; this is not.
+   Placement comes from data-tip-pos (default below-left): "bottom-end" (below,
+   right-aligned), "bottom" (below, centered), "right" (to the right).
    =========================================================================== */
-[data-tooltip] { position: relative; }
-[data-tooltip]::after {
-  content: attr(data-tooltip);
-  position: absolute; top: calc(100% + 6px); left: 0;
+.app-tooltip {
+  position: fixed; left: 0; top: 0; z-index: 100000;
   padding: 5px 8px; border-radius: 4px;
   background: var(--gray-700, #3d3f42); color: #fff;
   font: 400 13px/1.4 "Noto Sans", Arial, sans-serif; white-space: nowrap;
-  opacity: 0; visibility: hidden; transition: opacity 0.12s ease;
-  /* Above every other layer (popover menus are the next highest at 1000) so a
-     tooltip is never clipped behind the banner, a dropdown, a panel, or a menu. */
-  pointer-events: none; z-index: 2000;
+  pointer-events: none; visibility: hidden;
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.18);
 }
-[data-tooltip][data-tip-pos="bottom-end"]::after { left: auto; right: 0; }
-[data-tooltip][data-tip-pos="bottom"]::after { left: 50%; transform: translateX(-50%); }
-[data-tooltip][data-tip-pos="right"]::after {
-  top: 50%; left: calc(100% + 8px); right: auto; transform: translateY(-50%);
-}
-[data-tooltip]:hover::after,
-[data-tooltip]:focus-visible::after { opacity: 1; visibility: visible; }
-/* Sidenav labels are visible when expanded, so the (collapsed-only) destination
-   tooltip is suppressed there to avoid duplicating the label. */
-.sidenav:not(.sidenav--collapsed) .nav-item[data-tooltip]::after { content: none; }
+.app-tooltip.is-shown { visibility: visible; }
 
 /* ===========================================================================
    Centered content + collapsible side panel
