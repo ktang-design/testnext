@@ -107,7 +107,9 @@ img { display: block; }
 
 .navpanel {
   width: 320px; flex-shrink: 0; min-width: 0;
-  padding: 20px 16px; border-right: 1px solid var(--gray-200);
+  /* Extra bottom padding so the last field can scroll clear of the sticky save
+     bar (.pageactions), which overlaps the bottom of the panel. */
+  padding: 20px 16px 88px; border-right: 1px solid var(--gray-200);
   overflow-y: auto;
 }
 .navpanel__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
