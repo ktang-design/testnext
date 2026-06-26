@@ -455,11 +455,11 @@
       (blr.sections || []).forEach((section) => {
         const sec = el('div', 'wsprev__section');
         sec.dataset.id = section.id;
-        // A selected section shows only its pink border — its background fill is
-        // dropped so it reads as a clean outline (one selected block is pink).
+        // Always show the section's real background (colour + image) — even while
+        // it is selected — so the user sees what they're editing. The selection
+        // pink outline sits on top of it.
         const sectionSelected = section.id === blr.selectedSectionId && !blr.selectedElementId;
-        if (sectionSelected) sec.style.background = 'transparent';
-        else applySectionBg(sec, section.background, section.backgroundImage);
+        applySectionBg(sec, section.background, section.backgroundImage);
         if (sectionSelected) sec.classList.add('is-selected');
         // The "Add element" placeholder only shows on the active (selected)
         // section — selecting an element keeps its section active.
