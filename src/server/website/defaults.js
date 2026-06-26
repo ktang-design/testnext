@@ -36,6 +36,9 @@ const HEADER_DEFAULTS = {
 const FOOTER_DEFAULTS = {
   showLogo: false,
   showNavigation: false,
+  background: { color: '#FFFFFF', opacity: 100 },
+  text: { color: '#3D3F42', opacity: 100 },
+  link: { color: '#255096', opacity: 100 },
   links: [],
 };
 

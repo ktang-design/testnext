@@ -170,7 +170,14 @@ router.put('/footer', requireApiAuth, ah(async (req, res) => {
     if (!validUrl(raw.url)) return res.status(400).json({ error: 'INVALID_FOOTER', message: 'Enter a valid URL for the custom link.' });
     links.push({ id: str(raw.id) || null, url: str(raw.url).trim(), label });
   }
-  const config = { showLogo: !!b.showLogo, showNavigation: !!b.showNavigation, links };
+  const config = {
+    showLogo: !!b.showLogo,
+    showNavigation: !!b.showNavigation,
+    background: cleanColor(b.background, FOOTER_DEFAULTS.background),
+    text: cleanColor(b.text, FOOTER_DEFAULTS.text),
+    link: cleanColor(b.link, FOOTER_DEFAULTS.link),
+    links,
+  };
   res.json({ saved: await footerRepository.save(req.session.userId, config) });
 }));
 

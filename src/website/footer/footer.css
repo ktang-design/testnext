@@ -11,6 +11,10 @@
 /* Stack the shared checkboxes with a little breathing room. */
 .ftr-elements .checkbox { padding: 6px 0; }
 
+/* Colour customization (background / text / link) — colorrow is shared. */
+.ftr-colors { margin-top: 18px; }
+.ftr-colors .colorrow + .colorrow { margin-top: 4px; }
+
 .ftr-divider { border: 0; border-top: 1px solid var(--gray-200); margin: 14px 0 4px; }
 
 /* The main-area preview is the shared website preview (../website-preview.*). */

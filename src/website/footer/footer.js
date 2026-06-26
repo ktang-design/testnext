@@ -14,6 +14,8 @@
 
   let showLogo = false;
   let showNavigation = false;
+  const COLOR_DEFAULTS = { background: { color: '#FFFFFF', opacity: 100 }, text: { color: '#3D3F42', opacity: 100 }, link: { color: '#255096', opacity: 100 } };
+  const colors = { background: { ...COLOR_DEFAULTS.background }, text: { ...COLOR_DEFAULTS.text }, link: { ...COLOR_DEFAULTS.link } };
   let tree = null;
   let baseline = '';
   let loaded = false; // true once the saved config has loaded — no "dirty" before then
@@ -25,7 +27,11 @@
   const validUrl = (v) => /^(https?:\/\/|\/|#|mailto:|tel:)/i.test(String(v || '').trim());
 
   const stripLinks = (items) => (items || []).map((it) => ({ id: it.id, url: it.url, label: it.label }));
-  const current = () => ({ showLogo, showNavigation, links: stripLinks(tree ? tree.getItems() : []) });
+  const current = () => ({
+    showLogo, showNavigation,
+    background: { ...colors.background }, text: { ...colors.text }, link: { ...colors.link },
+    links: stripLinks(tree ? tree.getItems() : []),
+  });
   const serialize = () => JSON.stringify(current());
   const isDirty = () => loaded && serialize() !== baseline;
 
@@ -94,6 +100,32 @@
     else if (saveError) { statusEl.hidden = false; statusEl.classList.add('save-status--error'); statusEl.textContent = saveError; }
     else { statusEl.hidden = !dirty; statusEl.classList.remove('save-status--error'); statusEl.textContent = 'Unsaved changes'; }
   }
+
+  // ---------- colour rows (background / text / link) ----------
+  function setupColor(key) {
+    const row = document.querySelector(`[data-color="${key}"]`);
+    const swatch = row.querySelector('[data-color-swatch]');
+    const hex = row.querySelector('[data-color-hex]');
+    const op = row.querySelector('[data-color-opacity]');
+    // Picking a colour while fully transparent would show nothing — make it visible.
+    const ensureVisible = () => { if (colors[key].opacity === 0) { colors[key].opacity = 100; op.value = 100; } };
+    swatch.addEventListener('input', () => { colors[key].color = swatch.value.toUpperCase(); hex.value = colors[key].color; ensureVisible(); saveError = null; refresh(); });
+    hex.addEventListener('input', () => {
+      let v = hex.value.trim();
+      if (v && !v.startsWith('#')) v = '#' + v;
+      if (/^#[0-9a-fA-F]{6}$/.test(v)) { colors[key].color = v.toUpperCase(); swatch.value = colors[key].color; ensureVisible(); saveError = null; refresh(); }
+    });
+    hex.addEventListener('blur', () => { hex.value = colors[key].color; });
+    op.addEventListener('input', () => {
+      let n = parseInt(op.value, 10);
+      if (Number.isNaN(n)) return;
+      colors[key].opacity = Math.max(0, Math.min(100, n));
+      saveError = null; refresh();
+    });
+    op.addEventListener('blur', () => { op.value = colors[key].opacity; });
+    return { set: () => { swatch.value = colors[key].color; hex.value = colors[key].color; op.value = colors[key].opacity; } };
+  }
+  const colorFields = ['background', 'text', 'link'].map(setupColor);
 
   // ---------- mutations ----------
   function addLink(link) {
@@ -172,6 +204,14 @@
     showNavigation = !!config.showNavigation;
     logoCheck.checked = showLogo;
     navCheck.checked = showNavigation;
+    ['background', 'text', 'link'].forEach((key) => {
+      const c = config[key];
+      colors[key] = {
+        color: (c && c.color) || COLOR_DEFAULTS[key].color,
+        opacity: c && typeof c.opacity === 'number' ? c.opacity : COLOR_DEFAULTS[key].opacity,
+      };
+    });
+    colorFields.forEach((f) => f.set());
     mountTree(config.links || []);
   }
 

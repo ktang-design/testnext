@@ -34,7 +34,7 @@
   })();
 
   const HEADER_D = { logo: 'left', nav: 'left', background: { color: '#FFFFFF', opacity: 100 }, links: { color: '#3D3F42', opacity: 100 } };
-  const FOOTER_D = { showLogo: false, showNavigation: false, links: [] };
+  const FOOTER_D = { showLogo: false, showNavigation: false, background: { color: '#FFFFFF', opacity: 100 }, text: { color: '#3D3F42', opacity: 100 }, link: { color: '#255096', opacity: 100 }, links: [] };
   const TYPO_D = { fontFamily: 'Inter', headingSize: '24', headingWeight: '600', bodySize: '16', bodyWeight: '400' };
   const BRAND_D = { logo: null, primary: { color: '#255096', opacity: 100 }, secondary: { color: '#3D3F42', opacity: 100 }, heading: { color: '#3D3F42', opacity: 100 }, body: { color: '#55585D', opacity: 100 }, link: { color: '#255096', opacity: 100 } };
   const SEARCH_D = { background: { color: '#255096', opacity: 100 }, backgroundImage: null, searches: [] };
@@ -699,8 +699,12 @@
       }
       root.appendChild(body);
 
-      // ---- Footer (Figma 1802:561) ----
+      // ---- Footer (Figma 1802:561). Background / text / link colours come from
+      // the Footer panel. ----
       const footer = el('footer', 'wsprev__footer');
+      footer.style.background = rgba(f.background);
+      const fTextColor = textColor(f.text, '#3d3f42');
+      const fLinkColor = textColor(f.link, '#255096');
       // Top "options" area: logo (left) + menu (right). The divider above the
       // copyright row only appears when this area has content — when neither the
       // logo nor the menu is enabled there is no divider.
@@ -715,7 +719,11 @@
       (f.links || []).forEach((l) => fLabels.push(l.label));
       if (fLabels.length) {
         const fLinks = el('div', 'wsprev__flinks');
-        fLabels.forEach((label) => fLinks.appendChild(el('span', 'wsprev__flink', label)));
+        fLabels.forEach((label) => {
+          const a = el('span', 'wsprev__flink', label);
+          a.style.color = fTextColor;
+          fLinks.appendChild(a);
+        });
         fOptions.appendChild(fLinks);
       }
       if (fOptions.children.length) {
@@ -727,10 +735,14 @@
       }
       // Required copyright row: copyright (left) + policy links (right).
       const fRow = el('div', 'wsprev__frow');
-      fRow.appendChild(el('span', 'wsprev__copyright', `Copyright © ${new Date().getFullYear()} EBSCO StacksNext. All rights reserved`));
+      const copy = el('span', 'wsprev__copyright', `Copyright © ${new Date().getFullYear()} EBSCO StacksNext. All rights reserved`);
+      copy.style.color = fTextColor;
+      fRow.appendChild(copy);
       const fPolicy = el('div', 'wsprev__fpolicy');
       ['Privacy policy', 'License agreement', 'Manage my cookies'].forEach((label) => {
-        fPolicy.appendChild(el('span', 'wsprev__fpolicylink', label));
+        const a = el('span', 'wsprev__fpolicylink', label);
+        a.style.color = fLinkColor;
+        fPolicy.appendChild(a);
       });
       fRow.appendChild(fPolicy);
       footer.appendChild(fRow);
