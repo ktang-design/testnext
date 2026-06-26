@@ -69,9 +69,10 @@ function cleanColor(raw) {
   return { color, opacity: Math.max(0, Math.min(100, Math.round(opacity))) };
 }
 
-// Section background image: a data:image data URL or null. ~3 MB raw → allow for
-// base64 inflation; anything else is dropped.
-const BG_IMAGE_MAX = Math.ceil(3 * 1024 * 1024 * 1.4);
+// Section background image: a data:image data URL or null. ~2 MB raw → allow for
+// base64 inflation; anything else is dropped. Kept small so a page (which can hold
+// several sections + richtext/code) stays under the 4 MB request body limit.
+const BG_IMAGE_MAX = Math.ceil(2 * 1024 * 1024 * 1.4);
 const cleanImage = (v) => (typeof v === 'string' && v.startsWith('data:image/') && v.length <= BG_IMAGE_MAX ? v : null);
 
 // Richtext element styling (colours + border). A missing colour defaults to

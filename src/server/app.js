@@ -55,7 +55,9 @@ app.use('/api/website/branding', jsonLarge, require('./routes/website-branding')
 // Search carries a background image data URL → large parser; mount before the
 // general /api/website router so it takes precedence.
 app.use('/api/website/search', jsonLarge, require('./routes/search'));
-app.use('/api/website/pages', jsonSmall, require('./routes/pages'));
+// Pages store rich content — richtext/code bodies and section background images
+// (data URLs) — so they need the large parser too. Mount before /api/website.
+app.use('/api/website/pages', jsonLarge, require('./routes/pages'));
 app.use('/api/website', jsonSmall, require('./routes/website'));
 
 // ---- Page protection ------------------------------------------------------
@@ -98,6 +100,11 @@ app.use(express.static(SRC_DIR, {
 app.use((req, res) => res.status(404).send('Not found'));
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
+  // Oversized request body (e.g. too many/large section images) → a clear 413
+  // the client can surface, not a generic 500.
+  if (err && (err.type === 'entity.too.large' || err.status === 413)) {
+    return res.status(413).json({ error: 'TOO_LARGE', message: 'This is too large to save. Try smaller or fewer images.' });
+  }
   // eslint-disable-next-line no-console
   console.error('[server] unhandled error', err);
   res.status(500).send('Server error');

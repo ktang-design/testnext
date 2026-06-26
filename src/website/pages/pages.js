@@ -826,7 +826,7 @@
   }
   // Background-image picker (same UX as the Search panel): choose / preview /
   // replace / remove. The image is stored on `obj.backgroundImage` as a data URL.
-  const IMAGE_MAX = 3 * 1024 * 1024; // 3 MB
+  const IMAGE_MAX = 2 * 1024 * 1024; // 2 MB (keeps the page body under the 4 MB request limit)
   function buildImageField(obj, onChange) {
     const field = document.createElement('div');
     field.className = 'pgb__field pgb__imgfield';
@@ -854,7 +854,7 @@
       input.value = '';
       if (!file) return;
       error.hidden = true;
-      if (file.size > IMAGE_MAX) { error.textContent = 'Image must be 3 MB or smaller.'; error.hidden = false; return; }
+      if (file.size > IMAGE_MAX) { error.textContent = 'Image must be 2 MB or smaller.'; error.hidden = false; return; }
       const reader = new FileReader();
       reader.onload = () => { obj.backgroundImage = reader.result; render(); onChange(); };
       reader.onerror = () => { error.textContent = 'Couldn’t read that file. Try another.'; error.hidden = false; };
