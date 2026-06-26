@@ -183,20 +183,26 @@ function pick(value, allowed, fallback) {
   return allowed.includes(value) ? value : fallback;
 }
 
+// Coerce a typography payload to the canonical, validated shape. Used on save and
+// on read, so configs saved under the old option set migrate to the new options.
+function normalizeTypography(b) {
+  b = b || {};
+  return {
+    fontFamily: str(b.fontFamily).trim().slice(0, 60) || TYPOGRAPHY_DEFAULTS.fontFamily,
+    headingSize: pick(str(b.headingSize), TYPOGRAPHY_OPTIONS.headingSize, TYPOGRAPHY_DEFAULTS.headingSize),
+    headingWeight: pick(str(b.headingWeight), TYPOGRAPHY_OPTIONS.headingWeight, TYPOGRAPHY_DEFAULTS.headingWeight),
+    bodySize: pick(str(b.bodySize), TYPOGRAPHY_OPTIONS.bodySize, TYPOGRAPHY_DEFAULTS.bodySize),
+    bodyWeight: pick(str(b.bodyWeight), TYPOGRAPHY_OPTIONS.bodyWeight, TYPOGRAPHY_DEFAULTS.bodyWeight),
+  };
+}
+
 router.get('/typography', requireApiAuth, ah(async (req, res) => {
-  res.json({ defaults: TYPOGRAPHY_DEFAULTS, saved: await typographyRepository.get(req.session.userId) });
+  const saved = await typographyRepository.get(req.session.userId);
+  res.json({ defaults: TYPOGRAPHY_DEFAULTS, saved: saved ? normalizeTypography(saved) : null });
 }));
 
 router.put('/typography', requireApiAuth, ah(async (req, res) => {
-  const b = req.body || {};
-  const family = str(b.fontFamily).trim().slice(0, 60) || TYPOGRAPHY_DEFAULTS.fontFamily;
-  const config = {
-    fontFamily: family,
-    headingSize: pick(str(b.headingSize), TYPOGRAPHY_OPTIONS.headingSize, 'default'),
-    headingWeight: pick(str(b.headingWeight), TYPOGRAPHY_OPTIONS.headingWeight, 'default'),
-    bodySize: pick(str(b.bodySize), TYPOGRAPHY_OPTIONS.bodySize, 'default'),
-    bodyWeight: pick(str(b.bodyWeight), TYPOGRAPHY_OPTIONS.bodyWeight, 'default'),
-  };
+  const config = normalizeTypography(req.body);
   res.json({ saved: await typographyRepository.save(req.session.userId, config) });
 }));
 

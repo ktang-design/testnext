@@ -35,7 +35,7 @@
 
   const HEADER_D = { logo: 'left', nav: 'left', background: { color: '#FFFFFF', opacity: 100 }, links: { color: '#3D3F42', opacity: 100 } };
   const FOOTER_D = { showLogo: false, showNavigation: false, links: [] };
-  const TYPO_D = { fontFamily: 'Inter', headingSize: 'default', headingWeight: 'default', bodySize: 'default', bodyWeight: 'default' };
+  const TYPO_D = { fontFamily: 'Inter', headingSize: '24', headingWeight: '600', bodySize: '16', bodyWeight: '400' };
   const BRAND_D = { logo: null, primary: { color: '#255096', opacity: 100 }, secondary: { color: '#3D3F42', opacity: 100 }, heading: { color: '#3D3F42', opacity: 100 }, body: { color: '#55585D', opacity: 100 }, link: { color: '#255096', opacity: 100 } };
   const SEARCH_D = { background: { color: '#255096', opacity: 100 }, backgroundImage: null, searches: [] };
 
@@ -573,6 +573,14 @@
       const navLabels = navItems.map((i) => i.label);
 
       root.style.fontFamily = `${t.fontFamily || 'Inter'}, "Noto Sans", Arial, sans-serif`;
+      // Heading/body size + weight drive the content typography via CSS variables
+      // (see website-preview.css). Old saved values like "default" aren't numeric,
+      // so fall back to the current defaults.
+      const num = (v, d) => (/^\d+$/.test(String(v)) ? String(v) : d);
+      root.style.setProperty('--wsprev-heading-size', num(t.headingSize, '24') + 'px');
+      root.style.setProperty('--wsprev-heading-weight', num(t.headingWeight, '600'));
+      root.style.setProperty('--wsprev-body-size', num(t.bodySize, '16') + 'px');
+      root.style.setProperty('--wsprev-body-weight', num(t.bodyWeight, '400'));
       root.innerHTML = '';
 
       // ---- Header / navigation bar ----

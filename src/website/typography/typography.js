@@ -104,7 +104,7 @@
       updateSaveBar();
     })
     .catch(() => {
-      config = { fontFamily: 'Inter', headingSize: 'default', headingWeight: 'default', bodySize: 'default', bodyWeight: 'default' };
+      config = { fontFamily: 'Inter', headingSize: '24', headingWeight: '600', bodySize: '16', bodyWeight: '400' };
       baseline = serialize();
       loaded = true;
       applyToControls();

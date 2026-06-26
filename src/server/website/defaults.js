@@ -48,16 +48,17 @@ const FOOTER_DEFAULTS = {
 // 'default' or one of the explicit option values below.
 const TYPOGRAPHY_DEFAULTS = {
   fontFamily: 'Inter',
-  headingSize: 'default',
-  headingWeight: 'default',
-  bodySize: 'default',
-  bodyWeight: 'default',
+  headingSize: '24',   // Extra large
+  headingWeight: '600', // Semi bold
+  bodySize: '16',       // Medium
+  bodyWeight: '400',    // Regular
 };
+// Sizes are px; weights are CSS font-weight values. Labels live in the panel UI.
 const TYPOGRAPHY_OPTIONS = {
-  headingSize: ['default', '20', '28', '32', '36', '40'],
-  headingWeight: ['default', '400', '500', '600', '700'],
-  bodySize: ['default', '14', '18', '20'],
-  bodyWeight: ['default', '400', '500', '600', '700'],
+  headingSize: ['16', '18', '24', '32', '48'],
+  headingWeight: ['400', '500', '600', '700'],
+  bodySize: ['16', '18'],
+  bodyWeight: ['400', '500', '600'],
 };
 
 // Website branding: a logo override plus the brand colour palette applied
