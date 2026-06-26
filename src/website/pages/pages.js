@@ -381,6 +381,22 @@
     editor.innerHTML = window.RichText.sanitize(elc.body || '');
 
     const exec = (cmd, val) => { editor.focus(); document.execCommand(cmd, false, val || null); };
+    // Paragraph size: make the block(s) a <p>, then tag the paragraph(s) in the
+    // selection with the size class (Paragraph 1 = large, Paragraph 2 = medium).
+    const setPara = (cls) => {
+      exec('formatBlock', 'P');
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+      let matched = false;
+      editor.querySelectorAll('p').forEach((p) => {
+        if (range.intersectsNode(p)) { p.classList.remove('rt-p1', 'rt-p2'); p.classList.add(cls); matched = true; }
+      });
+      if (!matched) {
+        let n = range.startContainer;
+        while (n && n !== editor) { if (n.nodeType === 1 && n.tagName === 'P') { n.classList.remove('rt-p1', 'rt-p2'); n.classList.add(cls); break; } n = n.parentNode; }
+      }
+    };
     const ic = (paths) => `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
     const insertLink = () => { const u = window.prompt('Link URL', 'https://'); if (u) exec('createLink', u.trim()); };
     const insertImage = () => { const u = window.prompt('Image URL (https://…)', 'https://'); if (u) exec('insertImage', u.trim()); };
@@ -391,6 +407,8 @@
       { label: 'Heading 3', html: 'H3', run: () => exec('formatBlock', 'H3') },
       { label: 'Heading 4', html: 'H4', run: () => exec('formatBlock', 'H4') },
       { label: 'Heading 5', html: 'H5', run: () => exec('formatBlock', 'H5') },
+      { label: 'Paragraph 1', html: 'P1', run: () => setPara('rt-p1') },
+      { label: 'Paragraph 2', html: 'P2', run: () => setPara('rt-p2') },
       { sep: true },
       { label: 'Bold', html: '<b>B</b>', run: () => exec('bold') },
       { label: 'Italic', html: '<i>I</i>', run: () => exec('italic') },

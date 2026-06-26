@@ -164,6 +164,10 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 .wsprev__richtext h5 { font-size: 16px; margin: 0 0 8px; }
 .wsprev__richtext h6 { font-size: 16px; margin: 0 0 8px; }
 .wsprev__richtext p { margin: 0 0 12px; }
+/* Paragraph sizes chosen in the editor: Paragraph 1 = large 18, Paragraph 2 =
+   medium 16 (an unclassed paragraph follows the Typography body size). */
+.wsprev__richtext p.rt-p1 { font-size: 18px; }
+.wsprev__richtext p.rt-p2 { font-size: 16px; }
 .wsprev__richtext > :last-child { margin-bottom: 0; }
 .wsprev__richtext ul, .wsprev__richtext ol { margin: 0 0 12px; padding-left: 24px; }
 .wsprev__richtext li { margin: 0 0 4px; }

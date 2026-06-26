@@ -47,6 +47,10 @@
         clean.setAttribute('src', src);
         const alt = ch.getAttribute('alt');
         if (alt) clean.setAttribute('alt', alt);
+      } else if (tag === 'P') {
+        // Paragraph size class (Paragraph 1 = large, Paragraph 2 = medium).
+        const cls = ch.getAttribute('class');
+        if (cls === 'rt-p1' || cls === 'rt-p2') clean.setAttribute('class', cls);
       }
       const style = cleanStyle(ch.getAttribute('style'));
       if (style) clean.setAttribute('style', style);

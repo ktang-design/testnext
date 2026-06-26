@@ -46,7 +46,9 @@ const RICHTEXT_SANITIZE = {
     'h1', 'h2', 'h3', 'h4', 'h5', 'ul', 'ol', 'li', 'a', 'blockquote', 'hr', 'img',
     'table', 'thead', 'tbody', 'tr', 'td', 'th',
   ],
-  allowedAttributes: { a: ['href', 'target', 'rel'], img: ['src', 'alt'], '*': ['style'] },
+  allowedAttributes: { a: ['href', 'target', 'rel'], img: ['src', 'alt'], p: ['class'], '*': ['style'] },
+  // Paragraph size classes only (Paragraph 1 = large, Paragraph 2 = medium).
+  allowedClasses: { p: ['rt-p1', 'rt-p2'] },
   allowedStyles: {
     '*': {
       'text-align': [/^(left|right|center|justify)$/],

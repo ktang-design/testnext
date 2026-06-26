@@ -165,6 +165,10 @@
 .rt__editor h4 { font-size: 18px; font-weight: 600; margin: 0 0 8px; }
 .rt__editor h5 { font-size: 16px; font-weight: 600; margin: 0 0 8px; }
 .rt__editor p { margin: 0 0 8px; }
+/* Paragraph sizes (matches the website preview): Paragraph 1 = large 18,
+   Paragraph 2 = medium 16. */
+.rt__editor p.rt-p1 { font-size: 18px; }
+.rt__editor p.rt-p2 { font-size: 16px; }
 .rt__editor ul, .rt__editor ol { padding-left: 24px; margin: 0 0 8px; }
 .rt__editor a { color: #2d62b7; text-decoration: underline; }
 .rt__editor blockquote { margin: 0 0 8px; padding: 2px 0 2px 14px; border-left: 3px solid var(--gray-200); color: #6e7277; }
