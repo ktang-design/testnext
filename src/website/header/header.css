@@ -9,16 +9,6 @@
 }
 .hdr-divider { border: 0; border-top: 1px solid var(--gray-200); margin: 18px 0 6px; }
 
-/* Heading / description text fields. */
-.hdr-input {
-  width: 100%; box-sizing: border-box; padding: 7px 10px;
-  font: 400 14px/21px var(--font); color: var(--gray-700);
-  background: #fff; border: 1px solid var(--gray-200); border-radius: 4px;
-}
-.hdr-input::placeholder { color: var(--gray-400); }
-.hdr-input:focus-visible { outline: none; border-color: #3e75cf; box-shadow: 0 0 0 2px var(--blue-50, #e9effa); }
-.hdr-input--area { resize: vertical; min-height: 72px; line-height: 1.5; }
-
 /* ---------------------------  Segmented control  --------------------------- */
 .seg {
   display: flex; width: 100%; gap: 2px; padding: 2px;

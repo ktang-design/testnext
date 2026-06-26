@@ -50,12 +50,8 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
    bar; the section background is the configured colour. */
 .wsprev__search {
   display: flex; flex-direction: column; align-items: stretch; gap: 32px;
-  padding: 64px 48px 32px; background: #255096;
+  padding: 32px 48px; background: #255096;
 }
-.wsprev__search--baronly { padding-top: 32px; }
-.wsprev__searchhero { text-align: center; }
-.wsprev__searchheading { margin: 0; font: 400 40px/48px "Noto Sans", Arial, sans-serif; color: #fff; }
-.wsprev__searchdesc { margin: 8px 0 0; font: italic 400 20px/30px "Noto Sans", Arial, sans-serif; color: #fff; white-space: pre-wrap; }
 /* Bar: a dropdown box + a search box, 8px apart. */
 .wsprev__searchbar { display: flex; gap: 8px; max-width: 1152px; width: 100%; margin: 0 auto; }
 .wsprev__searchselect {

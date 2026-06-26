@@ -30,12 +30,7 @@ const HEADER_DEFAULTS = {
   nav: 'left',
   background: { color: '#FFFFFF', opacity: 100 },
   links: { color: '#3D3F42', opacity: 100 },
-  // Heading + description shown in the search/hero section below the navigation.
-  heading: '',
-  description: '',
 };
-const HEADER_HEADING_MAX = 200;
-const HEADER_DESCRIPTION_MAX = 500;
 
 // Footer: which standard elements show, plus an ordered list of custom links.
 const FOOTER_DEFAULTS = {
@@ -92,7 +87,7 @@ module.exports = {
   DEFAULT_PAGES, LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH,
   TITLE_MAX, DESCRIPTION_MAX, MAX_PAGES,
   SECTION_TITLE_MAX, ELEMENT_TITLE_MAX, ELEMENT_BODY_MAX, MAX_SECTIONS, MAX_ELEMENTS,
-  HEADER_DEFAULTS, HEADER_HEADING_MAX, HEADER_DESCRIPTION_MAX,
+  HEADER_DEFAULTS,
   FOOTER_DEFAULTS, TYPOGRAPHY_DEFAULTS, TYPOGRAPHY_OPTIONS,
   WEBSITE_BRANDING_DEFAULTS, WEBSITE_BRANDING_COLORS,
   SEARCH_DEFAULTS, SEARCH_NAME_MAX, SEARCH_LABEL_MAX, SEARCH_BUTTON_MAX, MAX_SEARCHES,

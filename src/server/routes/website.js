@@ -15,7 +15,7 @@ const { footerRepository } = require('../website/FooterRepository');
 const { typographyRepository } = require('../website/TypographyRepository');
 const {
   LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH,
-  HEADER_DEFAULTS, HEADER_HEADING_MAX, HEADER_DESCRIPTION_MAX,
+  HEADER_DEFAULTS,
   FOOTER_DEFAULTS, TYPOGRAPHY_DEFAULTS, TYPOGRAPHY_OPTIONS,
 } = require('../website/defaults');
 
@@ -144,8 +144,6 @@ router.put('/header', requireApiAuth, ah(async (req, res) => {
     nav: b.nav === 'aligned' ? 'aligned' : 'left',
     background: cleanColor(b.background, HEADER_DEFAULTS.background),
     links: cleanColor(b.links, HEADER_DEFAULTS.links),
-    heading: str(b.heading).trim().slice(0, HEADER_HEADING_MAX),
-    description: str(b.description).trim().slice(0, HEADER_DESCRIPTION_MAX),
   };
   res.json({ saved: await headerRepository.save(req.session.userId, config) });
 }));

@@ -641,29 +641,19 @@
       header.appendChild(hNav);
       root.appendChild(header);
 
-      // ---- Search / hero section (below the navigation). Shown when a search is
-      // configured and/or a heading or description (from the Header panel) is set.
-      // Heading + description sit above the search bar in this one section. ----
+      // ---- Search section (below the navigation). Shown when a search is
+      // configured. ----
       const s = state.search || SEARCH_D;
-      const heading = (h.heading || '').trim();
-      const description = (h.description || '').trim();
       const hasSearch = !!(s.searches && s.searches.length);
-      if (hasSearch || heading || description) {
+      if (hasSearch) {
         const sec = el('section', 'wsprev__search');
-        if (!heading && !description) sec.classList.add('wsprev__search--baronly');
         sec.style.background = rgba(s.background);
         if (s.backgroundImage) {
           sec.style.backgroundImage = `url("${s.backgroundImage}")`;
           sec.style.backgroundSize = 'cover';
           sec.style.backgroundPosition = 'center';
         }
-        if (heading || description) {
-          const hero = el('div', 'wsprev__searchhero');
-          if (heading) hero.appendChild(el('h2', 'wsprev__searchheading', heading));
-          if (description) hero.appendChild(el('p', 'wsprev__searchdesc', description));
-          sec.appendChild(hero);
-        }
-        if (hasSearch) {
+        {
           // The default (starred) search is pre-selected; the search button carries
           // its label as the accessible name (the visible control is a search icon).
           const def = s.searches.find((x) => x.isDefault) || s.searches[0];
