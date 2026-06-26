@@ -94,7 +94,9 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 
 /* Section + element blocks. The selected block gets a pink/rose outline and its
    grip/edit/trash toolbar; others reveal the toolbar on hover. */
-.wsprev__section { position: relative; padding: 24px 34px; }
+/* Horizontal padding (48px) matches the header, search, and footer so every
+   section lines up to the same left/right edge. */
+.wsprev__section { position: relative; padding: 24px 48px; }
 .wsprev__el { position: relative; padding: 12px 0; cursor: pointer; }
 /* Only a SECTION shows the pink highlight (selected) / grey hint (hover).
    Elements are never highlighted/filled — their affordance is the toolbar. */
