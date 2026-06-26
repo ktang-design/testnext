@@ -148,16 +148,21 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 .wsprev__eltext:last-child { margin-bottom: 0; }
 .wsprev__elempty { margin: 0; font-size: 14px; font-style: italic; color: #8d9095; }
 /* Rendered richtext (sanitized HTML from the editor). Body text follows the body
-   typography; all heading levels follow the heading typography (Typography panel). */
+   typography; in-content headings use a fixed per-level scale that matches the
+   WYSIWYG editor (H1 3X large 48 / H2 2X large 32 / H3 extra large 24 / H4 large
+   18 / H5 medium 16) — the Typography panel's heading size/weight applies to the
+   section + element titles, not these in-content headings. */
 .wsprev__richtext { font-size: var(--wsprev-body-size, 15px); font-weight: var(--wsprev-body-weight, 400); line-height: 1.6; color: var(--rt-text, #55585d); }
 .wsprev__richtext h1, .wsprev__richtext h2, .wsprev__richtext h3,
 .wsprev__richtext h4, .wsprev__richtext h5, .wsprev__richtext h6 {
-  font-size: var(--wsprev-heading-size, 22px); font-weight: var(--wsprev-heading-weight, 600);
-  color: var(--rt-heading, #3d3f42);
+  font-weight: 600; color: var(--rt-heading, #3d3f42);
 }
-.wsprev__richtext h1 { margin: 0 0 12px; }
-.wsprev__richtext h2 { margin: 0 0 12px; }
-.wsprev__richtext h3, .wsprev__richtext h4, .wsprev__richtext h5, .wsprev__richtext h6 { margin: 0 0 8px; }
+.wsprev__richtext h1 { font-size: 48px; font-weight: 700; margin: 0 0 12px; }
+.wsprev__richtext h2 { font-size: 32px; margin: 0 0 12px; }
+.wsprev__richtext h3 { font-size: 24px; margin: 0 0 8px; }
+.wsprev__richtext h4 { font-size: 18px; margin: 0 0 8px; }
+.wsprev__richtext h5 { font-size: 16px; margin: 0 0 8px; }
+.wsprev__richtext h6 { font-size: 16px; margin: 0 0 8px; }
 .wsprev__richtext p { margin: 0 0 12px; }
 .wsprev__richtext > :last-child { margin-bottom: 0; }
 .wsprev__richtext ul, .wsprev__richtext ol { margin: 0 0 12px; padding-left: 24px; }
