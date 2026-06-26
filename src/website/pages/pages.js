@@ -272,10 +272,18 @@
     selectedElementId = null;
     afterContentChange();
   }
-  function deleteSection(id) {
+  async function deleteSection(id) {
     const secs = getSections();
     const i = secs.findIndex((s) => s.id === id);
     if (i === -1) return;
+    const ok = await window.Modal.confirm({
+      title: 'Delete section',
+      message: 'This section and all of its content will be removed. This can’t be undone.',
+      confirmLabel: 'Delete section',
+      cancelLabel: 'Keep section',
+      danger: true,
+    });
+    if (!ok) return;
     secs.splice(i, 1);
     if (selectedSectionId === id) { selectedSectionId = null; selectedElementId = null; }
     afterContentChange();
@@ -603,11 +611,19 @@
     area.focus();
   }
 
-  function deleteElement(secId, elId) {
+  async function deleteElement(secId, elId) {
     const sec = findSection(secId);
     if (!sec) return;
     const i = sec.elements.findIndex((e) => e.id === elId);
     if (i === -1) return;
+    const ok = await window.Modal.confirm({
+      title: 'Delete element',
+      message: 'This element will be removed from the section. This can’t be undone.',
+      confirmLabel: 'Delete element',
+      cancelLabel: 'Keep element',
+      danger: true,
+    });
+    if (!ok) return;
     sec.elements.splice(i, 1);
     if (selectedElementId === elId) selectedElementId = null;
     afterContentChange();

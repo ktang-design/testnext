@@ -143,7 +143,15 @@
     config.searches.forEach((s) => { s.isDefault = s.id === id; });
     renderList(); onChange();
   }
-  function deleteSearch(id) {
+  async function deleteSearch(id) {
+    const ok = await window.Modal.confirm({
+      title: 'Delete search',
+      message: 'This search will be removed from your website. This can’t be undone.',
+      confirmLabel: 'Delete search',
+      cancelLabel: 'Keep search',
+      danger: true,
+    });
+    if (!ok) return;
     const wasDefault = config.searches.find((s) => s.id === id && s.isDefault);
     config.searches = config.searches.filter((s) => s.id !== id);
     if (wasDefault && config.searches.length && !config.searches.some((s) => s.isDefault)) {

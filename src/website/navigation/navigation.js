@@ -158,7 +158,15 @@
     items.push(item);
     commit(items);
   }
-  function deleteItem(id) {
+  async function deleteItem(id) {
+    const ok = await window.Modal.confirm({
+      title: 'Delete navigation item',
+      message: 'This menu item will be removed from your navigation. This can’t be undone.',
+      confirmLabel: 'Delete item',
+      cancelLabel: 'Keep item',
+      danger: true,
+    });
+    if (!ok) return;
     commit(removeById(tree.getItems(), id));
   }
   function updateItem(id, patch) {
