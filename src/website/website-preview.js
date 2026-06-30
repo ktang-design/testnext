@@ -211,6 +211,20 @@
     container.appendChild(hud);
 
     let zoom = 1, naturalH = 600, userZoomed = false, spaceDown = false, hovering = false;
+    let userPanned = false; // set once the user scrolls/pans the canvas themselves
+
+    // Scroll the highlighted element (the section the current panel edits) into
+    // view — so opening e.g. Footer brings the footer into view. Re-runs on every
+    // render (render() rebuilds the DOM and fitZoom() resets the scroll) until the
+    // user pans or zooms the preview, after which we leave their view alone.
+    function scrollHighlightIntoView() {
+      if (!state.highlight || userZoomed || userPanned) return;
+      const hl = root.querySelector('.wsprev__hl');
+      if (!hl) return;
+      const cr = canvas.getBoundingClientRect();
+      const hr = hl.getBoundingClientRect();
+      canvas.scrollTop += (hr.top - cr.top) - 24; // align the element's top near the canvas top
+    }
 
     function applyZoom(z) {
       zoom = Math.max(MIN_Z, Math.min(MAX_Z, z));
@@ -240,7 +254,7 @@
     canvas.addEventListener('mouseenter', () => { hovering = true; });
     canvas.addEventListener('mouseleave', () => { hovering = false; });
     canvas.addEventListener('wheel', (e) => {
-      if (!spaceDown) return;            // plain scroll = pan
+      if (!spaceDown) { userPanned = true; return; }  // plain scroll = pan
       e.preventDefault();
       zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.12 : 1 / 1.12);
     }, { passive: false });
@@ -266,7 +280,7 @@
 
     let ro = null;
     if (window.ResizeObserver) {
-      ro = new ResizeObserver(() => { if (!userZoomed) fitZoom(); });
+      ro = new ResizeObserver(() => { if (!userZoomed) { fitZoom(); scrollHighlightIntoView(); } });
       ro.observe(canvas);
     }
 
@@ -707,6 +721,7 @@
       // ---- Page body: the content builder while editing; otherwise the
       // read-only published content of the page being viewed (default homepage).
       const body = el('main', 'wsprev__body');
+      if (state.highlight === 'body') body.classList.add('wsprev__hl');
       if (state.builder) {
         renderBuilderBody(body);
       } else {
@@ -769,6 +784,7 @@
       // Re-measure and re-apply zoom (fit unless the user has zoomed manually).
       naturalH = root.offsetHeight || naturalH;
       if (userZoomed) applyZoom(zoom); else fitZoom();
+      scrollHighlightIntoView();
     }
 
     // Instant-load cache: snapshot the saved website config (not the per-page

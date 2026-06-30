@@ -1229,7 +1229,7 @@
   }
 
   // ---- boot ----
-  preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'));
+  preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'), { highlight: 'body' });
   saveBtn.addEventListener('click', save);
   addBtn.addEventListener('click', openAdd);
   backBtn.addEventListener('click', exitBuilder);

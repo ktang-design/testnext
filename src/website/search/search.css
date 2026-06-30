@@ -2,9 +2,8 @@
    components from website.css; this file adds the search-list, the background-
    image field, and the add/edit-search modal. */
 
-/* Divider between the searches/header and the background styling. */
-.ws-divider { height: 1px; background: var(--gray-200); margin: 24px 0; }
-.ws-colors__heading { display: block; margin: 0 0 10px; }
+/* "Colors" group heading: 24px above the label, 8px below to the swatches. */
+.ws-colors__heading { display: block; margin: 24px 0 8px; }
 
 /* Configured searches use the shared SortableTree (.navtree__* from
    sortable-tree.css), exactly like the sections / pages / navigation lists.
