@@ -14,12 +14,20 @@
   const logoError = $('[data-logo-error]');
 
   const COLORS = [
-    { key: 'primary', label: 'Primary' },
-    { key: 'secondary', label: 'Secondary' },
-    { key: 'heading', label: 'Heading' },
-    { key: 'body', label: 'Body' },
-    { key: 'link', label: 'Link' },
+    { key: 'primary', label: 'Primary', def: '#255096', tip: 'For key actions, highlights, and core interactive elements.' },
+    { key: 'secondary', label: 'Secondary', def: '#3D3F42', tip: 'For alternative actions, supporting components, and secondary emphasis.' },
+    { key: 'heading', label: 'Heading', def: '#3D3F42', tip: 'Applied to headings and section titles across your site.' },
+    { key: 'body', label: 'Body', def: '#55585D', tip: 'Applied to body and paragraph text.' },
+    { key: 'link', label: 'Link', def: '#255096', tip: 'Applied to links and other interactive text.' },
   ];
+  // Last-saved config, cached so the swatches show the real colours instantly on
+  // load (no flash of black/defaults while the network resolves).
+  const CACHE_KEY = 'ws-branding-cache';
+  const readCache = () => { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (_) { return null; } };
+  const writeCache = (cfg) => {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(cfg)); return; } catch (_) { /* quota — retry without the logo */ }
+    try { const lite = JSON.parse(JSON.stringify(cfg)); lite.logo = null; localStorage.setItem(CACHE_KEY, JSON.stringify(lite)); } catch (_) {}
+  };
   const LOGO_MAX = 3 * 1024 * 1024; // 3 MB (keeps uploads under the serverless body limit)
 
   let config = null;
@@ -46,13 +54,16 @@
       const row = document.createElement('div');
       row.className = 'colorrow';
       row.dataset.color = c.key;
+      // Swatches start at the brand default (not the colour input's black default)
+      // so there's no black flash before the saved colours load. The label carries
+      // a tooltip describing what the colour applies to.
       row.innerHTML =
-        `<span class="colorrow__label">${c.label}</span>` +
+        `<span class="colorrow__label" data-tooltip="${c.tip}">${c.label}</span>` +
         '<span class="colorrow__controls">' +
-        `<input type="color" class="colorrow__swatch" data-color-swatch aria-label="${c.label} colour" />` +
-        `<input type="text" class="colorrow__hex" data-color-hex maxlength="7" spellcheck="false" aria-label="${c.label} colour hex" />` +
+        `<input type="color" class="colorrow__swatch" data-color-swatch value="${c.def}" aria-label="${c.label} colour" />` +
+        `<input type="text" class="colorrow__hex" data-color-hex value="${c.def}" maxlength="7" spellcheck="false" aria-label="${c.label} colour hex" />` +
         '<span class="colorrow__opacity">' +
-        `<input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" aria-label="${c.label} opacity percent" /><span aria-hidden="true">%</span>` +
+        `<input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="${c.label} opacity percent" /><span aria-hidden="true">%</span>` +
         '</span></span>';
       colorsEl.appendChild(row);
       colorSetters[c.key] = setupColor(c.key, row);
@@ -137,6 +148,7 @@
       baseline = serialize();
       saving = false; saveError = null;
       applyToControls();
+      writeCache(config);
       updateSaveBar();
     } catch (err) {
       saving = false; saveError = err.message || 'Couldn’t save. Try again.';
@@ -176,6 +188,10 @@
   buildColorRows();
   setupNavGuard();
 
+  // Paint the last-saved colours immediately from cache (revalidated by the fetch).
+  const cached = readCache();
+  if (cached) { config = clone(cached); applyToControls(); }
+
   fetch('/api/website/branding', { credentials: 'include' })
     .then((r) => (r.ok ? r.json() : Promise.reject()))
     .then((data) => {
@@ -183,6 +199,7 @@
       baseline = serialize();
       loaded = true;
       applyToControls();
+      writeCache(config);
       updateSaveBar();
     })
     .catch(() => {

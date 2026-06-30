@@ -93,7 +93,7 @@
   }
 
   function refresh() {
-    navSecond.textContent = config.logo === 'left' ? 'Inline' : 'Center';
+    navSecond.textContent = config.logo === 'left' ? 'Horizontal' : 'Center';
     // The shared website preview reflects the live header config.
     if (preview) preview.update({ header: config });
     updateSaveBar();

@@ -34,6 +34,11 @@
   font: 400 14px/1.5 var(--font, "Noto Sans", Arial, sans-serif);
 }
 
+/* A disabled top-nav pill (e.g. Features — no page for it yet): muted and not
+   interactive. Loaded after each page's own CSS so this wins over :hover. */
+.navpill:disabled { opacity: 0.45; cursor: not-allowed; }
+.navpill:disabled:hover { background: transparent; }
+
 /* ===========================================================================
    Tooltip (shared) — any element with a [data-tooltip] attribute shows a small
    dark bubble on hover / keyboard focus. The bubble is rendered as a single
