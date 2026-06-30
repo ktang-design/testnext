@@ -106,11 +106,10 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
    (Header / Navigation / Search / Footer) with the same pink as a selected block. */
 .wsprev__hl { outline: 2px solid #e0489b; outline-offset: -2px; border-radius: 4px; }
 
-/* The page-body "build area" highlight (Pages) covers a large region, so a thin
-   outline — scaled down to ~1px by the preview's fit-zoom and sitting flush
-   against page content — is easy to miss. Use a translucent pink fill + border
-   overlay instead: the fill is area-based, so it reads clearly at any zoom and
-   over any content. pointer-events:none keeps the builder's clicks working. */
+/* The page-body "build area" highlight (Pages). A plain outline gets scaled
+   down to ~1px by the preview's fit-zoom and hides against page content, so draw
+   the pink border as an on-top overlay (::after) instead. pointer-events:none
+   keeps the builder's section clicks working. */
 .wsprev__body.wsprev__hl { outline: none; }
 .wsprev__body.wsprev__hl::after {
   content: '';
@@ -119,7 +118,6 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
   pointer-events: none;
   border: 2px solid #e0489b;
   border-radius: 4px;
-  background: rgba(224, 72, 155, 0.08);
 }
 .wsprev__section:hover:not(.is-selected),
 .wsprev__el:hover:not(.is-selected) { outline: 1px dashed #cdd6e6; outline-offset: -1px; border-radius: 4px; }
