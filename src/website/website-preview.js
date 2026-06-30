@@ -213,17 +213,25 @@
     let zoom = 1, naturalH = 600, userZoomed = false, spaceDown = false, hovering = false;
     let userPanned = false; // set once the user scrolls/pans the canvas themselves
 
-    // Scroll the highlighted element (the section the current panel edits) into
-    // view — so opening e.g. Footer brings the footer into view. Re-runs on every
-    // render (render() rebuilds the DOM and fitZoom() resets the scroll) until the
-    // user pans or zooms the preview, after which we leave their view alone.
+    // Scroll the highlighted element (the section the current panel edits) fully
+    // into view — so opening e.g. Footer scrolls the canvas down until the whole
+    // footer is visible. Re-runs on every render (render() rebuilds the DOM and
+    // fitZoom() resets the scroll) until the user pans or zooms the preview
+    // themselves, after which we leave their view alone.
     function scrollHighlightIntoView() {
       if (!state.highlight || userZoomed || userPanned) return;
       const hl = root.querySelector('.wsprev__hl');
       if (!hl) return;
+      const pad = 24;                          // breathing room above/below the element
       const cr = canvas.getBoundingClientRect();
       const hr = hl.getBoundingClientRect();
-      canvas.scrollTop += (hr.top - cr.top) - 24; // align the element's top near the canvas top
+      const top = hr.top - cr.top;             // element top relative to the viewport
+      const bottom = hr.bottom - cr.top;       // element bottom relative to the viewport
+      let delta = 0;
+      if (hr.height >= cr.height - pad * 2) delta = top - pad;       // taller than the viewport: pin its top
+      else if (bottom > cr.height - pad) delta = bottom - (cr.height - pad); // clipped below: scroll down, leave the whole element + pad
+      else if (top < pad) delta = top - pad;                        // clipped above: scroll up
+      if (delta) canvas.scrollTop += delta;    // the browser clamps to the scroll range
     }
 
     function applyZoom(z) {
