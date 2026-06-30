@@ -102,6 +102,9 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
    Elements are never highlighted/filled — their affordance is the toolbar. */
 .wsprev__section.is-selected,
 .wsprev__el.is-selected { outline: 2px solid #e0489b; outline-offset: -2px; border-radius: 4px; }
+/* Section-panel highlight: marks the preview element for the panel being edited
+   (Header / Navigation / Search / Footer) with the same pink as a selected block. */
+.wsprev__hl { outline: 2px solid #e0489b; outline-offset: -2px; border-radius: 4px; }
 .wsprev__section:hover:not(.is-selected),
 .wsprev__el:hover:not(.is-selected) { outline: 1px dashed #cdd6e6; outline-offset: -1px; border-radius: 4px; }
 /* The read-only (published) view has no editing affordances. */

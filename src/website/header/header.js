@@ -7,7 +7,7 @@
   const navSecond = $('[data-nav-second]');
   const DEFAULTS = { logo: 'left', nav: 'left', background: { color: '#FFFFFF', opacity: 100 }, links: { color: '#3D3F42', opacity: 100 } };
   // Shared website preview in the main area (header + body + footer).
-  const preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'));
+  const preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'), { highlight: 'header' });
 
   let config = null;
   let baseline = '';

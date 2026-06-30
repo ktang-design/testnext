@@ -10,7 +10,7 @@
   const logoCheck = $('[data-el="logo"]');
   const navCheck = $('[data-el="navigation"]');
   // Shared website preview in the main area (header + body + footer).
-  const preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'));
+  const preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'), { highlight: 'footer' });
 
   let showLogo = false;
   let showNavigation = false;

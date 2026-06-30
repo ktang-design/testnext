@@ -382,7 +382,7 @@
   }
 
   // ---------- boot ----------
-  preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'));
+  preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'), { highlight: 'search' });
   saveBtn.addEventListener('click', save);
   buildBgColor();
   setupNavGuard();

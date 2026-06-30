@@ -313,7 +313,7 @@
   }
 
   // ---------- boot ----------
-  const preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'));
+  const preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'), { highlight: 'nav' });
   saveBtn.addEventListener('click', save);
 
   // Instant-load cache for the left-panel tree, so the saved items paint without

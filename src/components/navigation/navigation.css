@@ -92,13 +92,10 @@
 .nav-item:focus-visible .icon--active,
 .nav-item.is-focus .icon--active { display: block; }
 
-/* Active (current page) — white bg, blue underlined label, blue icon, plus the
-   pink selection highlight used in the page-building process to mark the area. */
+/* Active (current page) — white bg, blue underlined label, blue icon */
 .nav-item.is-active {
   background: var(--nav-white);
   color: var(--nav-blue-700);
-  outline: 2px solid #e0489b;
-  outline-offset: -2px;
 }
 .nav-item.is-active .nav-item__label { text-decoration: underline; }
 .nav-item.is-active .icon--default { display: none; }

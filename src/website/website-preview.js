@@ -164,8 +164,11 @@
     if (padded) elt.style.padding = '16px';
   }
 
-  function create(container) {
+  function create(container, opts) {
     const state = {
+      // Which preview element to mark with the pink highlight (matches the section
+      // panel the user is on): 'header' | 'nav' | 'search' | 'footer' | null.
+      highlight: (opts && opts.highlight) || null,
       navigation: [],
       header: HEADER_D,
       footer: FOOTER_D,
@@ -598,6 +601,7 @@
       const header = el('header', 'wsprev__header');
       const inline = h.logo === 'left' && h.nav === 'aligned';
       header.classList.add(inline ? 'wsprev__header--inline' : 'wsprev__header--stacked');
+      if (state.highlight === 'header') header.classList.add('wsprev__hl');
       header.style.background = rgba(h.background);
 
       // In the read-only (non-builder) view the logo + page links navigate the
@@ -633,6 +637,7 @@
         hLogo.appendChild(name);
       }
       const hNav = el('nav', 'wsprev__nav');
+      if (state.highlight === 'nav') hNav.classList.add('wsprev__hl');
       navItems.forEach((item) => {
         const targetId = live ? navTargetId(item) : null;
         const a = el(targetId ? 'a' : 'span', 'wsprev__navlink', item.label);
@@ -658,6 +663,7 @@
       const hasSearch = !!(s.searches && s.searches.length);
       if (hasSearch) {
         const sec = el('section', 'wsprev__search');
+        if (state.highlight === 'search') sec.classList.add('wsprev__hl');
         sec.style.background = rgba(s.background);
         if (s.backgroundImage) {
           sec.style.backgroundImage = `url("${s.backgroundImage}")`;
@@ -713,6 +719,7 @@
       // ---- Footer (Figma 1802:561). Background / text / link colours come from
       // the Footer panel. ----
       const footer = el('footer', 'wsprev__footer');
+      if (state.highlight === 'footer') footer.classList.add('wsprev__hl');
       footer.style.background = rgba(f.background);
       const fTextColor = textColor(f.text, '#3d3f42');
       const fLinkColor = textColor(f.link, '#255096');
