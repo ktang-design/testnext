@@ -5,7 +5,7 @@
 
 module.exports = {
   FACTORY_DEFAULTS: {
-    name: 'StacksNext',
+    name: 'Stratum',
     description: 'The world’s most powerful and accessible library website builder.',
   },
   NAME_MAX: 100,
