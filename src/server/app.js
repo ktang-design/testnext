@@ -36,6 +36,11 @@ function init() {
 }
 app.use((req, res, next) => { init().then(() => next()).catch(next); });
 
+// Keep the whole app out of search indexes (this is a private admin product).
+// Mirrors the per-page <meta name="robots"> and applies to every response —
+// including assets and API responses — for crawlers that don't parse HTML.
+app.use((req, res, next) => { res.setHeader('X-Robots-Tag', 'noindex, nofollow'); next(); });
+
 app.use(sessionMiddleware);
 
 // Body parsers are applied per-router: small for auth/settings, large for
