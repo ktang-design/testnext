@@ -64,6 +64,22 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (_) { /* give up */ }
   };
 
+  // The server mirrors Platform primary/secondary into the Website branding doc
+  // on save; also patch the Website branding page's instant-load cache here so
+  // its swatches paint the new colours immediately (no fetch flash) on the next
+  // visit. Only primary/secondary colours change; opacity and other keys stay.
+  const WS_CACHE_KEY = 'ws-branding-cache';
+  const syncWebsiteBrandingCache = (primaryColor, secondaryColor) => {
+    try {
+      const cfg = JSON.parse(localStorage.getItem(WS_CACHE_KEY) || 'null');
+      if (!cfg || typeof cfg !== 'object') return; // never visited Website branding — server sync covers it
+      const withColor = (c, color) => ({ color, opacity: c && c.opacity != null ? c.opacity : 100 });
+      cfg.primary = withColor(cfg.primary, primaryColor);
+      cfg.secondary = withColor(cfg.secondary, secondaryColor);
+      localStorage.setItem(WS_CACHE_KEY, JSON.stringify(cfg));
+    } catch (_) { /* ignore */ }
+  };
+
   const current = () => ({
     primaryColor: (colorInputs.primary.value || '').toUpperCase(),
     secondaryColor: (colorInputs.secondary.value || '').toUpperCase(),
@@ -276,6 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       lastSaved = data.saved || current();
       writeCache({ defaults: systemDefault, saved: lastSaved });
+      syncWebsiteBrandingCache(lastSaved.primaryColor, lastSaved.secondaryColor);
       justSaved = true;
     } catch (err) {
       saveError = err.message || 'Couldn’t save. Try again.';
