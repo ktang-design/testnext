@@ -156,9 +156,13 @@
                 <label class="field__label" for="logo-alt"><span class="field__req" aria-hidden="true">*</span>Alternative text</label>
                 <p class="field__hint">Short description of the logo used by screen readers and displayed when the image is not loaded.</p>
                 <div class="field__control">
-                  <input class="input" id="logo-alt" type="text" maxlength="125" placeholder="Describe the logo" value="" />
+                  <input class="input" id="logo-alt" type="text" maxlength="125" placeholder="Describe the logo" value="" aria-describedby="logo-alt-error" />
                 </div>
                 <div class="field__footer">
+                  <p class="field__error" id="logo-alt-error" data-error="alt" role="alert" hidden>
+                    <img class="field__error-icon" src="../shared/error.svg" alt="" aria-hidden="true" />
+                    <span class="field__error-text"></span>
+                  </p>
                   <p class="field__count"><span data-count-for="logo-alt">0</span>/125</p>
                 </div>
               </div>

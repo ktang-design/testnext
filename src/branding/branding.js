@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const altField = $('[data-alt-field]');
   const altInput = $('#logo-alt');
   const altCount = $('[data-count-for="logo-alt"]');
+  const altError = $('[data-error="alt"]');
   // Favicon
   const faviconInput = $('[data-input="favicon"]');
   const browserMock = $('.browser');
@@ -140,6 +141,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Alt text is hidden (not required) for decorative images.
     altField.hidden = decorativeCb.checked;
   }
+
+  // Alt text is required whenever a non-decorative logo is present (the alt
+  // field is only shown in that case). Empty-but-required → block Save.
+  const altRequired = () => !!logoData && !decorativeCb.checked;
+  const altValid = () => !altRequired() || altInput.value.trim() !== '';
+  function renderAltValidation() {
+    const bad = !altValid();
+    if (bad) altError.querySelector('.field__error-text').textContent = 'Alternative text cannot be empty.';
+    altError.hidden = !bad;
+    altInput.setAttribute('aria-invalid', bad ? 'true' : 'false');
+  }
   function renderCounters() {
     if (altCount) altCount.textContent = String(altInput.value.length);
   }
@@ -152,7 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---- State machine render ----
   function render() {
     const dirty = isDirty();
-    saveBtn.disabled = saving || !dirty;
+    renderAltValidation();
+    saveBtn.disabled = saving || !dirty || !altValid();
     saveBtn.classList.toggle('is-saving', saving);
     saveLabel.textContent = saving ? 'Saving' : 'Save';
 
@@ -246,6 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   async function doSave() {
+    if (!altValid()) { renderAltValidation(); altInput.focus(); return; } // required alt text missing
     saving = true; justSaved = false; saveError = null; render();
     try {
       const res = await fetch('/api/branding', {

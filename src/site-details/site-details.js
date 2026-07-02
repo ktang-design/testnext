@@ -46,6 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const isDirty = () => !eq(current(), baseline());
 
   const isEmpty = (v) => v.trim() === '';
+  // Both fields are required; Save stays disabled until they're filled.
+  const requiredFilled = () => !isEmpty(nameInput.value) && !isEmpty(descInput.value);
 
   // Live inline validation: each field is required (cannot be empty).
   function updateValidation() {
@@ -75,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function render() {
     const dirty = isDirty();
 
-    saveBtn.disabled = saving || !dirty;
+    saveBtn.disabled = saving || !dirty || !requiredFilled();
     saveBtn.classList.toggle('is-saving', saving);
     saveLabel.textContent = saving ? 'Saving' : 'Save';
 
