@@ -6,6 +6,7 @@
 const express = require('express');
 const { requireApiAuth } = require('../auth/authGuard');
 const { brandingRepository } = require('../settings/BrandingRepository');
+const { websiteBrandingRepository } = require('../website/WebsiteBrandingRepository');
 const { BRANDING_DEFAULTS, ALT_TEXT_MAX } = require('../settings/defaults');
 
 const router = express.Router();
@@ -48,7 +49,13 @@ router.put('/', requireApiAuth, ah(async (req, res) => {
     altText: typeof b.altText === 'string' ? b.altText.slice(0, ALT_TEXT_MAX) : '',
     favicon: b.favicon || null,
   };
-  res.json({ saved: await brandingRepository.save(req.session.userId, config) });
+  const saved = await brandingRepository.save(req.session.userId, config);
+  // Propagate the brand primary / secondary down to the Website branding palette
+  // so the Website section stays in sync with Platform.
+  await websiteBrandingRepository.syncPrimarySecondary(
+    req.session.userId, config.primaryColor, config.secondaryColor
+  );
+  res.json({ saved });
 }));
 
 module.exports = router;
