@@ -1,16 +1,11 @@
-// Site details — Save / Reset-to-default / Undo-reset / Unsaved-changes logic,
-// persisted to the signed-in user's account via /api/site-settings.
+// Site details — Save / Unsaved-changes logic, persisted to the signed-in
+// user's account via /api/site-settings.
 //
 // Two distinct baselines:
-//   systemDefault — the factory value ("Reset to default" target).
+//   systemDefault — the factory value, used as the dirty/Save baseline until the
+//                   user has saved (and to seed the inputs on first load).
 //   lastSaved     — the user's last saved value, or null if never saved
-//                   ("Undo reset" target; the dirty/Save baseline).
-//
-// User journeys:
-//   No saved value:  edit → "Reset to default" → inputs go to systemDefault,
-//                    and "Undo reset" is DISABLED (nothing saved to restore).
-//   With saved value: edit → save → edit again → "Reset to default" → inputs go
-//                    to systemDefault → "Undo reset" → inputs go to lastSaved.
+//                   (the dirty/Save baseline once a save exists).
 document.addEventListener('DOMContentLoaded', () => {
   const nameInput = document.getElementById('site-name');
   const descInput = document.getElementById('site-description');
@@ -18,7 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const descCount = document.querySelector('[data-count-for="site-description"]');
   const previewTitle = document.querySelector('[data-preview="title"]');
   const previewDesc = document.querySelector('[data-preview="desc"]');
-  const resetBtn = document.querySelector('[data-action="reset"]');
   const saveBtn = document.querySelector('[data-action="save"]');
   const saveLabel = saveBtn.querySelector('.btn__label');
   const statusEl = document.querySelector('[data-save-status]');
@@ -27,13 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Fallbacks until the server responds. The factory default may have been
   // stashed on data-factory by the pre-paint hydration script (which sets the
-  // input to the saved value) — prefer it so "Reset to default" stays correct.
+  // input to the saved value) — prefer it so the Save baseline stays correct.
   let systemDefault = {
     name: nameInput.dataset.factory != null ? nameInput.dataset.factory : nameInput.value,
     description: descInput.dataset.factory != null ? descInput.dataset.factory : descInput.value,
   };
   let lastSaved = null; // null = never saved
-  let mode = 'reset'; // 'reset' | 'undo'
   let saving = false;
   let justSaved = false;
   let saveError = null;
@@ -96,18 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
     statusEl.textContent = status;
     statusEl.hidden = status === '';
     statusEl.classList.toggle('save-status--error', isError);
-
-    if (mode === 'undo') {
-      // After a reset: offer to restore the last saved value. Disabled when
-      // there is nothing saved to restore (or it already matches the inputs).
-      resetBtn.textContent = 'Undo reset';
-      resetBtn.disabled = saving || !lastSaved || eq(lastSaved, current());
-    } else {
-      // "Reset to default" → revert to the system default; disabled when the
-      // inputs already match it.
-      resetBtn.textContent = 'Reset to default';
-      resetBtn.disabled = saving || eq(current(), systemDefault);
-    }
   }
 
   function setInputs(values) {
@@ -117,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function handleInput() {
-    mode = 'reset'; // a manual edit exits "undo reset" mode
     justSaved = false;
     saveError = null;
     touched = true;
@@ -126,22 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   nameInput.addEventListener('input', handleInput);
   descInput.addEventListener('input', handleInput);
-
-  // Reset to default ⇄ Undo reset.
-  resetBtn.addEventListener('click', () => {
-    if (resetBtn.disabled) return;
-    if (mode === 'undo') {
-      setInputs(lastSaved); // restore the last saved value
-      mode = 'reset';
-    } else {
-      setInputs(systemDefault); // revert to the system default
-      mode = 'undo';
-    }
-    justSaved = false;
-    saveError = null;
-    touched = true;
-    render();
-  });
 
   // Save → persist to the user's account.
   saveBtn.addEventListener('click', async () => {
@@ -169,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       lastSaved = data.saved || current(); // new last-saved baseline
       writeCache({ defaults: systemDefault, saved: lastSaved });
-      mode = 'reset';
       justSaved = true;
     } catch (err) {
       saveError = err.message || 'Couldn’t save. Try again.';
@@ -199,7 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
       lastSaved = data.saved || null;
       writeCache({ defaults: systemDefault, saved: lastSaved });
       if (touched) return; // the user already started editing — keep their work
-      mode = 'reset';
       setInputs(baseline());
       render();
     } catch (_) {

@@ -1,6 +1,7 @@
 'use strict';
-// Factory defaults for Site details. These are the "Reset to default" target —
-// the same for every account. (Apostrophe is U+2019 to match the UI copy.)
+// Factory defaults for Site details — the initial values seeded for every
+// account and the dirty/Save baseline until the user saves. (Apostrophe is
+// U+2019 to match the UI copy.)
 
 module.exports = {
   FACTORY_DEFAULTS: {

@@ -1,5 +1,5 @@
 // Branding page — colors, logo & favicon upload with live previews, logo
-// options, and a Reset/Undo/Save state machine persisted to the account
+// options, and a Save / Unsaved-changes state machine persisted to the account
 // (/api/branding). Implements Figma 354:1766 / 365:9587 / 493:14148 /
 // 367:9801 / 367:10005 / 367:10605 / 501:5392.
 document.addEventListener('DOMContentLoaded', () => {
@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const faviconRemove = $('[data-favicon-remove]');
   const faviconError = $('[data-error="favicon"]');
   // Save bar
-  const resetBtn = $('[data-action="reset"]');
   const saveBtn = $('[data-action="save"]');
   const saveLabel = saveBtn.querySelector('.btn__label');
   const statusEl = $('[data-save-status]');
@@ -48,7 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
     showSiteName: false, decorative: false, altText: '', favicon: null,
   };
   let lastSaved = null;
-  let mode = 'reset';
   let saving = false, justSaved = false, saveError = null;
   let touched = false; // set once the user edits, so revalidation won't clobber
 
@@ -167,18 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
     statusEl.textContent = status;
     statusEl.hidden = status === '';
     statusEl.classList.toggle('save-status--error', isError);
-
-    if (mode === 'undo') {
-      // After a reset: offer to restore the last saved value. Disabled when
-      // there is nothing saved to restore (or it already matches the inputs).
-      resetBtn.textContent = 'Undo reset';
-      resetBtn.disabled = saving || !lastSaved || eq(lastSaved, current());
-    } else {
-      // "Reset to default" → revert to the system default; disabled when the
-      // inputs already match it.
-      resetBtn.textContent = 'Reset to default';
-      resetBtn.disabled = saving || eq(current(), systemDefault);
-    }
   }
 
   // Apply a whole config object to the UI.
@@ -196,9 +182,8 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCounters();
   }
 
-  // A user change occurred → leave undo mode, clear transient status.
+  // A user change occurred → clear transient status.
   function onChange() {
-    mode = 'reset';
     justSaved = false;
     saveError = null;
     touched = true;
@@ -254,12 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (action === 'upload-favicon') faviconInput.click();
     else if (action === 'remove-logo') { logoData = null; hide(logoError); renderLogo(); onChange(); }
     else if (action === 'remove-favicon') { faviconData = null; hide(faviconError); renderFavicon(); onChange(); }
-    else if (action === 'reset') {
-      if (resetBtn.disabled) return;
-      if (mode === 'undo') { applyConfig(lastSaved); mode = 'reset'; }
-      else { applyConfig(systemDefault); mode = 'undo'; }
-      justSaved = false; saveError = null; render();
-    } else if (action === 'save') {
+    else if (action === 'save') {
       if (saveBtn.disabled || saving) return;
       doSave();
     }
@@ -282,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       lastSaved = data.saved || current();
       writeCache({ defaults: systemDefault, saved: lastSaved });
-      mode = 'reset'; justSaved = true;
+      justSaved = true;
     } catch (err) {
       saveError = err.message || 'Couldn’t save. Try again.';
     } finally {
@@ -309,7 +289,6 @@ document.addEventListener('DOMContentLoaded', () => {
       lastSaved = data.saved || null;
       writeCache({ defaults: systemDefault, saved: lastSaved });
       if (touched) return; // the user already started editing — keep their work
-      mode = 'reset';
       applyConfig(baseline());
       render();
     } catch (_) { /* keep the cached/fallback view */ }
