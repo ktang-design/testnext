@@ -1,5 +1,16 @@
 // Login page behaviour: client validation, submit, and error-state handling.
 document.addEventListener('DOMContentLoaded', () => {
+  // Wipe every per-account instant-load cache (branding, site details, website
+  // preview, etc.) so a freshly signed-in account never briefly shows the
+  // previous account's cached settings. Auth is cookie-based, so clearing
+  // localStorage doesn't affect the session. Keep only non-account UI prefs.
+  const clearAccountCaches = () => {
+    try {
+      const keep = { 'sn.sidenav': 1 };
+      Object.keys(localStorage).forEach((k) => { if (!keep[k]) localStorage.removeItem(k); });
+    } catch (_) { /* storage disabled — nothing to clear */ }
+  };
+
   const form = document.getElementById('login-form');
   const email = document.getElementById('email');
   const password = document.getElementById('password');
@@ -70,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (res.ok) {
+        clearAccountCaches(); // don't let the previous account's cached settings flash for this one
         window.location.assign(safeNext());
         return;
       }
