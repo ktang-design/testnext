@@ -776,7 +776,7 @@
       }
       // Required copyright row: copyright (left) + policy links (right).
       const fRow = el('div', 'wsprev__frow');
-      const copy = el('span', 'wsprev__copyright', `Copyright © ${new Date().getFullYear()} EBSCO StacksNext. All rights reserved`);
+      const copy = el('span', 'wsprev__copyright', `Copyright © ${new Date().getFullYear()} Stratum. All rights reserved`);
       copy.style.color = fTextColor;
       fRow.appendChild(copy);
       const fPolicy = el('div', 'wsprev__fpolicy');

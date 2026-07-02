@@ -57,7 +57,7 @@ img { display: block; }
 }
 .topnav__left { display: flex; align-items: center; gap: 16px; }
 .topnav__logo { display: flex; align-items: center; }
-.topnav__logo img { width: 126.857px; height: 24px; }
+.topnav__logo img { width: 28px; height: 28px; }
 .topnav__menu { display: flex; align-items: center; gap: 4px; }
 .navpill {
   display: inline-flex; align-items: center; gap: 8px;
