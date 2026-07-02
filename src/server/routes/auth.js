@@ -1,11 +1,29 @@
 'use strict';
 // Authentication HTTP routes: POST /login, POST /logout, GET /me.
 
+const crypto = require('crypto');
 const express = require('express');
 const { login, register, getUserById, AuthError } = require('../auth/authService');
 const { requireApiAuth } = require('../auth/authGuard');
+const { isProd } = require('../config');
 
 const router = express.Router();
+
+// Public self-service signup is closed to keep bots out. In production, an
+// account can only be created when the request carries the secret signup token
+// (SIGNUP_TOKEN env, sent as the `x-signup-token` header) — so admins can still
+// provision accounts while anonymous/bot POSTs to /api/auth/register are
+// rejected. In non-production with no token configured, signup stays open for
+// local development.
+const SIGNUP_TOKEN = process.env.SIGNUP_TOKEN || '';
+function signupAllowed(req) {
+  if (!isProd && !SIGNUP_TOKEN) return true;      // local dev convenience
+  if (!SIGNUP_TOKEN) return false;                // prod with no token → fully closed
+  const provided = String(req.get('x-signup-token') || (req.body && req.body.signupToken) || '');
+  const a = Buffer.from(provided);
+  const b = Buffer.from(SIGNUP_TOKEN);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
 
 // Light per-IP throttle on login attempts (complements per-account lockout).
 const WINDOW_MS = 1000 * 60; // 1 minute
@@ -54,6 +72,9 @@ router.post('/login', throttle, async (req, res) => {
 });
 
 router.post('/register', throttle, async (req, res) => {
+  if (!signupAllowed(req)) {
+    return res.status(403).json({ error: 'SIGNUP_DISABLED', message: 'Account signup is closed.' });
+  }
   const { name, email, password } = req.body || {};
   if (!name || !email || !password) {
     return res.status(400).json({ error: 'MISSING_FIELDS', message: 'Name, email, and password are required.' });

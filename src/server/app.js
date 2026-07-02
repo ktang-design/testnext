@@ -90,6 +90,8 @@ app.use((req, res, next) => {
 
 // ---- Static front-end -----------------------------------------------------
 app.get('/', (req, res) => res.redirect('/site-details/'));
+// Public self-service signup has been removed; send any old /signup links to login.
+app.get(['/signup', '/signup/'], (req, res) => res.redirect(302, '/login/'));
 app.use(express.static(SRC_DIR, {
   extensions: ['html'],
   setHeaders: (res, filePath) => {
