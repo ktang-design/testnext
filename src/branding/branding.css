@@ -192,6 +192,8 @@ img { display: block; }
   line-height: 21px;
   color: var(--gray-600);
 }
+/* Red asterisk marking a required field. */
+.field__req { color: var(--error); margin-right: 3px; }
 .field__hint {
   margin: 0;
   padding: 4px 0;
