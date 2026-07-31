@@ -13,13 +13,22 @@
   var ICON_FILTER = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2 4.5h12M4.5 8h7M6.5 11.5h3"/></svg>';
 
   var state = { q: '', page: 1, pageSize: 10, total: 0 };
+  // Regional display prefs from Language & region — applied to every date/time
+  // shown on the Platform pages so they stay in sync with that setting.
+  var prefs = { timeFormat: '12h', timezone: null };
   var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
   function fmtDate(iso) {
     if (!iso) return '—';
     var d = new Date(iso); if (isNaN(d.getTime())) return '—';
-    var day = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-    var t = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-    return day + ' at ' + t;
+    var dOpts = { month: 'long', day: 'numeric', year: 'numeric' };
+    var tOpts = { hour: 'numeric', minute: '2-digit', hour12: prefs.timeFormat !== '24h' };
+    if (prefs.timezone) { dOpts.timeZone = prefs.timezone; tOpts.timeZone = prefs.timezone; }
+    try {
+      return d.toLocaleDateString('en-US', dOpts) + ' at ' + d.toLocaleTimeString('en-US', tOpts);
+    } catch (e) { // invalid timezone — fall back to local
+      return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) +
+        ' at ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: prefs.timeFormat !== '24h' });
+    }
   }
   function statusPill(s) {
     var map = { active: 'Active', pending: 'Pending', inactive: 'Inactive' };
@@ -98,5 +107,15 @@
     clearTimeout(deb);
     deb = setTimeout(function () { state.q = search.value; state.page = 1; load(); }, 300);
   });
-  load();
+
+  // Load the shared date/time display prefs first, then the table (so the very
+  // first render already formats times per the Language & region setting).
+  fetch('/api/platform/language-region', { credentials: 'include' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (data) {
+      var v = data && (data.saved || data.defaults);
+      if (v) { prefs.timeFormat = v.timeFormat || '12h'; prefs.timezone = v.timezone || null; }
+    })
+    .catch(function () {})
+    .then(load, load);
 })();

@@ -76,12 +76,6 @@
 .pageactions { padding-left: 24px; padding-right: 24px; }
 .pageactions__inner { margin: 0 auto; }
 
-/* Table/list pages (Users, Administrators, Activity log) span the full content
-   width instead of the centered 960px form column. */
-.platform-page--table { align-items: stretch; }
-.platform-page--table .section-heading,
-.platform-page--table .panel { max-width: none; }
-
 /* ---- System footer (injected by app-shell.js) -----------------------------
    Sits at the bottom of the content column, below the sticky actions. Making
    .content the scroll area + the working area at least one viewport tall keeps

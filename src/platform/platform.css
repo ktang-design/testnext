@@ -18,7 +18,10 @@
 }
 .platform-page .section-heading,
 .platform-page .fields,
+.platform-page [data-table-page],
 .platform-page .panel { width: 100%; max-width: 960px; }
+/* The table container centers its panel + pager within the 960px column. */
+.platform-page [data-table-page] { display: flex; flex-direction: column; gap: 16px; }
 
 /* Links inside descriptions / hints. */
 .section-heading__desc a,
