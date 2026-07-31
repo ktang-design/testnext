@@ -10,6 +10,7 @@
    the flex column here (Bento doesn't link platform.css) and cap each block at
    960px so it lines up with the section heading. */
 .platform-page.bento {
+  flex: 1;                 /* fill the content column so the save bar sits at the bottom */
   display: flex;
   flex-direction: column;
   align-items: center;
