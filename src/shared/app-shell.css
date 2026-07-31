@@ -11,6 +11,17 @@
   --sysmsg-h: 0px;  /* height of the persistent system message, measured by app-shell.js */
 }
 
+/* Screen-reader-only utility (used by shared components like sortable-tree.js).
+   Also declared in website.css / access.css; kept here so it applies on any
+   page that links only the app shell. */
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0);
+  white-space: nowrap; border: 0;
+}
+
 /* ===========================================================================
    Persistent system message (alpha notice). Sits at the very top of every
    product page, above the main navigation, and pushes the content down. It is
@@ -170,6 +181,19 @@ body:not(.has-sysfooter) .sidenav {
   .sidenav--collapsed .nav-item__chevron { display: none; }
   .sidenav--collapsed .sidenav__subitem { display: none; }
   .sidenav--collapsed .nav-item.is-active-parent { color: var(--blue-700, #255096); }
+  /* Active item: the icon sits inside a blue rounded-square chip (matches the
+     Figma collapsed-rail selected state, and the top-nav grid/hamburger active
+     treatment). Applies to a current page (.is-active) and the active group
+     parent (.is-active-parent). Icons are inline SVGs on currentColor, so the
+     colour turns the glyph blue. */
+  .sidenav--collapsed .nav-item.is-active .nav-item__icon,
+  .sidenav--collapsed .nav-item.is-active-parent .nav-item__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--blue-50, #e9effa);
+    color: var(--blue-700, #255096);
+  }
 }
 
 /* Buttons injected by app-shell.js — hidden on desktop. */

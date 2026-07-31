@@ -27,6 +27,18 @@
 .section-heading__desc a,
 .field__hint a { color: var(--blue-700); text-decoration: underline; }
 
+/* Search integration toggle (Analytics page → gates Features > Bento). */
+.bento-int { margin-top: 8px; }
+.bento-int__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 400 16px/24px var(--font);
+  color: var(--gray-700);
+  cursor: pointer;
+}
+.bento-int__toggle input { width: 16px; height: 16px; cursor: pointer; accent-color: var(--blue-500); }
+
 /* ---------------------------  Native select  --------------------------- */
 .select {
   width: 100%;

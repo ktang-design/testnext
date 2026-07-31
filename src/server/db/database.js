@@ -122,6 +122,13 @@ const SCHEMA = [
     updated_at TEXT NOT NULL,
     PRIMARY KEY (user_id, kind)
   )`,
+  // Features > Bento: one JSON doc per user holding the search-integration flag
+  // and the ordered list of bento blocks.
+  `CREATE TABLE IF NOT EXISTS bento_settings (
+    user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    data       TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  )`,
   // Activity log entries (one row per tracked action). Scoped per account.
   `CREATE TABLE IF NOT EXISTS activity_events (
     id          TEXT PRIMARY KEY,

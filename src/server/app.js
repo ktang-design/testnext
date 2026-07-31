@@ -65,6 +65,7 @@ app.use('/api/website/search', jsonLarge, require('./routes/search'));
 // (data URLs) — so they need the large parser too. Mount before /api/website.
 app.use('/api/website/pages', jsonLarge, require('./routes/pages'));
 app.use('/api/website', jsonSmall, require('./routes/website'));
+app.use('/api/features', jsonSmall, require('./routes/features'));
 
 // ---- Page protection ------------------------------------------------------
 // The HTML entry points for these sections require a session. Their CSS/JS/
@@ -73,6 +74,7 @@ const PROTECTED_SECTIONS = new Set([
   '/site-details', '/branding', '/access',
   '/language-region', '/communication', '/analytics', '/administrators', '/users', '/activity-log',
   '/website/pages', '/website/navigation', '/website/header', '/website/footer', '/website/typography', '/website/branding', '/website/search',
+  '/features/bento',
 ]);
 
 function sectionOf(reqPath) {

@@ -5,20 +5,22 @@
   <meta name="robots" content="noindex, nofollow" />
   <link rel="icon" type="image/png" href="/favicon.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Language and region — StacksNext</title>
+  <title>Bento — StacksNext</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/components/navigation/navigation.css" />
   <link rel="stylesheet" href="/site-details/site-details.css" />
-  <link rel="stylesheet" href="/platform/platform.css" />
+  <link rel="stylesheet" href="/shared/sortable-tree.css" />
   <link rel="stylesheet" href="/shared/app-shell.css" />
+  <link rel="stylesheet" href="bento.css" />
 </head>
 <body>
   <div class="sysmsg">
     <p class="sysmsg__text">This product is currently in alpha and under active development. The functionality and designs presented are for demonstration purposes only and may change as the product evolves.</p>
   </div>
 
+  <!-- ============ Top navigation (Features layer active) ============ -->
   <header class="topnav">
     <div class="topnav__left">
       <a class="topnav__logo" href="#" aria-label="Stratum home">
@@ -29,14 +31,14 @@
           <span class="navpill__icon navpill__icon--website" aria-hidden="true"></span>
           <span class="navpill__label">Website</span>
         </a>
-        <a class="navpill" href="/features/bento/">
+        <a class="navpill navpill--active" href="/features/bento/" aria-current="page">
           <span class="navpill__icon navpill__icon--features" aria-hidden="true"></span>
           <span class="navpill__label">Features</span>
         </a>
-        <button type="button" class="navpill navpill--active" aria-current="page">
+        <a class="navpill" href="/site-details/">
           <span class="navpill__icon navpill__icon--platform" aria-hidden="true"></span>
           <span class="navpill__label">Platform</span>
-        </button>
+        </a>
       </nav>
     </div>
     <button type="button" class="usermenu" aria-label="User menu" aria-haspopup="true">
@@ -46,52 +48,57 @@
   </header>
 
   <div class="layout">
-    <aside class="sidenav" data-platform-nav aria-label="Settings"></aside>
+    <!-- ============ Features sidenav (single item) ============ -->
+    <aside class="sidenav" aria-label="Features">
+      <nav aria-label="Features">
+        <ul class="sidenav__list">
+          <li>
+            <a class="nav-item nav-item--interactive is-active" href="/features/bento/" aria-current="page">
+              <span class="nav-item__icon"><svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><rect x="1.6" y="1.6" width="5.4" height="5.4" rx="1.2"/><rect x="9" y="1.6" width="5.4" height="5.4" rx="1.2"/><rect x="1.6" y="9" width="5.4" height="5.4" rx="1.2"/><rect x="9" y="9" width="5.4" height="5.4" rx="1.2"/></svg></span>
+              <span class="nav-item__label">Bento</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
 
-    <div class="content" data-settings="/api/platform/language-region">
-      <main class="platform-page">
+    <!-- ============ Content ============ -->
+    <div class="content">
+      <main class="bento">
         <div class="section-heading">
           <div class="section-heading__text">
-            <h1 class="section-heading__title">Language and region</h1>
-            <p class="section-heading__desc">Manage language, timezone, and regional display settings across your website and system</p>
+            <h1 class="section-heading__title">Bento</h1>
+            <p class="section-heading__desc">
+              Create a unified search experience by displaying results from multiple sources in a single search.
+              Configure and organize search blocks to help users quickly explore different types of content.
+              Navigate to <a href="/analytics/">Platform &gt; Integrations</a> to configure search connections and settings.
+            </p>
           </div>
         </div>
-        <form class="fields" novalidate>
-              <div class="field">
-                <label class="field__label" for="lr-timezone">Timezone</label>
-                <p class="field__hint">Set the default timezone for dates, times, and scheduled system activity.</p>
-                <div class="field__control"><select class="select" id="lr-timezone" data-field="timezone">
-                  <option value="America/New_York">America/New York (UTC -4:00)</option>
-                  <option value="America/Chicago">America/Chicago (UTC -5:00)</option>
-                  <option value="America/Denver">America/Denver (UTC -6:00)</option>
-                  <option value="America/Los_Angeles">America/Los Angeles (UTC -7:00)</option>
-                  <option value="America/Anchorage">America/Anchorage (UTC -8:00)</option>
-                  <option value="Pacific/Honolulu">Pacific/Honolulu (UTC -10:00)</option>
-                  <option value="UTC">UTC (UTC +0:00)</option>
-                  <option value="Europe/London">Europe/London (UTC +1:00)</option>
-                  <option value="Europe/Paris">Europe/Paris (UTC +2:00)</option>
-                  <option value="Europe/Berlin">Europe/Berlin (UTC +2:00)</option>
-                  <option value="Asia/Kolkata">Asia/Kolkata (UTC +5:30)</option>
-                  <option value="Asia/Singapore">Asia/Singapore (UTC +8:00)</option>
-                  <option value="Asia/Tokyo">Asia/Tokyo (UTC +9:00)</option>
-                  <option value="Australia/Sydney">Australia/Sydney (UTC +10:00)</option>
-                </select></div>
-              </div>
-              <div class="field">
-                <label class="field__label" for="lr-timeformat">Time format</label>
-                <div class="field__control"><select class="select" id="lr-timeformat" data-field="timeFormat">
-                  <option value="12h">12-hour (2:30 PM)</option>
-                  <option value="24h">24-hour (14:30)</option>
-                </select></div>
-              </div>
-              <div class="field">
-                <label class="field__label" for="lr-language">Default language</label>
-                <p class="field__hint">Set the primary language used for site content and the default selection in the language switcher. This setting was configured during account setup. <a href="#">Contact support to make changes</a>.</p>
-                <div class="field__control"><select class="select" id="lr-language" disabled><option>English</option></select></div>
-              </div>
-        </form>
+
+        <!-- No search integration configured -->
+        <div class="bento-notice" data-state="no-integration" hidden>
+          <span class="bento-notice__icon" aria-hidden="true">
+            <svg viewBox="0 0 16 16" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2.2v3.2M10 2.2v3.2M4.4 5.4h7.2v2a3.6 3.6 0 0 1-7.2 0v-2ZM8 11v2.8"/></svg>
+          </span>
+          <div class="bento-notice__text">
+            <p class="bento-notice__title">No search integration configured</p>
+            <p class="bento-notice__desc">
+              <a href="/analytics/">Set up a search integration</a> before creating a bento search.
+              Once an integration has been configured, you&rsquo;ll be able to add and manage search blocks.
+            </p>
+          </div>
+        </div>
+
+        <!-- Integration configured: create + (optional) block list -->
+        <div class="bento-configured" data-state="configured" hidden>
+          <button type="button" class="btn btn--secondary bento-create" data-create>Create bento block</button>
+          <p class="bento-hint" data-list-hint hidden>The first item appears first on the page. Drag items to reorder.</p>
+          <div class="bento-list" data-tree hidden></div>
+        </div>
       </main>
 
+      <!-- Save bar -->
       <footer class="pageactions">
         <div class="pageactions__inner">
           <span class="save-status" data-save-status role="status" aria-live="polite" hidden></span>
@@ -104,6 +111,10 @@
     </div>
   </div>
 
+  <!-- Saved confirmation toast (shared .toast component) -->
+  <div class="toast" role="status" aria-live="polite" hidden></div>
+
+  <!-- Unsaved-changes guard -->
   <div class="modal-overlay" data-modal="unsaved" role="dialog" aria-modal="true" aria-labelledby="unsaved-title" hidden>
     <div class="modal">
       <div class="modal__header">
@@ -120,9 +131,11 @@
     </div>
   </div>
 
-  <script src="/platform/platform-nav.js"></script>
   <script src="/shared/app-shell.js"></script>
   <script src="/shared/auth-client.js"></script>
-  <script src="/platform/platform-settings.js"></script>
+  <script src="/shared/popover.js"></script>
+  <script src="/shared/modal.js"></script>
+  <script src="/shared/sortable-tree.js"></script>
+  <script src="bento.js"></script>
 </body>
 </html>
