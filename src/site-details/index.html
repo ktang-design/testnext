@@ -48,30 +48,7 @@
 
   <div class="layout">
     <!-- ============ Side navigation ============ -->
-    <aside class="sidenav" data-node-id="1:616">
-      <nav aria-label="Settings">
-        <ul class="sidenav__list">
-          <li>
-            <a class="nav-item nav-item--interactive is-active" href="#" aria-current="page">
-              <span class="nav-item__icon"><img src="assets/table-columns-active.svg" alt="" aria-hidden="true" /></span>
-              <span class="nav-item__label">Site details</span>
-            </a>
-          </li>
-          <li>
-            <a class="nav-item nav-item--interactive" href="../branding/index.html">
-              <span class="nav-item__icon"><img src="assets/swatchbook.svg" alt="" aria-hidden="true" /></span>
-              <span class="nav-item__label">Branding</span>
-            </a>
-          </li>
-          <li>
-            <a class="nav-item nav-item--interactive" href="../access/index.html">
-              <span class="nav-item__icon"><img src="assets/shield-check.svg" alt="" aria-hidden="true" /></span>
-              <span class="nav-item__label">Access</span>
-            </a>
-          </li>
-        </ul>
-      </nav>
-    </aside>
+    <aside class="sidenav" data-platform-nav aria-label="Settings"></aside>
 
     <!-- ============ Main content ============ -->
     <div class="content">
@@ -193,6 +170,8 @@
       </div>
     </div>
   </div>
+
+  <script src="/platform/platform-nav.js"></script>
 
   <script src="../shared/app-shell.js"></script>
   <script src="../shared/auth-client.js"></script>

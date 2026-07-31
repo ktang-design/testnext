@@ -53,6 +53,7 @@ app.use('/api/auth', jsonSmall, authRoutes);
 
 // ---- Settings APIs (per-user) ---------------------------------------------
 app.use('/api/site-settings', jsonSmall, require('./routes/settings'));
+app.use('/api/platform', jsonSmall, require('./routes/platform'));
 app.use('/api/branding', jsonLarge, require('./routes/branding'));
 // Website branding carries a logo data URL → large parser; mount the specific
 // paths before the general /api/website router so they take precedence.
@@ -70,6 +71,7 @@ app.use('/api/website', jsonSmall, require('./routes/website'));
 // assets stay public (harmless), which keeps the pages' relative paths working.
 const PROTECTED_SECTIONS = new Set([
   '/site-details', '/branding', '/access',
+  '/language-region', '/communication', '/analytics', '/administrators', '/users', '/activity-log',
   '/website/pages', '/website/navigation', '/website/header', '/website/footer', '/website/typography', '/website/branding', '/website/search',
 ]);
 

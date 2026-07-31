@@ -113,6 +113,15 @@ const SCHEMA = [
     data       TEXT NOT NULL,
     updated_at TEXT NOT NULL
   )`,
+  // Platform settings that are a small JSON doc per (user, kind): communication,
+  // language-region, analytics. One row per kind so pages persist independently.
+  `CREATE TABLE IF NOT EXISTS platform_settings (
+    user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    kind       TEXT NOT NULL,
+    data       TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, kind)
+  )`,
 ];
 
 // Columns introduced after the initial release. CREATE TABLE above already has
