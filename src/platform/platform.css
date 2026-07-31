@@ -130,6 +130,18 @@
 }
 .row-kebab:hover { background: var(--gray-100); }
 
+/* Floating per-row action menu (appended to <body> by users.js). */
+.rowmenu {
+  position: absolute; z-index: 100001; min-width: 150px;
+  background: var(--white); border: 1px solid var(--gray-200); border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.14); padding: 4px; display: flex; flex-direction: column;
+}
+.rowmenu button {
+  text-align: left; padding: 8px 10px; border: 0; background: transparent; border-radius: 4px;
+  font: 400 14px/21px var(--font); color: var(--gray-700); cursor: pointer;
+}
+.rowmenu button:hover { background: var(--gray-100); }
+
 /* ---------------------------  Pagination  --------------------------- */
 .pager { display: flex; align-items: center; justify-content: center; gap: 6px; padding-top: 4px; }
 .pager__btn {

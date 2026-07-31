@@ -122,6 +122,18 @@ const SCHEMA = [
     updated_at TEXT NOT NULL,
     PRIMARY KEY (user_id, kind)
   )`,
+  // Activity log entries (one row per tracked action). Scoped per account.
+  `CREATE TABLE IF NOT EXISTS activity_events (
+    id          TEXT PRIMARY KEY,
+    user_id     TEXT NOT NULL,
+    actor_label TEXT NOT NULL,
+    pre         TEXT NOT NULL,
+    link_label  TEXT,
+    link_href   TEXT,
+    post        TEXT,
+    created_at  TEXT NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_activity_user_time ON activity_events(user_id, created_at)`,
 ];
 
 // Columns introduced after the initial release. CREATE TABLE above already has
@@ -131,6 +143,9 @@ const COLUMN_PATCHES = [
   { table: 'pages', column: 'description', ddl: "ALTER TABLE pages ADD COLUMN description TEXT NOT NULL DEFAULT ''" },
   { table: 'pages', column: 'is_homepage', ddl: 'ALTER TABLE pages ADD COLUMN is_homepage INTEGER NOT NULL DEFAULT 0' },
   { table: 'pages', column: 'content', ddl: 'ALTER TABLE pages ADD COLUMN content TEXT NOT NULL DEFAULT \'{"sections":[]}\'' },
+  { table: 'users', column: 'role', ddl: "ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'Administrator'" },
+  { table: 'users', column: 'status', ddl: "ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT 'active'" },
+  { table: 'users', column: 'last_accessed_at', ddl: 'ALTER TABLE users ADD COLUMN last_accessed_at TEXT' },
 ];
 async function ensureColumns() {
   for (const p of COLUMN_PATCHES) {

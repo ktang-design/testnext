@@ -5,7 +5,7 @@
 
 const crypto = require('crypto');
 const { normalizeEmail } = require('./UserRepository');
-const { get, run } = require('../db/database');
+const { get, all, run } = require('../db/database');
 
 // Map a DB row (snake_case) to the user object the app uses (camelCase).
 function rowToUser(row) {
@@ -18,7 +18,16 @@ function rowToUser(row) {
     failedAttempts: row.failed_attempts,
     lockedUntil: row.locked_until, // ISO string or null
     createdAt: row.created_at,
+    role: row.role || 'Administrator',
+    status: row.status || 'active',
+    lastAccessedAt: row.last_accessed_at || null,
   };
+}
+// Public (safe) shape for listings — never includes the password hash.
+function rowToPublic(row) {
+  const u = rowToUser(row);
+  if (!u) return null;
+  return { id: u.id, email: u.email, name: u.name, createdAt: u.createdAt, lastAccessedAt: u.lastAccessedAt, status: u.status, role: u.role };
 }
 
 class SqliteUserRepository {
@@ -56,6 +65,31 @@ class SqliteUserRepository {
     return user;
   }
 
+  // List accounts for the platform Users/Administrators pages. Optional
+  // case-insensitive search over email/name; paginated. Never returns hashes.
+  async list({ search = '', limit = 10, offset = 0 } = {}) {
+    const like = `%${String(search).trim().toLowerCase()}%`;
+    const hasSearch = String(search).trim() !== '';
+    const where = hasSearch ? 'WHERE lower(email) LIKE ? OR lower(name) LIKE ?' : '';
+    const args = hasSearch ? [like, like] : [];
+    const totalRow = await get(`SELECT COUNT(*) AS n FROM users ${where}`, args);
+    const rows = await all(
+      `SELECT * FROM users ${where} ORDER BY created_at DESC, email ASC LIMIT ? OFFSET ?`,
+      args.concat([limit, offset])
+    );
+    return { total: totalRow ? totalRow.n : 0, users: rows.map(rowToPublic) };
+  }
+
+  async setStatus(id, status) {
+    await run('UPDATE users SET status = ? WHERE id = ?', [status, id]);
+    return this.findById(id);
+  }
+
+  // Record a successful sign-in time (best-effort; never blocks auth).
+  async touchLastAccessed(id) {
+    try { await run('UPDATE users SET last_accessed_at = ? WHERE id = ?', [new Date().toISOString(), id]); } catch (_) {}
+  }
+
   // Partial update by id. Only known columns are written.
   async update(id, patch) {
     const columns = {
@@ -63,6 +97,9 @@ class SqliteUserRepository {
       passwordHash: 'password_hash',
       failedAttempts: 'failed_attempts',
       lockedUntil: 'locked_until',
+      role: 'role',
+      status: 'status',
+      lastAccessedAt: 'last_accessed_at',
     };
     const sets = [];
     const values = [];

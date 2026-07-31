@@ -58,6 +58,8 @@ router.post('/login', throttle, async (req, res) => {
         return res.status(500).json({ error: 'SERVER_ERROR', message: 'Could not start session.' });
       }
       req.session.userId = user.id;
+      // Record the sign-in time for the Users page (best-effort, non-blocking).
+      require('../auth/repository').userRepository.touchLastAccessed(user.id);
       return res.json({ user });
     });
   } catch (err) {
