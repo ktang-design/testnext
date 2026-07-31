@@ -33,6 +33,7 @@
       { label: 'Users', href: '/users/' },
     ] },
     { icon: 'plug', label: 'Integrations', children: [
+      { label: 'EBSCO Discovery Service', href: '/eds/' },
       { label: 'Analytics', href: '/analytics/' },
     ] },
     { icon: 'history', label: 'Activity log', href: '/activity-log/' },

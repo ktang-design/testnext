@@ -84,6 +84,26 @@ router.put('/analytics', requireApiAuth, ah(async (req, res) => {
   res.json({ saved });
 }));
 
+// ---- EBSCO Discovery Service ----------------------------------------------
+router.get('/eds', requireApiAuth, ah(async (req, res) => {
+  res.json({ defaults: D.EDS_DEFAULTS, endpoint: D.EDS_ENDPOINT, saved: await repo.get(req.session.userId, 'eds') });
+}));
+router.put('/eds', requireApiAuth, ah(async (req, res) => {
+  const b = req.body || {};
+  const config = {
+    apiUsername: str(b.apiUsername, D.EDS_MAX),
+    apiPassword: str(b.apiPassword, D.EDS_MAX),
+    customerId: str(b.customerId, D.EDS_MAX),
+    groupId: str(b.groupId, D.EDS_MAX),
+    profile: str(b.profile, D.EDS_MAX),
+    // authType is optional; fall back to the default when cleared.
+    authType: str(b.authType, D.EDS_MAX) || D.EDS_DEFAULTS.authType,
+  };
+  const saved = await repo.save(req.session.userId, 'eds', config);
+  await logActivity(req.session.userId, { pre: 'Updated ', linkLabel: 'EBSCO Discovery Service', linkHref: '/eds/', post: ' integration.' });
+  res.json({ saved });
+}));
+
 // ---- Users (accounts that can access the website) -------------------------
 router.get('/users', requireApiAuth, ah(async (req, res) => {
   const { limit, offset, page, pageSize } = paging(req.query);
