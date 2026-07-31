@@ -19,41 +19,35 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveBtn = document.querySelector('[data-action="save"]');
   const saveLabel = saveBtn.querySelector('.btn__label');
   const statusEl = document.querySelector('[data-save-status]');
-  const toastEl = document.querySelector('.toast');
 
   let baseline = null;   // saved || defaults
   let saving = false;
   let saveError = null;
-  let touched = false;   // errors only surface once the user has edited
+  let touched = false;    // set once the user edits (guards load hydration)
+  let validated = false;  // errors only surface after a Save attempt
 
   const isEmpty = (v) => !v || v.trim() === '';
   const current = () => { const c = {}; KEYS.forEach((k) => { c[k] = inputs[k].value; }); return c; };
   const eq = (a, b) => !!a && !!b && KEYS.every((k) => (a[k] || '') === (b[k] || ''));
   const isDirty = () => !eq(current(), baseline);
-  const requiredFilled = () => REQUIRED.every((k) => !isEmpty(inputs[k].value));
 
-  let toastTimer;
-  function toast(message) {
-    if (!toastEl) return;
-    toastEl.textContent = message;
-    toastEl.hidden = false;
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { toastEl.hidden = true; }, 3200);
-  }
+  function toast(message) { if (window.Toast) window.Toast.show(message); }
 
-  // Live inline validation: each required field cannot be empty. Errors only
-  // show once the user has started editing (so the initial empty form is clean).
+  // Required-field validation. Errors only surface after a Save attempt
+  // (`validated`), so the form stays clean until the user tries to save with
+  // some fields still empty. Once shown, they clear live as fields are filled.
   function updateValidation() {
     let allFilled = true;
     REQUIRED.forEach((k) => {
       const el = inputs[k];
       const empty = isEmpty(el.value);
       if (empty) allFilled = false;
+      const show = empty && validated;
       const err = errEls[el.id];
-      if (err) err.hidden = !(empty && touched);
-      el.setAttribute('aria-invalid', empty && touched ? 'true' : 'false');
+      if (err) err.hidden = !show;
+      el.setAttribute('aria-invalid', show ? 'true' : 'false');
       const field = el.closest('.field');
-      if (field) field.classList.toggle('field--invalid', empty && touched);
+      if (field) field.classList.toggle('field--invalid', show);
     });
     return allFilled;
   }
@@ -68,7 +62,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function render() {
     const dirty = isDirty();
-    saveBtn.disabled = saving || !dirty || !requiredFilled();
+    // Save is enabled whenever there are changes; clicking it with empty
+    // required fields reveals the "cannot be empty" errors (rather than the
+    // button staying disabled).
+    saveBtn.disabled = saving || !dirty;
     saveBtn.classList.toggle('is-saving', saving);
     saveLabel.textContent = saving ? 'Saving' : 'Save';
 
@@ -101,6 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
   saveBtn.addEventListener('click', async () => {
     if (saveBtn.disabled || saving) return;
     touched = true;
+    validated = true; // reveal empty-required errors from here on
     if (!updateValidation()) {
       const firstEmpty = REQUIRED.find((k) => isEmpty(inputs[k].value));
       if (firstEmpty) inputs[firstEmpty].focus();

@@ -13,6 +13,12 @@
   var saveLabel = saveBtn.querySelector('.btn__label');
   var statusEl = root.querySelector('[data-save-status]');
   var CACHE_KEY = 'platform-cache:' + endpoint;
+  // Per-page toast message shown on a successful save (keyed by endpoint tail).
+  var SAVED_MSG = {
+    communication: 'Communication settings saved.',
+    'language-region': 'Language & region settings saved.',
+    analytics: 'Analytics settings saved.',
+  };
 
   var baseline = {}, saving = false, justSaved = false, saveError = null, loaded = false, touched = false;
   // US-style phone mask: digits in -> (XXX) XXX-XXXX (progressive as you type).
@@ -36,7 +42,6 @@
     if (!saving) {
       if (saveError) { s = saveError; err = true; }
       else if (dirty()) s = 'Unsaved changes';
-      else if (justSaved) s = 'Saved!';
     }
     if (statusEl) { statusEl.textContent = s; statusEl.hidden = s === ''; statusEl.classList.toggle('save-status--error', err); }
   }
@@ -74,6 +79,7 @@
       baseline = cur();
       try { localStorage.setItem(CACHE_KEY, JSON.stringify(baseline)); } catch (_) {}
       justSaved = true;
+      if (window.Toast) window.Toast.show(SAVED_MSG[endpoint.split('/').pop()] || 'Changes saved.');
     } catch (err) { saveError = err.message || 'Couldn’t save. Try again.'; }
     finally { saving = false; render(); }
   });

@@ -5,21 +5,17 @@
    app-shell.css. This file adds only the Bento-specific content styles.
    =========================================================================== */
 
-/* Left-aligned content column (matches the Figma) — the section pages that
-   center their content add themselves to app-shell.css's centering rule; Bento
-   deliberately does not, so it stays left-aligned and wide. */
-.bento {
-  flex: 1;
+/* Centered content column, matching the other Platform/settings pages. The
+   app-shell .platform-page rule supplies the padding + centering context; add
+   the flex column here (Bento doesn't link platform.css) and cap each block at
+   960px so it lines up with the section heading. */
+.platform-page.bento {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 24px;
-  padding: 40px 96px 40px;
-  max-width: 1200px;
 }
-
-/* Save button sits at the far right of the (wide) content, not capped at 960. */
-.bento ~ .pageactions .pageactions__inner,
-.content > .pageactions .pageactions__inner { max-width: none; }
+.platform-page.bento > * { width: 100%; max-width: 960px; }
 
 /* ----- No-integration notice ------------------------------------------------ */
 .bento-notice {

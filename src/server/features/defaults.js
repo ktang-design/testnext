@@ -2,10 +2,9 @@
 // Factory defaults + option lists for the Features > Bento page.
 
 module.exports = {
-  // A fresh account has no search integration and no blocks. The flag is flipped
-  // on from Platform > Integrations (see the Analytics page toggle).
+  // A fresh account has no blocks. Whether a search integration is configured
+  // is derived from the EBSCO Discovery Service settings (not stored here).
   BENTO_DEFAULTS: {
-    integrationConfigured: false,
     blocks: [],
   },
 

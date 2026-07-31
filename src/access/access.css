@@ -279,20 +279,7 @@ img { display: block; }
   max-width: 960px;
 }
 
-/* ---------------------------  Toast  --------------------------- */
-.toast {
-  position: fixed;
-  bottom: 88px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 10px 16px;
-  background: var(--gray-700);
-  color: var(--white);
-  font-size: 14px;
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-button);
-  z-index: 50;
-}
+/* Toast styling is now shared (top-right) in app-shell.css. */
 
 /* ---------------------------  Focus visibility  --------------------------- */
 :where(a, button):focus-visible {

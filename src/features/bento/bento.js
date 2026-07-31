@@ -13,8 +13,10 @@
   var treeMount = document.querySelector('[data-tree]');
   var saveBtn = document.querySelector('[data-action="save"]');
   var statusEl = document.querySelector('[data-save-status]');
-  var toastEl = document.querySelector('.toast');
 
+  // integrationConfigured is DERIVED from the EDS integration (all required EDS
+  // fields filled) — computed server-side and returned by GET. Only `blocks` is
+  // stored on the bento record and tracked for dirty/save here.
   var state = { integrationConfigured: false, blocks: [] };
   var options = { sourceType: [], contentProvider: [], subjects: [] };
   var baseline = '';
@@ -25,24 +27,13 @@
   var uid = function () { return 'b_' + Math.random().toString(36).slice(2, 10); };
   var labelOf = function (b) { return (b && b.name && b.name.trim()) || 'Bento block'; };
   var serialize = function () {
-    return JSON.stringify({
-      integrationConfigured: state.integrationConfigured,
-      blocks: state.blocks.map(function (b) {
-        return { id: b.id, name: b.name || '', sourceType: b.sourceType || '', contentProvider: b.contentProvider || '', subjects: b.subjects || '' };
-      }),
-    });
+    return JSON.stringify(state.blocks.map(function (b) {
+      return { id: b.id, name: b.name || '', sourceType: b.sourceType || '', contentProvider: b.contentProvider || '', subjects: b.subjects || '' };
+    }));
   };
   var isDirty = function () { return serialize() !== baseline; };
 
-  // ---- toast ----
-  var toastTimer;
-  function toast(message) {
-    if (!toastEl) return;
-    toastEl.textContent = message;
-    toastEl.hidden = false;
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { toastEl.hidden = true; }, 3200);
-  }
+  function toast(message) { if (window.Toast) window.Toast.show(message); }
 
   // ---- save bar ----
   function updateSave() {
@@ -186,13 +177,12 @@
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ integrationConfigured: state.integrationConfigured, blocks: state.blocks }),
+      body: JSON.stringify({ blocks: state.blocks }),
     }).then(function (res) {
       if (!res.ok) return res.json().catch(function () { return {}; }).then(function (d) { throw new Error(d.message || 'Couldn’t save. Try again.'); });
       return res.json();
     }).then(function (data) {
-      var saved = (data && data.saved) || { integrationConfigured: state.integrationConfigured, blocks: [] };
-      state.integrationConfigured = !!saved.integrationConfigured;
+      var saved = (data && data.saved) || { blocks: [] };
       state.blocks = Array.isArray(saved.blocks) ? saved.blocks : [];
       baseline = serialize();
       saving = false;
@@ -250,8 +240,8 @@
     .then(function (data) {
       var d = data || {};
       options = d.options || options;
-      var v = d.saved || d.defaults || { integrationConfigured: false, blocks: [] };
-      state.integrationConfigured = !!v.integrationConfigured;
+      state.integrationConfigured = !!d.integrationConfigured; // derived from EDS
+      var v = d.saved || d.defaults || { blocks: [] };
       state.blocks = Array.isArray(v.blocks) ? v.blocks : [];
       baseline = serialize();
       if (state.integrationConfigured && state.blocks.length) mountTree();

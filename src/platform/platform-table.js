@@ -69,6 +69,16 @@
   // Helpers exposed for page-specific code (row rendering, reload after edits).
   window.PlatformTable = { esc: esc, fmtDate: fmtDate, statusPill: statusPill, reload: load };
 
+  // Skeleton rows shown while data loads (initial paint + every fetch).
+  function renderSkeleton() {
+    var n = 5;
+    var cells = cfg.columns.map(function () { return '<td><span class="skeleton"></span></td>'; }).join('');
+    var html = '';
+    for (var i = 0; i < n; i++) html += '<tr class="dtable__skeleton" aria-hidden="true">' + cells + '</tr>';
+    tbody.innerHTML = html;
+  }
+  renderSkeleton();
+
   function renderPager() {
     var pages = Math.max(1, Math.ceil(state.total / state.pageSize));
     var html = '<button class="pager__btn" data-p="prev" aria-label="Previous page"' + (state.page <= 1 ? ' disabled' : '') + '>‹</button>';
@@ -97,6 +107,7 @@
     renderPager();
   }
   function load() {
+    renderSkeleton();
     fetch(cfg.endpoint + '?page=' + state.page + '&q=' + encodeURIComponent(state.q), { credentials: 'include' })
       .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
       .then(render)

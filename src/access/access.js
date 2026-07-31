@@ -1,15 +1,7 @@
 // Access settings page — interactivity
 // Implemented from Figma node 1:1282.
 document.addEventListener('DOMContentLoaded', () => {
-  const toastEl = document.querySelector('.toast');
-  let toastTimer;
-  function toast(message) {
-    if (!toastEl) return;
-    toastEl.textContent = message;
-    toastEl.hidden = false;
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { toastEl.hidden = true; }, 2600);
-  }
+  function toast(message) { if (window.Toast) window.Toast.show(message); }
 
   const saveBtn = document.querySelector('[data-action="save"]');
   const radios = document.querySelectorAll('input[name="access-level"]');

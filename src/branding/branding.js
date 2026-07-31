@@ -189,7 +189,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!saving) {
       if (saveError) { status = saveError; isError = true; }
       else if (dirty) status = 'Unsaved changes';
-      else if (justSaved) status = 'Saved!';
     }
     statusEl.textContent = status;
     statusEl.hidden = status === '';
@@ -294,6 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
       writeCache({ defaults: systemDefault, saved: lastSaved });
       syncWebsiteBrandingCache(lastSaved.primaryColor, lastSaved.secondaryColor);
       justSaved = true;
+      if (window.Toast) window.Toast.show('Branding saved.');
     } catch (err) {
       saveError = err.message || 'Couldn’t save. Try again.';
     } finally {

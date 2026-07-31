@@ -3,6 +3,49 @@
 // toggle, and keeps the --topnav-h variable in sync. No-ops on pages without
 // a top nav (login / signup).
 (function () {
+  // ---- Shared toast (top-right of the viewport) --------------------------
+  // window.Toast.show(message) drops a dismissible confirmation toast under the
+  // top nav. Used by every save/interaction flow instead of inline "Saved!".
+  const INFO_SVG = '<svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="8.25" fill="#fff"/><path d="M10 9v4.2" stroke="#3d3f42" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="6.4" r="1.05" fill="#3d3f42"/></svg>';
+  const X_SVG = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8"/></svg>';
+  function toastRegion() {
+    let r = document.querySelector('.toast-region');
+    if (!r) {
+      r = document.createElement('div');
+      r.className = 'toast-region';
+      r.setAttribute('role', 'region');
+      r.setAttribute('aria-label', 'Notifications');
+      document.body.appendChild(r);
+    }
+    return r;
+  }
+  window.Toast = {
+    show(message, opts) {
+      opts = opts || {};
+      const region = toastRegion();
+      const el = document.createElement('div');
+      el.className = 'toast';
+      el.setAttribute('role', 'status');
+      el.innerHTML =
+        '<span class="toast__icon">' + INFO_SVG + '</span>' +
+        '<span class="toast__msg"></span>' +
+        '<button type="button" class="toast__close" aria-label="Dismiss">' + X_SVG + '</button>';
+      el.querySelector('.toast__msg').textContent = message;
+      region.appendChild(el);
+      let timer;
+      const dismiss = () => {
+        clearTimeout(timer);
+        el.classList.add('is-leaving');
+        setTimeout(() => el.remove(), 200);
+      };
+      el.querySelector('.toast__close').addEventListener('click', dismiss);
+      timer = setTimeout(dismiss, opts.duration || 4000);
+      el.addEventListener('mouseenter', () => clearTimeout(timer));
+      el.addEventListener('mouseleave', () => { timer = setTimeout(dismiss, 1500); });
+      return el;
+    },
+  };
+
   const topnav = document.querySelector('.topnav');
   if (!topnav) return;
 

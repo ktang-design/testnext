@@ -62,23 +62,6 @@
                 <div class="field__control"><input class="input" id="ga4" data-field="ga4MeasurementId" type="text" placeholder="G-XXXXXXXXXX" autocomplete="off" spellcheck="false" /></div>
               </div>
         </form>
-
-        <!-- Search integration: gates the Features > Bento builder. Saved
-             immediately (independent of the GA4 Save button) to the bento
-             record's integrationConfigured flag. -->
-        <div class="section-heading bento-int">
-          <div class="section-heading__text">
-            <h2 class="section-heading__title">Search integration</h2>
-            <p class="section-heading__desc">Connect a search integration to build a unified <a href="/features/bento/">Bento</a> search from multiple sources.</p>
-          </div>
-        </div>
-        <div class="field">
-          <label class="bento-int__toggle">
-            <input type="checkbox" data-bento-integration />
-            <span>Enable search integration</span>
-          </label>
-          <span class="save-status" data-bento-integration-status role="status" aria-live="polite" hidden></span>
-        </div>
       </main>
 
       <footer class="pageactions">
@@ -113,6 +96,5 @@
   <script src="/shared/app-shell.js"></script>
   <script src="/shared/auth-client.js"></script>
   <script src="/platform/platform-settings.js"></script>
-  <script src="analytics.js"></script>
 </body>
 </html>
