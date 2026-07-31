@@ -42,16 +42,27 @@
   var here = norm(location.pathname);
   var esc = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
   var active = function (href) { return norm(href) === here; };
+  var slugify = function (s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); };
+
+  // Persisted group open/closed state: once the user opens (or closes) a group
+  // it stays that way across page loads until they change it. Default (untouched)
+  // is open only for the group containing the current page.
+  var GROUPS_KEY = 'platform-nav-groups';
+  var savedGroups = {};
+  try { savedGroups = JSON.parse(localStorage.getItem(GROUPS_KEY) || '{}') || {}; } catch (e) {}
 
   var html = '<ul class="sidenav__list">';
   NAV.forEach(function (item, i) {
     if (item.children) {
       var gid = 'grp' + i;
-      // Groups are collapsed by default; only the group containing the current
-      // page opens (so the active item stays visible). Click to toggle.
-      var open = item.children.some(function (c) { return active(c.href); });
-      html += '<li><button type="button" class="nav-item nav-item--interactive' + (open ? ' is-open' : '') +
-        '" data-nav-group="' + gid + '" aria-expanded="' + (open ? 'true' : 'false') + '">' +
+      var slug = slugify(item.label);
+      // Open if the user has a saved preference; otherwise default to open only
+      // when this group holds the current page. is-active-parent marks the group
+      // that contains the active page (used by the collapsed icon rail).
+      var containsActive = item.children.some(function (c) { return active(c.href); });
+      var open = Object.prototype.hasOwnProperty.call(savedGroups, slug) ? !!savedGroups[slug] : containsActive;
+      html += '<li><button type="button" class="nav-item nav-item--interactive' + (open ? ' is-open' : '') + (containsActive ? ' is-active-parent' : '') +
+        '" data-nav-group="' + gid + '" data-group-slug="' + slug + '" aria-expanded="' + (open ? 'true' : 'false') + '">' +
         '<span class="nav-item__icon">' + I[item.icon] + '</span>' +
         '<span class="nav-item__label">' + esc(item.label) + '</span>' +
         '<span class="nav-item__chevron">' + CHEVRON + '</span></button></li>';
@@ -82,6 +93,8 @@
     btn.addEventListener('click', function () {
       var open = btn.classList.toggle('is-open');
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      savedGroups[btn.getAttribute('data-group-slug')] = open; // persist until changed
+      try { localStorage.setItem(GROUPS_KEY, JSON.stringify(savedGroups)); } catch (e) {}
       mount.querySelectorAll('.sidenav__subitem[data-group="' + btn.getAttribute('data-nav-group') + '"]')
         .forEach(function (s) { s.hidden = !open; });
     });

@@ -76,6 +76,12 @@
 .pageactions { padding-left: 24px; padding-right: 24px; }
 .pageactions__inner { margin: 0 auto; }
 
+/* Table/list pages (Users, Administrators, Activity log) span the full content
+   width instead of the centered 960px form column. */
+.platform-page--table { align-items: stretch; }
+.platform-page--table .section-heading,
+.platform-page--table .panel { max-width: none; }
+
 /* ---- System footer (injected by app-shell.js) -----------------------------
    Sits at the bottom of the content column, below the sticky actions. Making
    .content the scroll area + the working area at least one viewport tall keeps
@@ -164,6 +170,12 @@ body:not(.has-sysfooter) .sidenav {
   .sidenav--collapsed .nav-item { justify-content: center; padding: 10px 0; gap: 0; position: relative; }
   .sidenav--collapsed .nav-item__label { display: none; }
   .sidenav--collapsed .sidenav__collapse img { transform: rotate(180deg); }
+  /* Icon-only rail: no group dropdown chevron, and hide the (icon-less) sub-items.
+     The parent group's icon shows the active state instead (e.g. on Users, the
+     "Users and permissions" icon is highlighted). */
+  .sidenav--collapsed .nav-item__chevron { display: none; }
+  .sidenav--collapsed .sidenav__subitem { display: none; }
+  .sidenav--collapsed .nav-item.is-active-parent { color: var(--blue-700, #255096); }
 }
 
 /* Buttons injected by app-shell.js — hidden on desktop. */
