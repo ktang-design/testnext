@@ -15,6 +15,15 @@
   var CACHE_KEY = 'platform-cache:' + endpoint;
 
   var baseline = {}, saving = false, justSaved = false, saveError = null, loaded = false, touched = false;
+  // US-style phone mask: digits in -> (XXX) XXX-XXXX (progressive as you type).
+  function formatPhone(v) {
+    var d = String(v == null ? '' : v).replace(/\D/g, '').slice(0, 10);
+    if (d.length === 0) return '';
+    if (d.length < 4) return '(' + d;
+    if (d.length < 7) return '(' + d.slice(0, 3) + ') ' + d.slice(3);
+    return '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6);
+  }
+
   var cur = function () { var o = {}; fields.forEach(function (f) { o[f.dataset.field] = f.value; }); return o; };
   var eq = function (a, b) { return fields.every(function (f) { return (a[f.dataset.field] || '') === (b[f.dataset.field] || ''); }); };
   var dirty = function () { return loaded && !eq(cur(), baseline); };
@@ -31,10 +40,22 @@
     }
     if (statusEl) { statusEl.textContent = s; statusEl.hidden = s === ''; statusEl.classList.toggle('save-status--error', err); }
   }
-  function setValues(v) { fields.forEach(function (f) { if (v && v[f.dataset.field] != null) f.value = v[f.dataset.field]; }); }
+  function setValues(v) {
+    fields.forEach(function (f) {
+      if (v && v[f.dataset.field] != null) {
+        f.value = f.dataset.mask === 'phone' ? formatPhone(v[f.dataset.field]) : v[f.dataset.field];
+      }
+    });
+  }
 
   fields.forEach(function (f) {
-    var onEdit = function () { justSaved = false; saveError = null; touched = true; render(); };
+    var onEdit = function () {
+      if (f.dataset.mask === 'phone') {
+        var p = formatPhone(f.value);
+        if (p !== f.value) { f.value = p; try { f.setSelectionRange(p.length, p.length); } catch (_) {} }
+      }
+      justSaved = false; saveError = null; touched = true; render();
+    };
     f.addEventListener('input', onEdit);
     f.addEventListener('change', onEdit);
   });
