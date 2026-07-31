@@ -47,7 +47,9 @@
   NAV.forEach(function (item, i) {
     if (item.children) {
       var gid = 'grp' + i;
-      var open = true; // groups default expanded (design shows them open)
+      // Groups are collapsed by default; only the group containing the current
+      // page opens (so the active item stays visible). Click to toggle.
+      var open = item.children.some(function (c) { return active(c.href); });
       html += '<li><button type="button" class="nav-item nav-item--interactive' + (open ? ' is-open' : '') +
         '" data-nav-group="' + gid + '" aria-expanded="' + (open ? 'true' : 'false') + '">' +
         '<span class="nav-item__icon">' + I[item.icon] + '</span>' +

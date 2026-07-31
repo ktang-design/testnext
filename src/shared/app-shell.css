@@ -66,7 +66,8 @@
 /* Center the form column within the area next to the panel (was left-aligned). */
 .branding,
 .access,
-.site-details {
+.site-details,
+.platform-page {
   max-width: none;
   width: 100%;
   padding: 48px 24px;
@@ -255,7 +256,8 @@ body.is-locked { overflow: hidden; }
   /* Trim the generous desktop padding. */
   .branding,
   .access,
-  .site-details { padding: 32px 24px; }
+  .site-details,
+  .platform-page { padding: 32px 24px; }
   .pageactions { padding: 16px 24px; }
 }
 
@@ -288,7 +290,8 @@ body.is-locked { overflow: hidden; }
 
   .branding,
   .access,
-  .site-details { padding: 24px 20px; gap: 28px; }
+  .site-details,
+  .platform-page { padding: 24px 20px; gap: 28px; }
   .pageactions { padding: 16px 20px; }
   .pageactions__inner { gap: 12px; }
 
