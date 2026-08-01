@@ -32,16 +32,13 @@
         '<button type="button" class="toast__close" aria-label="Dismiss">' + X_SVG + '</button>';
       el.querySelector('.toast__msg').textContent = message;
       region.appendChild(el);
-      let timer;
+      // Persists until the user dismisses it (X) or navigates away (a full page
+      // navigation tears down the toast) — no auto-timeout.
       const dismiss = () => {
-        clearTimeout(timer);
         el.classList.add('is-leaving');
         setTimeout(() => el.remove(), 200);
       };
       el.querySelector('.toast__close').addEventListener('click', dismiss);
-      timer = setTimeout(dismiss, opts.duration || 4000);
-      el.addEventListener('mouseenter', () => clearTimeout(timer));
-      el.addEventListener('mouseleave', () => { timer = setTimeout(dismiss, 1500); });
       return el;
     },
   };

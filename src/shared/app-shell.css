@@ -27,7 +27,7 @@
    dismiss. Replaces the old inline "Saved!" status + bottom-centre toasts. */
 .toast-region {
   position: fixed;
-  top: calc(var(--sysmsg-h, 0px) + var(--topnav-h, 64px) + 12px);
+  top: calc(var(--sysmsg-h, 0px) + 12px);
   right: 16px;
   z-index: 9990;
   display: flex;
