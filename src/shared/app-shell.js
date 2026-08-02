@@ -156,79 +156,138 @@
   // Close the drawer when a nav *link* inside it is activated.
   drawerEl && drawerEl.addEventListener('click', (e) => { if (e.target.closest('a')) closeDrawer(); });
 
-  // Builds the mobile drawer from the product pills + the page's section nav.
+  // Builds the mobile drawer from a shared nav model. Every product header is an
+  // accordion toggle (it never navigates) — only an item link navigates — and
+  // only one product can be expanded at a time. The current product is expanded
+  // by default. (This model mirrors the desktop navs: platform-nav.js for
+  // Platform + the inline Website/Features sidenavs — keep them in sync.)
   function buildMobileNav() {
     if (!menu) return null;
-    const pills = Array.from(menu.querySelectorAll('.navpill'));
-    if (!pills.length) return null;
+    const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const norm = (p) => (p || '').replace(/index\.html$/, '').replace(/\/+$/, '') || '/';
+    const here = norm(location.pathname);
+    const isActive = (href) => norm(href) === here;
+
     const CHEV =
       '<svg class="chevron--down" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>' +
       '<svg class="chevron--up" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 10 4-4 4 4"/></svg>';
-    const KEYS = ['website', 'features', 'platform'];
-    const keyOf = (pill) => {
-      const ic = pill.querySelector('.navpill__icon');
-      return (ic && KEYS.find((k) => ic.classList.contains('navpill__icon--' + k))) || '';
+    const I = {
+      site: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="2.6" width="12.4" height="10.8" rx="1.5"/><path d="M6.2 2.9v10.2"/></svg>',
+      branding: '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M0 12.5C0 14.4344 1.56562 16 3.5 16H14C15.1031 16 16 15.1031 16 14V11C16 9.89688 15.1031 9 14 9H12.0594L13.6438 7.41563C14.425 6.63438 14.425 5.36875 13.6438 4.5875L11.4156 2.35313C10.6344 1.57188 9.36875 1.57188 8.5875 2.35313L7 3.94062V2C7 0.896875 6.10312 0 5 0H2C0.896875 0 0 0.896875 0 2V12.5ZM14 14.5H6.55937L10.5594 10.5H14C14.275 10.5 14.5 10.725 14.5 11V14C14.5 14.275 14.275 14.5 14 14.5ZM12.5844 6.35313L7 11.9406V6.0625L9.64688 3.41563C9.84063 3.22188 10.1594 3.22188 10.3531 3.41563L12.5844 5.64687C12.7781 5.84062 12.7781 6.15938 12.5844 6.35313ZM3.5 14.5C2.39688 14.5 1.5 13.6031 1.5 12.5V9.5H5.5V12.5C5.5 13.6031 4.60312 14.5 3.5 14.5ZM1.5 8V5.5H5.5V8H1.5ZM1.5 4V2C1.5 1.725 1.725 1.5 2 1.5H5C5.275 1.5 5.5 1.725 5.5 2V4H1.5Z"/></svg>',
+      globe: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M1.8 8h12.4"/><ellipse cx="8" cy="8" rx="3" ry="6.2"/></svg>',
+      mail: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="3.4" width="12.4" height="9.2" rx="1.5"/><path d="m2.6 4.6 5.4 3.9 5.4-3.9"/></svg>',
+      shield: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.6 13.4 3.4v4.2c0 3.4-2.3 5.9-5.4 6.8-3.1-.9-5.4-3.4-5.4-6.8V3.4L8 1.6Z"/><path d="m5.7 8 1.6 1.6 3.1-3.2"/></svg>',
+      users: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><circle cx="8" cy="6.3" r="2.1"/><path d="M4.1 12.7a4 4 0 0 1 7.8 0"/></svg>',
+      plug: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2.2v3.2M10 2.2v3.2M4.4 5.4h7.2v2a3.6 3.6 0 0 1-7.2 0v-2ZM8 11v2.8"/></svg>',
+      history: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.7 8a5.3 5.3 0 1 1 1.7 3.9"/><path d="M2.4 12.2V9h3.2"/><path d="M8 5.2V8l1.9 1.3"/></svg>',
+      pages: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.6 14.4 5 8 8.4 1.6 5 8 1.6Z"/><path d="m2 8 6 3.2L14 8"/><path d="m2 11 6 3.2L14 11"/></svg>',
+      search: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.2"/><path d="m10.2 10.2 3 3"/></svg>',
+      navigation: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="1.6" width="4" height="3.2" rx="0.6"/><rect x="1.6" y="11.2" width="4" height="3.2" rx="0.6"/><rect x="10.4" y="11.2" width="4" height="3.2" rx="0.6"/><path d="M8 4.8v2.6M3.6 11.2V7.4H12.4v3.8"/></svg>',
+      header: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="2.6" width="12.4" height="10.8" rx="1.5"/><path d="M1.8 6.2h12.4"/></svg>',
+      footer: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="2.6" width="12.4" height="10.8" rx="1.5"/><path d="M1.8 9.8h12.4"/></svg>',
+      typography: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.2h10M8 4.2v8.6"/></svg>',
+      grid: '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><rect x="1.6" y="1.6" width="5.4" height="5.4" rx="1.2"/><rect x="9" y="1.6" width="5.4" height="5.4" rx="1.2"/><rect x="1.6" y="9" width="5.4" height="5.4" rx="1.2"/><rect x="9" y="9" width="5.4" height="5.4" rx="1.2"/></svg>',
     };
-    const byKey = {};
-    pills.forEach((pill) => { const k = keyOf(pill); if (k) byKey[k] = pill; });
+    const MODEL = [
+      { key: 'platform', label: 'Platform', items: [
+        { icon: 'site', label: 'Site details', href: '/site-details/' },
+        { icon: 'branding', label: 'Branding', href: '/branding/' },
+        { icon: 'globe', label: 'Language and region', href: '/language-region/' },
+        { icon: 'mail', label: 'Communication', href: '/communication/' },
+        { icon: 'shield', label: 'Access', href: '/access/' },
+        { icon: 'users', label: 'Users and permissions', children: [
+          { label: 'Administrators', href: '/administrators/' },
+          { label: 'Users', href: '/users/' },
+        ] },
+        { icon: 'plug', label: 'Integrations', children: [
+          { label: 'EBSCO Discovery Service', href: '/eds/' },
+          { label: 'Analytics', href: '/analytics/' },
+        ] },
+        { icon: 'history', label: 'Activity log', href: '/activity-log/' },
+      ] },
+      { key: 'website', label: 'Website', items: [
+        { icon: 'pages', label: 'Pages', href: '/website/pages/' },
+        { icon: 'search', label: 'Search', href: '/website/search/' },
+        { icon: 'navigation', label: 'Navigation', href: '/website/navigation/' },
+        { icon: 'header', label: 'Header', href: '/website/header/' },
+        { icon: 'footer', label: 'Footer', href: '/website/footer/' },
+        { icon: 'branding', label: 'Branding', href: '/website/branding/' },
+        { icon: 'typography', label: 'Typography', href: '/website/typography/' },
+      ] },
+      { key: 'features', label: 'Features', items: [
+        { icon: 'grid', label: 'Bento', href: '/features/bento/' },
+      ] },
+    ];
 
+    const anyActive = (items) => items.some((it) => (it.children ? it.children.some((c) => isActive(c.href)) : isActive(it.href)));
+
+    let gid = 0;
     const nav = document.createElement('nav');
     nav.className = 'mobilenav';
     nav.setAttribute('aria-label', 'Menu');
-    const ul = document.createElement('ul');
-    ul.className = 'mobilenav__list';
-    nav.appendChild(ul);
-
-    // Fixed order matching the design: Platform, Website, Features.
-    ['platform', 'website', 'features'].forEach((key) => {
-      const pill = byKey[key];
-      if (!pill) return;
-      const labelEl = pill.querySelector('.navpill__label');
-      const label = labelEl ? labelEl.textContent : key;
-      const active = pill.classList.contains('navpill--active');
-      const href = pill.getAttribute('href') || '#';
-      const icon = '<span class="navpill__icon navpill__icon--' + key + '" aria-hidden="true"></span>';
-      const inner = icon + '<span class="mobilenav__label">' + label + '</span><span class="mobilenav__chevron">' + CHEV + '</span>';
-      const li = document.createElement('li');
-      li.className = 'mobilenav__group';
-
-      if (active && sidenav) {
-        // Current product: expandable header + its section nav (cloned).
-        const header = document.createElement('button');
-        header.type = 'button';
-        header.className = 'mobilenav__product is-active is-open';
-        header.setAttribute('aria-expanded', 'true');
-        header.innerHTML = inner;
-        const panel = document.createElement('div');
-        panel.className = 'mobilenav__panel';
-        const list = sidenav.querySelector('.sidenav__list');
-        if (list) panel.appendChild(list.cloneNode(true));
-        header.addEventListener('click', () => {
-          const open = header.classList.toggle('is-open');
-          header.setAttribute('aria-expanded', open ? 'true' : 'false');
-          panel.hidden = !open;
-        });
-        // Re-wire the cloned collapsible groups (Users and permissions, Integrations).
-        panel.querySelectorAll('[data-nav-group]').forEach((btn) => {
-          btn.addEventListener('click', () => {
-            const open = btn.classList.toggle('is-open');
-            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-            panel.querySelectorAll('.sidenav__subitem[data-group="' + btn.getAttribute('data-nav-group') + '"]')
-              .forEach((s) => { s.hidden = !open; });
+    let html = '<ul class="mobilenav__list">';
+    MODEL.forEach((product) => {
+      const productActive = anyActive(product.items);
+      html += '<li class="mobilenav__group">' +
+        '<button type="button" class="mobilenav__product' + (productActive ? ' is-active is-open' : '') +
+        '" aria-expanded="' + (productActive ? 'true' : 'false') + '">' +
+        '<span class="navpill__icon navpill__icon--' + product.key + '" aria-hidden="true"></span>' +
+        '<span class="mobilenav__label">' + esc(product.label) + '</span>' +
+        '<span class="mobilenav__chevron">' + CHEV + '</span></button>' +
+        '<div class="mobilenav__panel"' + (productActive ? '' : ' hidden') + '><ul class="sidenav__list">';
+      product.items.forEach((it) => {
+        if (it.children) {
+          const g = 'mgrp' + (gid++);
+          const open = it.children.some((c) => isActive(c.href));
+          html += '<li><button type="button" class="nav-item nav-item--interactive' + (open ? ' is-open' : '') +
+            '" data-nav-group="' + g + '" aria-expanded="' + (open ? 'true' : 'false') + '">' +
+            '<span class="nav-item__icon">' + I[it.icon] + '</span>' +
+            '<span class="nav-item__label">' + esc(it.label) + '</span>' +
+            '<span class="nav-item__chevron">' + CHEV + '</span></button></li>';
+          it.children.forEach((c) => {
+            const a = isActive(c.href);
+            html += '<li><a class="nav-item nav-item--interactive nav-item--secondary sidenav__subitem' + (a ? ' is-active' : '') +
+              '" data-group="' + g + '" href="' + c.href + '"' + (a ? ' aria-current="page"' : '') + (open ? '' : ' hidden') +
+              '><span class="nav-item__label">' + esc(c.label) + '</span></a></li>';
           });
-        });
-        li.appendChild(header);
-        li.appendChild(panel);
-      } else {
-        // Other products: a link to that product's landing page.
-        const header = document.createElement('a');
-        header.className = 'mobilenav__product';
-        header.href = href;
-        header.innerHTML = inner;
-        li.appendChild(header);
-      }
-      ul.appendChild(li);
+        } else {
+          const a = isActive(it.href);
+          html += '<li><a class="nav-item nav-item--interactive' + (a ? ' is-active' : '') +
+            '" href="' + it.href + '"' + (a ? ' aria-current="page"' : '') + '>' +
+            '<span class="nav-item__icon">' + I[it.icon] + '</span>' +
+            '<span class="nav-item__label">' + esc(it.label) + '</span></a></li>';
+        }
+      });
+      html += '</ul></div></li>';
     });
+    html += '</ul>';
+    nav.innerHTML = html;
+
+    // Product accordion — one open at a time; headers never navigate.
+    const products = Array.from(nav.querySelectorAll('.mobilenav__product'));
+    products.forEach((btn) => {
+      const panel = btn.nextElementSibling;
+      btn.addEventListener('click', () => {
+        const willOpen = !btn.classList.contains('is-open');
+        products.forEach((other) => {
+          const op = other.nextElementSibling;
+          const openThis = other === btn && willOpen;
+          other.classList.toggle('is-open', openThis);
+          other.setAttribute('aria-expanded', openThis ? 'true' : 'false');
+          if (op) op.hidden = !openThis;
+        });
+      });
+    });
+    // Nested groups (Users and permissions, Integrations) toggle independently.
+    nav.querySelectorAll('[data-nav-group]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const open = btn.classList.toggle('is-open');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        nav.querySelectorAll('.sidenav__subitem[data-group="' + btn.getAttribute('data-nav-group') + '"]')
+          .forEach((s) => { s.hidden = !open; });
+      });
+    });
+
     document.body.appendChild(nav);
     return nav;
   }
