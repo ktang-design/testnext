@@ -838,7 +838,16 @@
       } else {
         body.classList.add('wsprev__body--published');
         const page = currentViewPage();
-        if (page && page.isBento) { body.classList.add('wsprev__body--bento'); renderBentoBody(body, state.bentoBlocks || []); }
+        if (page && page.isBento) {
+          body.classList.add('wsprev__body--bento');
+          // Drive the results colours from Branding so they stay in sync (links,
+          // headings, body text). Fall back to the branding defaults.
+          const brand = state.branding || BRAND_D;
+          body.style.setProperty('--wsprev-link', textColor(brand.link, rgba(BRAND_D.link)));
+          body.style.setProperty('--wsprev-heading', textColor(brand.heading, rgba(BRAND_D.heading)));
+          body.style.setProperty('--wsprev-bodyc', textColor(brand.body, rgba(BRAND_D.body)));
+          renderBentoBody(body, state.bentoBlocks || []);
+        }
         else if (page && page.content && page.content.sections) renderPublishedBody(body, page.content.sections);
       }
       root.appendChild(body);
