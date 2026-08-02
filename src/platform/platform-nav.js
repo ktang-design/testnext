@@ -92,6 +92,15 @@
   // Collapsible groups.
   mount.querySelectorAll('[data-nav-group]').forEach(function (btn) {
     btn.addEventListener('click', function () {
+      // Collapsed icon rail: there's no room to expand a dropdown, so clicking a
+      // group icon navigates to its first child (e.g. Users and permissions ->
+      // Administrators, Integrations -> EBSCO Discovery Service). When expanded,
+      // fall through to the normal expand/collapse toggle below.
+      if (mount.classList.contains('sidenav--collapsed')) {
+        var first = mount.querySelector('.sidenav__subitem[data-group="' + btn.getAttribute('data-nav-group') + '"]');
+        var href = first && first.getAttribute('href');
+        if (href) { window.location.href = href; return; }
+      }
       var open = btn.classList.toggle('is-open');
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
       savedGroups[btn.getAttribute('data-group-slug')] = open; // persist until changed
