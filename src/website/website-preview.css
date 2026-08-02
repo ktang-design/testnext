@@ -266,3 +266,38 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 }
 .wsprev-hud__dot { opacity: 0.5; }
 .wsprev-hud__pct { opacity: 0.85; font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
+
+/* ---------------------------  Bento results page  ------------------------- */
+/* Synthetic, non-editable page rendered by website-preview.js when the user has
+   created Bento blocks. Search-results layout: one column for a single block,
+   two columns for more (Figma 1410:2604). */
+.wsprev__bsummary {
+  margin: 0 0 24px;
+  padding: 0 2px;
+  font-size: 14px;
+  color: #3d3f42;
+}
+.wsprev__bsource { text-decoration: underline; margin-right: 14px; white-space: nowrap; }
+.wsprev__bento { display: grid; grid-template-columns: 1fr; gap: 40px 28px; align-items: start; }
+.wsprev__bento--two { grid-template-columns: 1fr 1fr; }
+.wsprev__bblock { min-width: 0; }
+.wsprev__bbhead {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  border-bottom: 2px solid #2d62b7; padding-bottom: 8px; margin-bottom: 0;
+}
+.wsprev__bbtitle { margin: 0; font-size: 20px; font-weight: 700; color: #1a1c1e; line-height: 1.3; }
+.wsprev__bbseeall { color: #2d62b7; text-decoration: underline; font-size: 14px; white-space: nowrap; }
+.wsprev__bbcards { background: #f7f8f9; }
+.wsprev__bcard { padding: 16px; border-bottom: 1px solid #e6e8eb; }
+.wsprev__bcard:last-child { border-bottom: 0; }
+.wsprev__bctype { font-size: 13px; color: #55585d; margin-bottom: 4px; }
+.wsprev__bctitle { font-size: 15px; font-weight: 700; color: #2d62b7; line-height: 1.35; margin-bottom: 6px; }
+.wsprev__bcext { display: inline-flex; vertical-align: -2px; color: #2d62b7; }
+.wsprev__bcauthors { font-size: 13px; color: #2d62b7; margin-bottom: 6px; }
+.wsprev__bcsnippet { font-size: 13px; color: #3d3f42; line-height: 1.45; margin-bottom: 12px; }
+.wsprev__bcactions { display: flex; flex-wrap: wrap; gap: 8px; }
+.wsprev__bcbtn {
+  display: inline-flex; align-items: center; padding: 6px 12px;
+  border: 1px solid #c7cace; border-radius: 4px;
+  font-size: 13px; color: #2d62b7; background: #fff;
+}

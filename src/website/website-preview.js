@@ -179,6 +179,7 @@
       siteName: '',
       showSiteName: false,    // Branding "Show site name beside logo"
       pages: [],              // published pages (with content) for the read-only view
+      bentoBlocks: [],        // Features > Bento blocks; when present, a synthetic (non-editable) "Bento page" is navigable
       viewPageId: null,       // which page the preview is currently showing (defaults to the homepage)
       builder: null,          // { sections, selectedSectionId, selectedElementId } when editing a page
       builderCallbacks: {},   // { onAddSection, onAddElement, onSelectSection, onSelectElement, onDeleteSection, onDeleteElement }
@@ -545,13 +546,70 @@
       if (!(blr.sections || []).length) body.appendChild(cta('Add section', () => cb.onAddSection && cb.onAddSection()));
     }
 
+    // Synthetic, non-editable "Bento page" — exists only in the preview when the
+    // user has created Bento blocks. It renders a search-results layout (below)
+    // rather than editable page sections.
+    const BENTO_PAGE_ID = '__bento__';
+    const SAMPLE_QUERY = 'health';
+    function bentoPage() {
+      return (state.bentoBlocks || []).length
+        ? { id: BENTO_PAGE_ID, title: 'Bento page', slug: '/bento', isBento: true }
+        : null;
+    }
+    function viewPages() {
+      const bp = bentoPage();
+      return bp ? (state.pages || []).concat([bp]) : (state.pages || []);
+    }
+
     // The page the read-only preview currently shows: the chosen one, else the
     // homepage, else the first page.
     function currentViewPage() {
-      const pages = state.pages || [];
+      const pages = viewPages();
       if (!pages.length) return null;
       return pages.find((p) => p.id === state.viewPageId)
         || pages.find((p) => p.isHomepage) || pages[0];
+    }
+
+    // Read-only render of the Bento page: a "results" summary + a grid of blocks
+    // (single column for one block, two columns for more), each showing the
+    // user's block name and up to 3 result cards. No live EDS data yet, so the
+    // cards are representative placeholders per the Figma.
+    function bentoCard() {
+      const card = el('div', 'wsprev__bcard');
+      card.appendChild(el('div', 'wsprev__bctype', 'Academic Journal'));
+      const title = el('div', 'wsprev__bctitle');
+      title.appendChild(document.createTextNode('Activity-Dependent Rapid Local RhoA Synthesis Is Required for Hippocampal Synaptic Plasticity. '));
+      const ext = el('span', 'wsprev__bcext');
+      ext.innerHTML = '<svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3H3.5A1.5 1.5 0 0 0 2 4.5v8A1.5 1.5 0 0 0 3.5 14h8a1.5 1.5 0 0 0 1.5-1.5V10"/><path d="M9.5 2.5H13.5V6.5"/><path d="M7 9 13.2 2.8"/></svg>';
+      title.appendChild(ext);
+      card.appendChild(title);
+      card.appendChild(el('div', 'wsprev__bcauthors', 'Briz, Victor; Guogi Zhu; Yubin Wang; +4 more'));
+      card.appendChild(el('div', 'wsprev__bcsnippet', 'Phyllobilins are chlorophyll metabolites that belong to bilin-type linear tetrapyrroles. Chlorophyll, the omnipresent green pigment from algae to higher plants, is essential for life o…'));
+      const actions = el('div', 'wsprev__bcactions');
+      ['Read online', 'More access options', 'Cite'].forEach((lbl) => actions.appendChild(el('span', 'wsprev__bcbtn', lbl)));
+      card.appendChild(actions);
+      return card;
+    }
+    function renderBentoBody(body, blocks) {
+      const list = (blocks || []).slice(0, 50);
+      const summary = el('p', 'wsprev__bsummary');
+      summary.appendChild(document.createTextNode('Results for “' + SAMPLE_QUERY + '” from '));
+      list.forEach((b) => summary.appendChild(el('span', 'wsprev__bsource', (b.name || 'Untitled block') + ' (100,000)')));
+      body.appendChild(summary);
+
+      const grid = el('div', 'wsprev__bento' + (list.length > 1 ? ' wsprev__bento--two' : ''));
+      list.forEach((b) => {
+        const block = el('div', 'wsprev__bblock');
+        const head = el('div', 'wsprev__bbhead');
+        head.appendChild(el('h3', 'wsprev__bbtitle', b.name || 'Untitled block'));
+        head.appendChild(el('span', 'wsprev__bbseeall', 'See all results'));
+        block.appendChild(head);
+        const cards = el('div', 'wsprev__bbcards');
+        for (let i = 0; i < 3; i++) cards.appendChild(bentoCard());
+        block.appendChild(cards);
+        grid.appendChild(block);
+      });
+      body.appendChild(grid);
     }
 
     // Read-only render of a published page's sections + elements (no editing
@@ -671,6 +729,15 @@
         }
         hNav.appendChild(a);
       });
+      // A navigable link to the synthetic Bento page (only when blocks exist).
+      if (live && bentoPage()) {
+        const a = el('a', 'wsprev__navlink', 'Bento page');
+        a.style.color = textColor(h.links, '#3D3F42');
+        a.href = '#';
+        if (viewId === BENTO_PAGE_ID) a.classList.add('is-current');
+        a.addEventListener('click', (e) => { e.preventDefault(); goTo(BENTO_PAGE_ID); });
+        hNav.appendChild(a);
+      }
       if (!inline) {
         hLogo.style.alignSelf = h.logo === 'center' ? 'center' : 'flex-start';
         hNav.style.alignSelf = h.nav === 'aligned' ? 'center' : 'flex-start';
@@ -708,6 +775,7 @@
           const input = el('input', 'wsprev__searchinput');
           input.type = 'text';
           input.placeholder = 'Search articles, books, journals & more';
+          if (currentViewPage() && currentViewPage().isBento) input.value = SAMPLE_QUERY;
           const btn = el('button', 'wsprev__searchbtn');
           btn.type = 'button';
           btn.innerHTML = '<svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="#2d62b7" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg>';
@@ -735,7 +803,8 @@
       } else {
         body.classList.add('wsprev__body--published');
         const page = currentViewPage();
-        if (page && page.content && page.content.sections) renderPublishedBody(body, page.content.sections);
+        if (page && page.isBento) renderBentoBody(body, state.bentoBlocks || []);
+        else if (page && page.content && page.content.sections) renderPublishedBody(body, page.content.sections);
       }
       root.appendChild(body);
 
@@ -810,6 +879,7 @@
       // Cached so the published homepage body paints instantly and identically
       // on every panel (the /api/website/pages fetch then revalidates it).
       pages: state.pages,
+      bentoBlocks: state.bentoBlocks,
     });
     let cacheTimer = null;
     const scheduleCacheWrite = () => {
@@ -831,6 +901,7 @@
       if ('siteName' in cached) state.siteName = cached.siteName;
       if ('showSiteName' in cached) state.showSiteName = cached.showSiteName;
       if (Array.isArray(cached.pages)) state.pages = cached.pages;
+      if (Array.isArray(cached.bentoBlocks)) state.bentoBlocks = cached.bentoBlocks;
     }
     render();
 
@@ -846,7 +917,8 @@
       get('/api/branding'),
       get('/api/site-settings'),
       get('/api/website/pages'),
-    ]).then(([nav, header, footer, typo, wbrand, search, pbrand, site, pages]) => {
+      get('/api/features/bento'),
+    ]).then(([nav, header, footer, typo, wbrand, search, pbrand, site, pages, bento]) => {
       if (nav && Array.isArray(nav.navigation)) state.navigation = nav.navigation;
       if (header) state.header = header.saved || header.defaults || HEADER_D;
       if (footer) state.footer = footer.saved || footer.defaults || FOOTER_D;
@@ -861,6 +933,7 @@
       // instant-load cache may have pre-populated state.pages, but the fetch is
       // authoritative, so a cache alone must not block it.)
       if (pages && Array.isArray(pages.pages) && !hostProvidedPages) state.pages = pages.pages;
+      state.bentoBlocks = (bento && bento.saved && Array.isArray(bento.saved.blocks)) ? bento.saved.blocks : [];
       render();
       writeCache(cacheSnapshot());
     });
