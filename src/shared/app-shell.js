@@ -169,19 +169,23 @@
       }
     });
 
+    // The collapsed flag lives on <html> (.is-nav-collapsed) so a tiny inline
+    // <head> script can apply it before first paint — otherwise the sidenav
+    // renders expanded, then jumps to the rail on each navigation (flicker).
+    const root = document.documentElement;
     try {
-      if (localStorage.getItem('sn.sidenav') === 'collapsed') sidenav.classList.add('sidenav--collapsed');
+      if (localStorage.getItem('sn.sidenav') === 'collapsed') root.classList.add('is-nav-collapsed');
     } catch (_) { /* storage unavailable */ }
 
     const syncCollapse = () => {
-      const collapsed = sidenav.classList.contains('sidenav--collapsed');
+      const collapsed = root.classList.contains('is-nav-collapsed');
       collapseBtn.setAttribute('aria-label', collapsed ? 'Expand navigation panel' : 'Collapse navigation panel');
       collapseBtn.setAttribute('aria-expanded', String(!collapsed));
     };
     syncCollapse();
 
     collapseBtn.addEventListener('click', () => {
-      const collapsed = sidenav.classList.toggle('sidenav--collapsed');
+      const collapsed = root.classList.toggle('is-nav-collapsed');
       try { localStorage.setItem('sn.sidenav', collapsed ? 'collapsed' : 'expanded'); } catch (_) {}
       syncCollapse();
     });
@@ -309,7 +313,7 @@
     let target = null;
     // Sidenav items carry a tooltip but should only show it while collapsed (the
     // label is visible when expanded).
-    const allowed = (el) => (el.matches('.nav-item') ? !!(sidenav && sidenav.classList.contains('sidenav--collapsed')) : true);
+    const allowed = (el) => (el.matches('.nav-item') ? document.documentElement.classList.contains('is-nav-collapsed') : true);
     const ensure = () => {
       if (!tip) {
         tip = document.createElement('div');

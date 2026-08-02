@@ -212,23 +212,23 @@ body:not(.has-sysfooter) .sidenav {
   .sidenav:hover .sidenav__collapse,
   .sidenav__collapse:focus-visible { opacity: 1; }
 
-  .sidenav--collapsed { width: 64px; }
-  .sidenav--collapsed .nav-item { justify-content: center; padding: 10px 0; gap: 0; position: relative; }
-  .sidenav--collapsed .nav-item__label { display: none; }
-  .sidenav--collapsed .sidenav__collapse img { transform: rotate(180deg); }
+  .is-nav-collapsed .sidenav { width: 64px; }
+  .is-nav-collapsed .sidenav .nav-item { justify-content: center; padding: 10px 0; gap: 0; position: relative; }
+  .is-nav-collapsed .sidenav .nav-item__label { display: none; }
+  .is-nav-collapsed .sidenav .sidenav__collapse img { transform: rotate(180deg); }
   /* Icon-only rail: no group dropdown chevron, and hide the (icon-less) sub-items.
      The parent group's icon shows the active state instead (e.g. on Users, the
      "Users and permissions" icon is highlighted). */
-  .sidenav--collapsed .nav-item__chevron { display: none; }
-  .sidenav--collapsed .sidenav__subitem { display: none; }
-  .sidenav--collapsed .nav-item.is-active-parent { color: var(--blue-700, #255096); }
+  .is-nav-collapsed .sidenav .nav-item__chevron { display: none; }
+  .is-nav-collapsed .sidenav .sidenav__subitem { display: none; }
+  .is-nav-collapsed .sidenav .nav-item.is-active-parent { color: var(--blue-700, #255096); }
   /* Active item: the icon sits inside a blue rounded-square chip (matches the
      Figma collapsed-rail selected state, and the top-nav grid/hamburger active
      treatment). Applies to a current page (.is-active) and the active group
      parent (.is-active-parent). Icons are inline SVGs on currentColor, so the
      colour turns the glyph blue. */
-  .sidenav--collapsed .nav-item.is-active .nav-item__icon,
-  .sidenav--collapsed .nav-item.is-active-parent .nav-item__icon {
+  .is-nav-collapsed .sidenav .nav-item.is-active .nav-item__icon,
+  .is-nav-collapsed .sidenav .nav-item.is-active-parent .nav-item__icon {
     width: 40px;
     height: 40px;
     border-radius: 8px;
