@@ -325,6 +325,30 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (_) { /* keep the cached/fallback view */ }
   })();
 
+  // ---- Browser-tab (favicon) preview title ----
+  // Reflect the saved Site details as "{site name} | {description}". Those live
+  // on another page, so paint from its instant-load cache first, then confirm
+  // from the API (was a hardcoded "StacksNext | …" that never synced).
+  const browserTitle = $('.browser__title');
+  function setTabTitle(cfg) {
+    if (!browserTitle || !cfg) return;
+    const name = (cfg.name || '').trim();
+    const desc = (cfg.description || '').trim();
+    browserTitle.textContent = desc ? (name + ' | ' + desc) : name;
+  }
+  try {
+    const sd = JSON.parse(localStorage.getItem('site-details-config') || 'null');
+    if (sd) setTabTitle(sd.saved || sd.defaults);
+  } catch (_) { /* no cache — the API call below fills it in */ }
+  (async () => {
+    try {
+      const res = await fetch('/api/site-settings', { credentials: 'include' });
+      if (!res.ok) return;
+      const data = await res.json();
+      setTabTitle(data.saved || data.defaults);
+    } catch (_) { /* keep the current title */ }
+  })();
+
   // ---- Unsaved-changes navigation guard (mirrors Site details) ----
   const modal = $('[data-modal="unsaved"]');
   let pendingHref = null;
