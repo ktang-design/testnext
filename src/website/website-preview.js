@@ -561,6 +561,27 @@
       return bp ? (state.pages || []).concat([bp]) : (state.pages || []);
     }
 
+    // Mirror the Search page: when Bento is configured, a "Bento search" exists
+    // in the search list — so the search bar must render on EVERY website page,
+    // not just the Search panel (whose own JS injects it). Add/remove the
+    // bento-typed search in state.search accordingly (never mutating SEARCH_D).
+    function ensureBentoSearch(configured) {
+      const s = state.search || SEARCH_D;
+      const list = (s.searches || []).slice();
+      const idx = list.findIndex((x) => x.type === 'bento');
+      let changed = false;
+      if (configured && idx === -1) {
+        list.push({ id: 'search-bento', type: 'bento', name: 'Bento search', displayLabel: 'Bento search', url: '', urlencode: true, buttonLabel: 'Search', isDefault: list.length === 0 });
+        changed = true;
+      } else if (!configured && idx !== -1) {
+        const wasDefault = list[idx].isDefault;
+        list.splice(idx, 1);
+        if (wasDefault && list.length && !list.some((x) => x.isDefault)) list[0].isDefault = true;
+        changed = true;
+      }
+      if (changed) state.search = Object.assign({}, s, { searches: list });
+    }
+
     // The page the read-only preview currently shows: the chosen one, else the
     // homepage, else the first page.
     function currentViewPage() {
@@ -948,6 +969,7 @@
       // authoritative, so a cache alone must not block it.)
       if (pages && Array.isArray(pages.pages) && !hostProvidedPages) state.pages = pages.pages;
       state.bentoBlocks = (bento && bento.saved && Array.isArray(bento.saved.blocks)) ? bento.saved.blocks : [];
+      ensureBentoSearch(!!(bento && bento.integrationConfigured && state.bentoBlocks.length));
       render();
       writeCache(cacheSnapshot());
     });
