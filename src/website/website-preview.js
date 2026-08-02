@@ -142,13 +142,19 @@
 
   // Apply a richtext element's style (colours + border) — only when a value is
   // actually set (opacity > 0 / a width chosen), otherwise the CSS defaults win.
+  // Factory element text colours. When an element still carries these (i.e. the
+  // user hasn't picked a custom colour), treat them as "inherit from Branding"
+  // so published pages track the Branding heading/body/link colours live. An
+  // explicit non-default colour still wins.
+  const EL_DEFAULT = { heading: '#3D3F42', text: '#55585D', link: '#255096' };
+  const isDefaultColor = (c, hex) => !!c && String(c.color || '').toUpperCase() === hex;
   function applyRichtextStyle(elt, rt, st) {
     if (!st) return;
     let padded = false;
     if (st.background && st.background.opacity > 0) { elt.style.background = rgba(st.background); padded = true; }
-    if (st.heading && st.heading.opacity > 0) rt.style.setProperty('--rt-heading', rgba(st.heading));
-    if (st.text && st.text.opacity > 0) rt.style.setProperty('--rt-text', rgba(st.text));
-    if (st.link && st.link.opacity > 0) rt.style.setProperty('--rt-link', rgba(st.link));
+    if (st.heading && st.heading.opacity > 0 && !isDefaultColor(st.heading, EL_DEFAULT.heading)) rt.style.setProperty('--rt-heading', rgba(st.heading));
+    if (st.text && st.text.opacity > 0 && !isDefaultColor(st.text, EL_DEFAULT.text)) rt.style.setProperty('--rt-text', rgba(st.text));
+    if (st.link && st.link.opacity > 0 && !isDefaultColor(st.link, EL_DEFAULT.link)) rt.style.setProperty('--rt-link', rgba(st.link));
     const bw = ({ 1: 1, 2: 2, 4: 4 })[st.borderWidth] || 1;
     const sides = st.borderSides || {};
     // A border only appears once a border colour is chosen (opacity > 0).
@@ -657,7 +663,7 @@
         if (element.displayTitle && element.title) {
           const t = el('h3', 'wsprev__eltitle', element.title);
           const hd = element.style && element.style.heading;
-          if (hd && hd.opacity > 0) t.style.color = rgba(hd);
+          if (hd && hd.opacity > 0 && !isDefaultColor(hd, EL_DEFAULT.heading)) t.style.color = rgba(hd);
           elt.appendChild(t);
         }
         if (element.type === 'code') {
@@ -712,6 +718,13 @@
       root.style.setProperty('--wsprev-heading-weight', num(t.headingWeight, '600'));
       root.style.setProperty('--wsprev-body-size', num(t.bodySize, '16') + 'px');
       root.style.setProperty('--wsprev-body-weight', num(t.bodyWeight, '400'));
+      // Branding colours drive the default heading / body / link colours for all
+      // published pages (homepage + any added page) and the Bento page. Per-
+      // element overrides (--rt-*) still win over these defaults.
+      const brand = state.branding || BRAND_D;
+      root.style.setProperty('--wsprev-link', textColor(brand.link, rgba(BRAND_D.link)));
+      root.style.setProperty('--wsprev-heading', textColor(brand.heading, rgba(BRAND_D.heading)));
+      root.style.setProperty('--wsprev-bodyc', textColor(brand.body, rgba(BRAND_D.body)));
       root.innerHTML = '';
 
       // ---- Header / navigation bar ----
@@ -838,16 +851,7 @@
       } else {
         body.classList.add('wsprev__body--published');
         const page = currentViewPage();
-        if (page && page.isBento) {
-          body.classList.add('wsprev__body--bento');
-          // Drive the results colours from Branding so they stay in sync (links,
-          // headings, body text). Fall back to the branding defaults.
-          const brand = state.branding || BRAND_D;
-          body.style.setProperty('--wsprev-link', textColor(brand.link, rgba(BRAND_D.link)));
-          body.style.setProperty('--wsprev-heading', textColor(brand.heading, rgba(BRAND_D.heading)));
-          body.style.setProperty('--wsprev-bodyc', textColor(brand.body, rgba(BRAND_D.body)));
-          renderBentoBody(body, state.bentoBlocks || []);
-        }
+        if (page && page.isBento) { body.classList.add('wsprev__body--bento'); renderBentoBody(body, state.bentoBlocks || []); }
         else if (page && page.content && page.content.sections) renderPublishedBody(body, page.content.sections);
       }
       root.appendChild(body);
