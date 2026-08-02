@@ -271,9 +271,10 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 /* Synthetic, non-editable page rendered by website-preview.js when the user has
    created Bento blocks. Search-results layout: one column for a single block,
    two columns for more (Figma 1410:2604). */
+/* Results content margins per the Figma: 48px top/left/right, 64px bottom. */
+.wsprev__body--bento { padding: 48px 48px 64px; box-sizing: border-box; }
 .wsprev__bsummary {
   margin: 0 0 24px;
-  padding: 0 2px;
   font-size: 14px;
   color: #3d3f42;
 }

@@ -838,7 +838,7 @@
       } else {
         body.classList.add('wsprev__body--published');
         const page = currentViewPage();
-        if (page && page.isBento) renderBentoBody(body, state.bentoBlocks || []);
+        if (page && page.isBento) { body.classList.add('wsprev__body--bento'); renderBentoBody(body, state.bentoBlocks || []); }
         else if (page && page.content && page.content.sections) renderPublishedBody(body, page.content.sections);
       }
       root.appendChild(body);
