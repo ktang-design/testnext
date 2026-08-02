@@ -301,25 +301,67 @@ a.navpill, a.navpill:hover, a.navpill:visited { text-decoration: none; }
 
 body.is-locked { overflow: hidden; }
 
+/* ---------------------------  Unified mobile nav  ------------------------- */
+/* Built by app-shell.js from the product pills + the page's section nav. Hidden
+   on desktop; becomes the off-canvas hamburger drawer at ≤899px (below). */
+.mobilenav { display: none; }
+.mobilenav__list { list-style: none; margin: 0; padding: 0; }
+.mobilenav__group { border-bottom: 1px solid var(--gray-200, #d7d8da); }
+.mobilenav__product {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 16px 20px;
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  font: 600 16px/24px var(--font, 'Noto Sans', sans-serif);
+  color: var(--gray-700, #3d3f42);
+  text-decoration: none;
+}
+.mobilenav__product .navpill__icon { width: 20px; height: 20px; }
+.mobilenav__label { flex: 1 1 auto; min-width: 0; }
+.mobilenav__chevron { display: inline-flex; width: 20px; height: 20px; color: var(--gray-500, #8b8e92); }
+.mobilenav__chevron svg { display: block; }
+.mobilenav__chevron .chevron--up { display: none; }
+.mobilenav__product.is-active { color: var(--blue-700, #255096); }
+.mobilenav__product.is-open .chevron--down { display: none; }
+.mobilenav__product.is-open .chevron--up { display: block; }
+.mobilenav__panel { padding: 4px 8px 12px; }
+.mobilenav__panel[hidden] { display: none; }
+.mobilenav__panel .sidenav__list { display: flex; flex-direction: column; gap: 2px; }
+.mobilenav__panel .nav-item { width: 100%; }
+
 /* ===========================  Tablet & below (≤ 899px)  =================== */
 @media (max-width: 899px) {
   /* The top nav is NOT sticky — only the system message (above) stays pinned. */
   .topnav__hamburger { display: inline-flex; }
 
-  /* Sidebar becomes an off-canvas drawer below the message + top nav. */
-  .sidenav {
+  /* Product pills + the grid product-menu are replaced by the hamburger drawer. */
+  .topnav__menu { display: none; }
+  .topnav__apps { display: none; }
+
+  /* The docked section sidenav is replaced by the unified mobile drawer. */
+  .sidenav { display: none; }
+  .mobilenav {
+    display: block;
     position: fixed;
     left: 0;
     top: calc(var(--sysmsg-h) + var(--topnav-h));
     height: calc(100% - var(--sysmsg-h) - var(--topnav-h));
-    width: 288px;
-    max-width: 86vw;
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    overflow-y: auto;
     transform: translateX(-100%);
     transition: transform 0.22s ease;
     box-shadow: 2px 0 16px rgba(0, 0, 0, 0.12);
     z-index: 50;
   }
-  .sidenav.is-open { transform: translateX(0); }
+  .mobilenav.is-open { transform: translateX(0); }
 
   /* Content fills the row once the sidebar is out of flow. */
   .content { width: 100%; }
@@ -334,27 +376,6 @@ body.is-locked { overflow: hidden; }
 
 /* ===========================  Mobile (≤ 599px)  =========================== */
 @media (max-width: 599px) {
-  /* Product nav (Website / Features / Platform) collapses to a grid icon. */
-  .topnav__menu {
-    display: none;
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;                 /* right-align the dropdown under the grid icon */
-    flex-direction: column;
-    align-items: stretch;
-    gap: 2px;
-    min-width: 200px;
-    padding: 6px;
-    background: #fff;
-    border: 1px solid var(--gray-200, #d7d8da);
-    border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    z-index: 70;
-  }
-  .topnav__menu.is-open { display: flex; }
-  .topnav__menu .navpill { justify-content: flex-start; width: 100%; }
-  .topnav__apps { display: inline-flex; }
-
   /* Section heading + action button stack. */
   .section-heading { flex-direction: column; align-items: stretch; gap: 16px; }
   .section-heading .btn { align-self: flex-start; }

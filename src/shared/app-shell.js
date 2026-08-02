@@ -116,9 +116,17 @@
   scrim.className = 'app-scrim';
   document.body.appendChild(scrim);
 
-  // ---- Hamburger → sidebar drawer ----
+  // ---- Unified mobile navigation drawer ----
+  // On small screens the product pills + the section sidenav are replaced by a
+  // single hamburger drawer: each product (Platform / Website / Features) is an
+  // accordion; the current product is expanded and shows its section nav
+  // (cloned from the page's .sidenav), the others link to their landing page.
+  const mobilenav = buildMobileNav();
+  const drawerEl = mobilenav || sidenav; // fall back to the sidenav if no pills
+
+  // ---- Hamburger → drawer ----
   let hamburger = null;
-  if (sidenav && left) {
+  if (drawerEl && left) {
     hamburger = document.createElement('button');
     hamburger.type = 'button';
     hamburger.className = 'topnav__iconbtn topnav__hamburger';
@@ -126,28 +134,104 @@
     hamburger.setAttribute('aria-expanded', 'false');
     hamburger.innerHTML = '<img src="/shared/menu.svg" alt="" />';
     left.insertBefore(hamburger, left.firstChild);
-    hamburger.addEventListener('click', () => (sidenav.classList.contains('is-open') ? closeDrawer() : openDrawer()));
+    hamburger.addEventListener('click', () => (drawerEl.classList.contains('is-open') ? closeDrawer() : openDrawer()));
   }
 
   function openDrawer() {
-    if (!sidenav) return;
-    sidenav.classList.add('is-open');
+    if (!drawerEl) return;
+    drawerEl.classList.add('is-open');
     scrim.classList.add('is-open');
     hamburger && (hamburger.classList.add('is-active'), hamburger.setAttribute('aria-expanded', 'true'));
     document.body.classList.add('is-locked');
   }
   function closeDrawer() {
-    if (!sidenav) return;
-    sidenav.classList.remove('is-open');
+    if (!drawerEl) return;
+    drawerEl.classList.remove('is-open');
     scrim.classList.remove('is-open');
     hamburger && (hamburger.classList.remove('is-active'), hamburger.setAttribute('aria-expanded', 'false'));
     document.body.classList.remove('is-locked');
   }
 
   scrim.addEventListener('click', closeDrawer);
-  // Close the drawer when a nav *link* inside it is activated (not the
-  // collapse button, which is a <button>).
-  sidenav && sidenav.addEventListener('click', (e) => { if (e.target.closest('a')) closeDrawer(); });
+  // Close the drawer when a nav *link* inside it is activated.
+  drawerEl && drawerEl.addEventListener('click', (e) => { if (e.target.closest('a')) closeDrawer(); });
+
+  // Builds the mobile drawer from the product pills + the page's section nav.
+  function buildMobileNav() {
+    if (!menu) return null;
+    const pills = Array.from(menu.querySelectorAll('.navpill'));
+    if (!pills.length) return null;
+    const CHEV =
+      '<svg class="chevron--down" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>' +
+      '<svg class="chevron--up" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 10 4-4 4 4"/></svg>';
+    const KEYS = ['website', 'features', 'platform'];
+    const keyOf = (pill) => {
+      const ic = pill.querySelector('.navpill__icon');
+      return (ic && KEYS.find((k) => ic.classList.contains('navpill__icon--' + k))) || '';
+    };
+    const byKey = {};
+    pills.forEach((pill) => { const k = keyOf(pill); if (k) byKey[k] = pill; });
+
+    const nav = document.createElement('nav');
+    nav.className = 'mobilenav';
+    nav.setAttribute('aria-label', 'Menu');
+    const ul = document.createElement('ul');
+    ul.className = 'mobilenav__list';
+    nav.appendChild(ul);
+
+    // Fixed order matching the design: Platform, Website, Features.
+    ['platform', 'website', 'features'].forEach((key) => {
+      const pill = byKey[key];
+      if (!pill) return;
+      const labelEl = pill.querySelector('.navpill__label');
+      const label = labelEl ? labelEl.textContent : key;
+      const active = pill.classList.contains('navpill--active');
+      const href = pill.getAttribute('href') || '#';
+      const icon = '<span class="navpill__icon navpill__icon--' + key + '" aria-hidden="true"></span>';
+      const inner = icon + '<span class="mobilenav__label">' + label + '</span><span class="mobilenav__chevron">' + CHEV + '</span>';
+      const li = document.createElement('li');
+      li.className = 'mobilenav__group';
+
+      if (active && sidenav) {
+        // Current product: expandable header + its section nav (cloned).
+        const header = document.createElement('button');
+        header.type = 'button';
+        header.className = 'mobilenav__product is-active is-open';
+        header.setAttribute('aria-expanded', 'true');
+        header.innerHTML = inner;
+        const panel = document.createElement('div');
+        panel.className = 'mobilenav__panel';
+        const list = sidenav.querySelector('.sidenav__list');
+        if (list) panel.appendChild(list.cloneNode(true));
+        header.addEventListener('click', () => {
+          const open = header.classList.toggle('is-open');
+          header.setAttribute('aria-expanded', open ? 'true' : 'false');
+          panel.hidden = !open;
+        });
+        // Re-wire the cloned collapsible groups (Users and permissions, Integrations).
+        panel.querySelectorAll('[data-nav-group]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const open = btn.classList.toggle('is-open');
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            panel.querySelectorAll('.sidenav__subitem[data-group="' + btn.getAttribute('data-nav-group') + '"]')
+              .forEach((s) => { s.hidden = !open; });
+          });
+        });
+        li.appendChild(header);
+        li.appendChild(panel);
+      } else {
+        // Other products: a link to that product's landing page.
+        const header = document.createElement('a');
+        header.className = 'mobilenav__product';
+        header.href = href;
+        header.innerHTML = inner;
+        li.appendChild(header);
+      }
+      ul.appendChild(li);
+    });
+    document.body.appendChild(nav);
+    return nav;
+  }
 
   // ---- Collapse / expand the docked panel (wide desktop, >1024px) ----
   if (sidenav) {
