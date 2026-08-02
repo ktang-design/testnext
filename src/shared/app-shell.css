@@ -22,21 +22,25 @@
   white-space: nowrap; border: 0;
 }
 
-/* Shared toast — top-right of the viewport, under the top nav. Built by
+/* Shared toast — top-right of the viewport, by the top nav. Built by
    window.Toast.show() in app-shell.js. Dark pill: info icon + message +
-   dismiss. Replaces the old inline "Saved!" status + bottom-centre toasts. */
+   dismiss. Multiple toasts stack like Sonner (newest in front, older ones
+   peeking behind; the stack fans out on hover) — positions/opacity/z-index are
+   set inline by layoutToasts(); this file supplies the look + the transition. */
 .toast-region {
   position: fixed;
   top: calc(var(--sysmsg-h, 0px) + 12px);
   right: 16px;
   z-index: 9990;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
   width: min(360px, calc(100vw - 32px));
   pointer-events: none;
 }
 .toast {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  box-sizing: border-box;
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -46,10 +50,10 @@
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(16, 24, 40, 0.18);
   font: 400 14px/20px var(--font, 'Noto Sans', sans-serif);
-  pointer-events: auto;
-  animation: toast-in 0.18s ease-out;
+  transform-origin: top center;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
+  will-change: transform;
 }
-.toast.is-leaving { opacity: 0; transform: translateY(-6px); transition: opacity 0.2s ease, transform 0.2s ease; }
 .toast__icon { flex-shrink: 0; display: flex; margin-top: 1px; }
 .toast__msg { flex: 1; min-width: 0; }
 .toast__close {
@@ -58,7 +62,6 @@
   opacity: 0.8; cursor: pointer;
 }
 .toast__close:hover { opacity: 1; }
-@keyframes toast-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
 
 /* ===========================================================================
    Persistent system message (alpha notice). Sits at the very top of every

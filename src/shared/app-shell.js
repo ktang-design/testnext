@@ -4,10 +4,20 @@
 // a top nav (login / signup).
 (function () {
   // ---- Shared toast (top-right of the viewport) --------------------------
-  // window.Toast.show(message) drops a dismissible confirmation toast under the
-  // top nav. Used by every save/interaction flow instead of inline "Saved!".
+  // window.Toast.show(message) drops a dismissible confirmation toast in the
+  // top-right, used by every save/interaction flow instead of inline "Saved!".
+  // Multiple toasts stack like Sonner: newest in front, older ones peeking
+  // behind (scaled + offset); hovering the stack fans them out. Toasts persist
+  // until the user clicks the X or navigates away (no auto-timeout).
   const INFO_SVG = '<svg viewBox="0 0 20 20" width="18" height="18" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="8.25" fill="#fff"/><path d="M10 9v4.2" stroke="#3d3f42" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="6.4" r="1.05" fill="#3d3f42"/></svg>';
   const X_SVG = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8"/></svg>';
+  const PEEK = 14;   // collapsed vertical offset per toast behind the front
+  const GAP = 14;    // expanded gap between toasts
+  const MAX_STACK = 3; // toasts visible in the collapsed stack
+
+  const toasts = []; // active toast elements, index 0 = front (newest)
+  let toastExpanded = false;
+
   function toastRegion() {
     let r = document.querySelector('.toast-region');
     if (!r) {
@@ -15,13 +25,46 @@
       r.className = 'toast-region';
       r.setAttribute('role', 'region');
       r.setAttribute('aria-label', 'Notifications');
+      r.addEventListener('mouseenter', () => { toastExpanded = true; layoutToasts(); });
+      r.addEventListener('mouseleave', () => { toastExpanded = false; layoutToasts(); });
       document.body.appendChild(r);
     }
     return r;
   }
+
+  function layoutToasts() {
+    const region = toastRegion();
+    const n = toasts.length;
+    region.style.pointerEvents = n ? 'auto' : 'none';
+    let regionH = 0;
+    if (toastExpanded) {
+      // Fan out: each toast at its own row, full size.
+      let y = 0;
+      toasts.forEach((el, i) => {
+        el.style.transform = 'translateY(' + y + 'px) scale(1)';
+        el.style.opacity = '1';
+        el.style.zIndex = String(1000 - i);
+        el.style.pointerEvents = 'auto';
+        y += el.offsetHeight + GAP;
+      });
+      regionH = Math.max(0, y - GAP);
+    } else {
+      // Collapsed: front fully visible, the rest peek behind it (offset + scaled).
+      const frontH = toasts[0] ? toasts[0].offsetHeight : 0;
+      toasts.forEach((el, i) => {
+        const scale = Math.max(1 - i * 0.06, 0.85);
+        el.style.transform = 'translateY(' + (i * PEEK) + 'px) scale(' + scale + ')';
+        el.style.opacity = i < MAX_STACK ? '1' : '0';
+        el.style.zIndex = String(1000 - i);
+        el.style.pointerEvents = i === 0 ? 'auto' : 'none';
+      });
+      regionH = frontH + Math.min(n - 1, MAX_STACK - 1) * PEEK;
+    }
+    region.style.height = regionH + 'px';
+  }
+
   window.Toast = {
-    show(message, opts) {
-      opts = opts || {};
+    show(message) {
       const region = toastRegion();
       const el = document.createElement('div');
       el.className = 'toast';
@@ -31,12 +74,21 @@
         '<span class="toast__msg"></span>' +
         '<button type="button" class="toast__close" aria-label="Dismiss">' + X_SVG + '</button>';
       el.querySelector('.toast__msg').textContent = message;
+      // Start slightly above + transparent, then settle into the stack.
+      el.style.transform = 'translateY(-12px) scale(1)';
+      el.style.opacity = '0';
       region.appendChild(el);
-      // Persists until the user dismisses it (X) or navigates away (a full page
-      // navigation tears down the toast) — no auto-timeout.
+      toasts.unshift(el); // newest becomes the front of the stack
+      requestAnimationFrame(layoutToasts);
+
       const dismiss = () => {
-        el.classList.add('is-leaving');
-        setTimeout(() => el.remove(), 200);
+        const i = toasts.indexOf(el);
+        if (i === -1) return;
+        toasts.splice(i, 1);
+        el.style.opacity = '0';
+        el.style.transform = el.style.transform.replace(/scale\([^)]*\)/, 'scale(0.9)');
+        setTimeout(() => el.remove(), 250);
+        layoutToasts();
       };
       el.querySelector('.toast__close').addEventListener('click', dismiss);
       return el;
