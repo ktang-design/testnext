@@ -133,6 +133,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ---- initial load ----
+  // Seed the baseline from the initial DOM so the form isn't considered dirty
+  // before the network responds (a null baseline made isDirty() true, which
+  // popped the discard-changes modal on navigation even with no edits).
+  baseline = current();
   refreshCounts();
   render();
   (async () => {
