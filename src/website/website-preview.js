@@ -574,6 +574,18 @@
     // (single column for one block, two columns for more), each showing the
     // user's block name and up to 3 result cards. No live EDS data yet, so the
     // cards are representative placeholders per the Figma.
+    const BC_ICON = {
+      read: '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4C6.6 3.1 4.2 3.1 2.4 3.6v8C4.2 11.1 6.6 11.1 8 12c1.4-.9 3.8-.9 5.6-.4v-8C11.8 3.1 9.4 3.1 8 4Z"/><path d="M8 4v8"/></svg>',
+      cite: '<svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M6.6 3.4 5.4 4.2C4.3 5 3.6 6 3.6 7.5V12h4.2V7.6H5.6c0-.9.4-1.6 1.3-2.2l.6-.4-.9-1.6Zm5.6 0-1.2.8C9.9 5 9.2 6 9.2 7.5V12h4.2V7.6h-2.2c0-.9.4-1.6 1.3-2.2l.6-.4-.9-1.6Z"/></svg>',
+      chev: '<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>',
+    };
+    function bcbtn(kind, label) {
+      const b = el('span', 'wsprev__bcbtn');
+      if (kind === 'read') b.innerHTML = BC_ICON.read + '<span>' + label + '</span>';
+      else if (kind === 'cite') b.innerHTML = BC_ICON.cite + '<span>' + label + '</span>';
+      else b.innerHTML = '<span>' + label + '</span>' + BC_ICON.chev;
+      return b;
+    }
     function bentoCard() {
       const card = el('div', 'wsprev__bcard');
       card.appendChild(el('div', 'wsprev__bctype', 'Academic Journal'));
@@ -583,10 +595,14 @@
       ext.innerHTML = '<svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3H3.5A1.5 1.5 0 0 0 2 4.5v8A1.5 1.5 0 0 0 3.5 14h8a1.5 1.5 0 0 0 1.5-1.5V10"/><path d="M9.5 2.5H13.5V6.5"/><path d="M7 9 13.2 2.8"/></svg>';
       title.appendChild(ext);
       card.appendChild(title);
-      card.appendChild(el('div', 'wsprev__bcauthors', 'Briz, Victor; Guogi Zhu; Yubin Wang; +4 more'));
+      const authors = el('div', 'wsprev__bcauthors');
+      authors.innerHTML = 'Briz, Victor; Guogi Zhu; Yubin Wang; <span class="wsprev__bcmore">+4 more</span>';
+      card.appendChild(authors);
       card.appendChild(el('div', 'wsprev__bcsnippet', 'Phyllobilins are chlorophyll metabolites that belong to bilin-type linear tetrapyrroles. Chlorophyll, the omnipresent green pigment from algae to higher plants, is essential for life o…'));
       const actions = el('div', 'wsprev__bcactions');
-      ['Read online', 'More access options', 'Cite'].forEach((lbl) => actions.appendChild(el('span', 'wsprev__bcbtn', lbl)));
+      actions.appendChild(bcbtn('read', 'Read online'));
+      actions.appendChild(bcbtn('access', 'More access options'));
+      actions.appendChild(bcbtn('cite', 'Cite'));
       card.appendChild(actions);
       return card;
     }
@@ -729,15 +745,6 @@
         }
         hNav.appendChild(a);
       });
-      // A navigable link to the synthetic Bento page (only when blocks exist).
-      if (live && bentoPage()) {
-        const a = el('a', 'wsprev__navlink', 'Bento page');
-        a.style.color = textColor(h.links, '#3D3F42');
-        a.href = '#';
-        if (viewId === BENTO_PAGE_ID) a.classList.add('is-current');
-        a.addEventListener('click', (e) => { e.preventDefault(); goTo(BENTO_PAGE_ID); });
-        hNav.appendChild(a);
-      }
       if (!inline) {
         hLogo.style.alignSelf = h.logo === 'center' ? 'center' : 'flex-start';
         hNav.style.alignSelf = h.nav === 'aligned' ? 'center' : 'flex-start';
@@ -785,6 +792,13 @@
             const sel = s.searches.find((x) => x.id === select.value);
             setBtnLabel((sel && sel.buttonLabel) || 'Search');
           });
+          // Searching is the only way to reach the Bento results page (it's not
+          // in the site navigation). Submitting the search opens it.
+          if (live && bentoPage()) {
+            const submit = () => goTo(BENTO_PAGE_ID);
+            btn.addEventListener('click', submit);
+            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
+          }
           box.appendChild(input);
           box.appendChild(btn);
           bar.appendChild(select);

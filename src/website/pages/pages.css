@@ -213,3 +213,32 @@
   border: 0; outline: none; padding: 12px 14px;
   font: inherit; color: var(--gray-800); white-space: pre; overflow: auto; tab-size: 2;
 }
+
+/* Read-only "Bento page" row in the pages list (Features > Bento). Not editable,
+   not draggable — clicking it previews the search-results page. */
+.bentopage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  margin-top: 2px;
+}
+.bentopage[hidden] { display: none; }
+.bentopage:hover { background: var(--gray-100, #f2f3f5); }
+.bentopage.is-current { background: var(--blue-50, #e9effa); }
+.bentopage__icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; flex-shrink: 0; color: var(--gray-500, #8b8e92);
+}
+.bentopage__label {
+  flex: 1; min-width: 0; text-align: left;
+  border: 0; background: none; padding: 0; cursor: pointer;
+  font: 400 14px/21px var(--font, 'Noto Sans', sans-serif);
+  color: var(--gray-800, #1a1c1e);
+}
+.bentopage__label:hover { color: var(--blue-700, #255096); }
+.bentopage__badge {
+  flex-shrink: 0; font-size: 12px; line-height: 18px; color: var(--gray-600, #55585d);
+  background: var(--gray-100, #f2f3f5); border-radius: 999px; padding: 1px 9px;
+}

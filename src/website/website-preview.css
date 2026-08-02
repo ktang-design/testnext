@@ -294,10 +294,12 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 .wsprev__bctitle { font-size: 15px; font-weight: 700; color: #2d62b7; line-height: 1.35; margin-bottom: 6px; }
 .wsprev__bcext { display: inline-flex; vertical-align: -2px; color: #2d62b7; }
 .wsprev__bcauthors { font-size: 13px; color: #2d62b7; margin-bottom: 6px; }
-.wsprev__bcsnippet { font-size: 13px; color: #3d3f42; line-height: 1.45; margin-bottom: 12px; }
+.wsprev__bcmore { text-decoration: underline; }
+.wsprev__bcsnippet { font-size: 13px; color: #3d3f42; line-height: 1.45; margin-bottom: 14px; }
 .wsprev__bcactions { display: flex; flex-wrap: wrap; gap: 8px; }
 .wsprev__bcbtn {
-  display: inline-flex; align-items: center; padding: 6px 12px;
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px;
   border: 1px solid #c7cace; border-radius: 4px;
-  font-size: 13px; color: #2d62b7; background: #fff;
+  font-size: 13px; font-weight: 600; color: #2d62b7; background: #fff;
 }
+.wsprev__bcbtn svg { display: block; flex-shrink: 0; }

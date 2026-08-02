@@ -29,6 +29,13 @@
   let limits = { title: 120, description: 160, sectionTitle: 120, elementTitle: 120, body: 20000, maxSections: 50, maxElements: 100 };
   let preview = null;
 
+  // Features > Bento: when blocks exist, a read-only "Bento page" (the search
+  // results page) is listed here. It isn't a real page — it can't be edited,
+  // reordered, or deleted, and isn't persisted with the pages set.
+  const BENTO_PAGE_ID = '__bento__';
+  let bentoBlocks = [];
+  let bentoRowEl = null;
+
   let view = 'list';        // 'list' | 'builder'
   let builderPageId = null;
   let selectedSectionId = null;
@@ -156,6 +163,28 @@
     updateSaveBar();
   }
 
+  // The read-only "Bento page" row (shown under the pages list when blocks
+  // exist). Not part of the sortable tree — it can't be edited/reordered/saved.
+  // Clicking it just previews the Bento results page; it opens on the site only
+  // via search, and never appears in the navigation.
+  function renderBentoRow() {
+    if (!bentoRowEl) {
+      bentoRowEl = document.createElement('div');
+      bentoRowEl.className = 'bentopage';
+      bentoRowEl.innerHTML =
+        '<span class="bentopage__icon"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.2"/><path d="m10.2 10.2 3 3"/></svg></span>' +
+        '<button type="button" class="bentopage__label">Bento page</button>' +
+        '<span class="bentopage__badge">Search results</span>';
+      bentoRowEl.querySelector('.bentopage__label').addEventListener('click', () => {
+        if (view === 'builder') exitBuilder();
+        if (preview) preview.update({ builder: null, viewPageId: BENTO_PAGE_ID });
+        bentoRowEl.classList.add('is-current');
+      });
+      treeMount.insertAdjacentElement('afterend', bentoRowEl);
+    }
+    bentoRowEl.hidden = !(bentoBlocks && bentoBlocks.length);
+  }
+
   // ---- list mutations ----
   function commit(items) {
     saveError = null;
@@ -240,6 +269,7 @@
     builderPageId = pageId;
     selectedSectionId = null;
     selectedElementId = null;
+    if (bentoRowEl) bentoRowEl.classList.remove('is-current');
     if (!contentById[pageId]) contentById[pageId] = { sections: [] };
     renderAll();
   }
@@ -1249,6 +1279,13 @@
       emptyEl.hidden = false;
       emptyEl.textContent = 'Couldn’t load pages. Refresh to try again.';
     });
+
+  // Bento blocks drive the read-only "Bento page" row in the list.
+  renderBentoRow();
+  fetch('/api/features/bento', { credentials: 'include' })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => { bentoBlocks = (d && d.saved && Array.isArray(d.saved.blocks)) ? d.saved.blocks : []; renderBentoRow(); })
+    .catch(() => {});
 
   setupNavGuard();
 })();
