@@ -85,14 +85,27 @@ router.put('/analytics', requireApiAuth, ah(async (req, res) => {
 }));
 
 // ---- EBSCO Discovery Service ----------------------------------------------
+// The API password is write-only: it is never returned to the client (only a
+// hasApiPassword flag), and a save keeps the stored value unless a new one is
+// provided. Strips apiPassword from any record before sending it out.
+function edsPublic(saved) {
+  if (!saved) return saved;
+  const out = Object.assign({}, saved);
+  out.hasApiPassword = !!(out.apiPassword && String(out.apiPassword).length);
+  delete out.apiPassword;
+  return out;
+}
 router.get('/eds', requireApiAuth, ah(async (req, res) => {
-  res.json({ defaults: D.EDS_DEFAULTS, endpoint: D.EDS_ENDPOINT, saved: await repo.get(req.session.userId, 'eds') });
+  res.json({ defaults: D.EDS_DEFAULTS, endpoint: D.EDS_ENDPOINT, saved: edsPublic(await repo.get(req.session.userId, 'eds')) });
 }));
 router.put('/eds', requireApiAuth, ah(async (req, res) => {
   const b = req.body || {};
+  const current = (await repo.get(req.session.userId, 'eds')) || {};
+  const incomingPw = str(b.apiPassword, D.EDS_MAX);
   const config = {
     apiUsername: str(b.apiUsername, D.EDS_MAX),
-    apiPassword: str(b.apiPassword, D.EDS_MAX),
+    // Write-only: keep the stored password unless a new, non-empty one is sent.
+    apiPassword: incomingPw || (current.apiPassword || ''),
     customerId: str(b.customerId, D.EDS_MAX),
     groupId: str(b.groupId, D.EDS_MAX),
     profile: str(b.profile, D.EDS_MAX),
@@ -101,7 +114,7 @@ router.put('/eds', requireApiAuth, ah(async (req, res) => {
   };
   const saved = await repo.save(req.session.userId, 'eds', config);
   await logActivity(req.session.userId, { pre: 'Updated ', linkLabel: 'EBSCO Discovery Service', linkHref: '/eds/', post: ' integration.' });
-  res.json({ saved });
+  res.json({ saved: edsPublic(saved) });
 }));
 
 // ---- Users (accounts that can access the website) -------------------------

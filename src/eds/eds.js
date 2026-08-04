@@ -25,9 +25,19 @@ document.addEventListener('DOMContentLoaded', () => {
   let saveError = null;
   let touched = false;    // set once the user edits (guards load hydration)
   let validated = false;  // errors only surface after a Save attempt
+  let hasStoredPassword = false; // a password is already saved server-side
 
   const isEmpty = (v) => !v || v.trim() === '';
   const current = () => { const c = {}; KEYS.forEach((k) => { c[k] = inputs[k].value; }); return c; };
+  // A required field is "filled" if it has a value. The API password is special:
+  // it's write-only, so an empty box is fine when one is already stored (blank
+  // means "keep the current password").
+  const isFilled = (k) => (k === 'apiPassword' && hasStoredPassword ? true : !isEmpty(inputs[k].value));
+  // Show a hint on the password box when a password is already stored.
+  function reflectPasswordState() {
+    const pw = inputs.apiPassword;
+    if (pw) pw.placeholder = hasStoredPassword ? 'Leave blank to keep the current password' : '';
+  }
   const eq = (a, b) => !!a && !!b && KEYS.every((k) => (a[k] || '') === (b[k] || ''));
   const isDirty = () => !eq(current(), baseline);
 
@@ -40,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let allFilled = true;
     REQUIRED.forEach((k) => {
       const el = inputs[k];
-      const empty = isEmpty(el.value);
+      const empty = !isFilled(k);
       if (empty) allFilled = false;
       const show = empty && validated;
       const err = errEls[el.id];
@@ -100,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     touched = true;
     validated = true; // reveal empty-required errors from here on
     if (!updateValidation()) {
-      const firstEmpty = REQUIRED.find((k) => isEmpty(inputs[k].value));
+      const firstEmpty = REQUIRED.find((k) => !isFilled(k));
       if (firstEmpty) inputs[firstEmpty].focus();
       render();
       return;
@@ -122,7 +132,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       const data = await res.json();
       baseline = data.saved || current();
-      setInputs(baseline);
+      hasStoredPassword = !!(data.saved && data.saved.hasApiPassword);
+      setInputs(baseline);        // clears the password box (never returned)
+      reflectPasswordState();
       toast('Integration saved!');
     } catch (err) {
       saveError = err.message || 'Couldn’t save. Try again.';
@@ -145,8 +157,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!res.ok) return;
       const data = await res.json();
       baseline = data.saved || data.defaults || {};
+      hasStoredPassword = !!(data.saved && data.saved.hasApiPassword);
       if (touched) return; // don't clobber in-progress edits
       setInputs(baseline);
+      reflectPasswordState();
       render();
     } catch (_) { /* keep the seeded defaults */ }
   })();
