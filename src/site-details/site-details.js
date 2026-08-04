@@ -86,7 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!saving) {
       if (saveError) { status = saveError; isError = true; }
       else if (dirty) status = 'Unsaved changes';
-      else if (justSaved) status = 'Saved!';
     }
     statusEl.textContent = status;
     statusEl.hidden = status === '';
@@ -136,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
       lastSaved = data.saved || current(); // new last-saved baseline
       writeCache({ defaults: systemDefault, saved: lastSaved });
       justSaved = true;
+      if (window.Toast) window.Toast.show('Site details saved.');
     } catch (err) {
       saveError = err.message || 'Couldn’t save. Try again.';
     } finally {

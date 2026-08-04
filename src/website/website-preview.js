@@ -14,7 +14,7 @@
 //
 // Logo precedence: Website branding logo → Platform branding logo → default.
 (function () {
-  const DEFAULT_LOGO = '/website/assets/stacks-from-ebsco.svg';
+  const DEFAULT_LOGO = '/website/assets/stratum-logo.png';
   const DEVICE_W = 1280;            // desktop canvas width
   const MIN_Z = 0.1, MAX_Z = 2.5;
 
@@ -142,13 +142,19 @@
 
   // Apply a richtext element's style (colours + border) — only when a value is
   // actually set (opacity > 0 / a width chosen), otherwise the CSS defaults win.
+  // Factory element text colours. When an element still carries these (i.e. the
+  // user hasn't picked a custom colour), treat them as "inherit from Branding"
+  // so published pages track the Branding heading/body/link colours live. An
+  // explicit non-default colour still wins.
+  const EL_DEFAULT = { heading: '#3D3F42', text: '#55585D', link: '#255096' };
+  const isDefaultColor = (c, hex) => !!c && String(c.color || '').toUpperCase() === hex;
   function applyRichtextStyle(elt, rt, st) {
     if (!st) return;
     let padded = false;
     if (st.background && st.background.opacity > 0) { elt.style.background = rgba(st.background); padded = true; }
-    if (st.heading && st.heading.opacity > 0) rt.style.setProperty('--rt-heading', rgba(st.heading));
-    if (st.text && st.text.opacity > 0) rt.style.setProperty('--rt-text', rgba(st.text));
-    if (st.link && st.link.opacity > 0) rt.style.setProperty('--rt-link', rgba(st.link));
+    if (st.heading && st.heading.opacity > 0 && !isDefaultColor(st.heading, EL_DEFAULT.heading)) rt.style.setProperty('--rt-heading', rgba(st.heading));
+    if (st.text && st.text.opacity > 0 && !isDefaultColor(st.text, EL_DEFAULT.text)) rt.style.setProperty('--rt-text', rgba(st.text));
+    if (st.link && st.link.opacity > 0 && !isDefaultColor(st.link, EL_DEFAULT.link)) rt.style.setProperty('--rt-link', rgba(st.link));
     const bw = ({ 1: 1, 2: 2, 4: 4 })[st.borderWidth] || 1;
     const sides = st.borderSides || {};
     // A border only appears once a border colour is chosen (opacity > 0).
@@ -179,6 +185,7 @@
       siteName: '',
       showSiteName: false,    // Branding "Show site name beside logo"
       pages: [],              // published pages (with content) for the read-only view
+      bentoBlocks: [],        // Features > Bento blocks; when present, a synthetic (non-editable) "Bento page" is navigable
       viewPageId: null,       // which page the preview is currently showing (defaults to the homepage)
       builder: null,          // { sections, selectedSectionId, selectedElementId } when editing a page
       builderCallbacks: {},   // { onAddSection, onAddElement, onSelectSection, onSelectElement, onDeleteSection, onDeleteElement }
@@ -545,13 +552,107 @@
       if (!(blr.sections || []).length) body.appendChild(cta('Add section', () => cb.onAddSection && cb.onAddSection()));
     }
 
+    // Synthetic, non-editable "Bento page" — exists only in the preview when the
+    // user has created Bento blocks. It renders a search-results layout (below)
+    // rather than editable page sections.
+    const BENTO_PAGE_ID = '__bento__';
+    const SAMPLE_QUERY = 'health';
+    function bentoPage() {
+      return (state.bentoBlocks || []).length
+        ? { id: BENTO_PAGE_ID, title: 'Bento page', slug: '/bento', isBento: true }
+        : null;
+    }
+    function viewPages() {
+      const bp = bentoPage();
+      return bp ? (state.pages || []).concat([bp]) : (state.pages || []);
+    }
+
+    // Mirror the Search page: when Bento is configured, a "Bento search" exists
+    // in the search list — so the search bar must render on EVERY website page,
+    // not just the Search panel (whose own JS injects it). Add/remove the
+    // bento-typed search in state.search accordingly (never mutating SEARCH_D).
+    function ensureBentoSearch(configured) {
+      const s = state.search || SEARCH_D;
+      const list = (s.searches || []).slice();
+      const idx = list.findIndex((x) => x.type === 'bento');
+      let changed = false;
+      if (configured && idx === -1) {
+        list.push({ id: 'search-bento', type: 'bento', name: 'Bento search', displayLabel: 'Bento search', url: '', urlencode: true, buttonLabel: 'Search', isDefault: list.length === 0 });
+        changed = true;
+      } else if (!configured && idx !== -1) {
+        const wasDefault = list[idx].isDefault;
+        list.splice(idx, 1);
+        if (wasDefault && list.length && !list.some((x) => x.isDefault)) list[0].isDefault = true;
+        changed = true;
+      }
+      if (changed) state.search = Object.assign({}, s, { searches: list });
+    }
+
     // The page the read-only preview currently shows: the chosen one, else the
     // homepage, else the first page.
     function currentViewPage() {
-      const pages = state.pages || [];
+      const pages = viewPages();
       if (!pages.length) return null;
       return pages.find((p) => p.id === state.viewPageId)
         || pages.find((p) => p.isHomepage) || pages[0];
+    }
+
+    // Read-only render of the Bento page: a "results" summary + a grid of blocks
+    // (single column for one block, two columns for more), each showing the
+    // user's block name and up to 3 result cards. No live EDS data yet, so the
+    // cards are representative placeholders per the Figma.
+    const BC_ICON = {
+      read: '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4C6.6 3.1 4.2 3.1 2.4 3.6v8C4.2 11.1 6.6 11.1 8 12c1.4-.9 3.8-.9 5.6-.4v-8C11.8 3.1 9.4 3.1 8 4Z"/><path d="M8 4v8"/></svg>',
+      cite: '<svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M6.6 3.4 5.4 4.2C4.3 5 3.6 6 3.6 7.5V12h4.2V7.6H5.6c0-.9.4-1.6 1.3-2.2l.6-.4-.9-1.6Zm5.6 0-1.2.8C9.9 5 9.2 6 9.2 7.5V12h4.2V7.6h-2.2c0-.9.4-1.6 1.3-2.2l.6-.4-.9-1.6Z"/></svg>',
+      chev: '<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>',
+    };
+    function bcbtn(kind, label) {
+      const b = el('span', 'wsprev__bcbtn');
+      if (kind === 'read') b.innerHTML = BC_ICON.read + '<span>' + label + '</span>';
+      else if (kind === 'cite') b.innerHTML = BC_ICON.cite + '<span>' + label + '</span>';
+      else b.innerHTML = '<span>' + label + '</span>' + BC_ICON.chev;
+      return b;
+    }
+    function bentoCard() {
+      const card = el('div', 'wsprev__bcard');
+      card.appendChild(el('div', 'wsprev__bctype', 'Academic Journal'));
+      const title = el('div', 'wsprev__bctitle');
+      title.appendChild(document.createTextNode('Activity-Dependent Rapid Local RhoA Synthesis Is Required for Hippocampal Synaptic Plasticity. '));
+      const ext = el('span', 'wsprev__bcext');
+      ext.innerHTML = '<svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3H3.5A1.5 1.5 0 0 0 2 4.5v8A1.5 1.5 0 0 0 3.5 14h8a1.5 1.5 0 0 0 1.5-1.5V10"/><path d="M9.5 2.5H13.5V6.5"/><path d="M7 9 13.2 2.8"/></svg>';
+      title.appendChild(ext);
+      card.appendChild(title);
+      const authors = el('div', 'wsprev__bcauthors');
+      authors.innerHTML = 'Briz, Victor; Guogi Zhu; Yubin Wang; <span class="wsprev__bcmore">+4 more</span>';
+      card.appendChild(authors);
+      card.appendChild(el('div', 'wsprev__bcsnippet', 'Phyllobilins are chlorophyll metabolites that belong to bilin-type linear tetrapyrroles. Chlorophyll, the omnipresent green pigment from algae to higher plants, is essential for life o…'));
+      const actions = el('div', 'wsprev__bcactions');
+      actions.appendChild(bcbtn('read', 'Read online'));
+      actions.appendChild(bcbtn('access', 'More access options'));
+      actions.appendChild(bcbtn('cite', 'Cite'));
+      card.appendChild(actions);
+      return card;
+    }
+    function renderBentoBody(body, blocks) {
+      const list = (blocks || []).slice(0, 50);
+      const summary = el('p', 'wsprev__bsummary');
+      summary.appendChild(document.createTextNode('Results for “' + SAMPLE_QUERY + '” from '));
+      list.forEach((b) => summary.appendChild(el('span', 'wsprev__bsource', (b.name || 'Untitled block') + ' (100,000)')));
+      body.appendChild(summary);
+
+      const grid = el('div', 'wsprev__bento' + (list.length > 1 ? ' wsprev__bento--two' : ''));
+      list.forEach((b) => {
+        const block = el('div', 'wsprev__bblock');
+        const head = el('div', 'wsprev__bbhead');
+        head.appendChild(el('h3', 'wsprev__bbtitle', b.name || 'Untitled block'));
+        head.appendChild(el('span', 'wsprev__bbseeall', 'See all results'));
+        block.appendChild(head);
+        const cards = el('div', 'wsprev__bbcards');
+        for (let i = 0; i < 3; i++) cards.appendChild(bentoCard());
+        block.appendChild(cards);
+        grid.appendChild(block);
+      });
+      body.appendChild(grid);
     }
 
     // Read-only render of a published page's sections + elements (no editing
@@ -562,7 +663,7 @@
         if (element.displayTitle && element.title) {
           const t = el('h3', 'wsprev__eltitle', element.title);
           const hd = element.style && element.style.heading;
-          if (hd && hd.opacity > 0) t.style.color = rgba(hd);
+          if (hd && hd.opacity > 0 && !isDefaultColor(hd, EL_DEFAULT.heading)) t.style.color = rgba(hd);
           elt.appendChild(t);
         }
         if (element.type === 'code') {
@@ -617,6 +718,13 @@
       root.style.setProperty('--wsprev-heading-weight', num(t.headingWeight, '600'));
       root.style.setProperty('--wsprev-body-size', num(t.bodySize, '16') + 'px');
       root.style.setProperty('--wsprev-body-weight', num(t.bodyWeight, '400'));
+      // Branding colours drive the default heading / body / link colours for all
+      // published pages (homepage + any added page) and the Bento page. Per-
+      // element overrides (--rt-*) still win over these defaults.
+      const brand = state.branding || BRAND_D;
+      root.style.setProperty('--wsprev-link', textColor(brand.link, rgba(BRAND_D.link)));
+      root.style.setProperty('--wsprev-heading', textColor(brand.heading, rgba(BRAND_D.heading)));
+      root.style.setProperty('--wsprev-bodyc', textColor(brand.body, rgba(BRAND_D.body)));
       root.innerHTML = '';
 
       // ---- Header / navigation bar ----
@@ -708,6 +816,7 @@
           const input = el('input', 'wsprev__searchinput');
           input.type = 'text';
           input.placeholder = 'Search articles, books, journals & more';
+          if (currentViewPage() && currentViewPage().isBento) input.value = SAMPLE_QUERY;
           const btn = el('button', 'wsprev__searchbtn');
           btn.type = 'button';
           btn.innerHTML = '<svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="#2d62b7" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg>';
@@ -717,6 +826,13 @@
             const sel = s.searches.find((x) => x.id === select.value);
             setBtnLabel((sel && sel.buttonLabel) || 'Search');
           });
+          // Searching is the only way to reach the Bento results page (it's not
+          // in the site navigation). Submitting the search opens it.
+          if (live && bentoPage()) {
+            const submit = () => goTo(BENTO_PAGE_ID);
+            btn.addEventListener('click', submit);
+            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
+          }
           box.appendChild(input);
           box.appendChild(btn);
           bar.appendChild(select);
@@ -735,7 +851,8 @@
       } else {
         body.classList.add('wsprev__body--published');
         const page = currentViewPage();
-        if (page && page.content && page.content.sections) renderPublishedBody(body, page.content.sections);
+        if (page && page.isBento) { body.classList.add('wsprev__body--bento'); renderBentoBody(body, state.bentoBlocks || []); }
+        else if (page && page.content && page.content.sections) renderPublishedBody(body, page.content.sections);
       }
       root.appendChild(body);
 
@@ -810,6 +927,7 @@
       // Cached so the published homepage body paints instantly and identically
       // on every panel (the /api/website/pages fetch then revalidates it).
       pages: state.pages,
+      bentoBlocks: state.bentoBlocks,
     });
     let cacheTimer = null;
     const scheduleCacheWrite = () => {
@@ -831,6 +949,7 @@
       if ('siteName' in cached) state.siteName = cached.siteName;
       if ('showSiteName' in cached) state.showSiteName = cached.showSiteName;
       if (Array.isArray(cached.pages)) state.pages = cached.pages;
+      if (Array.isArray(cached.bentoBlocks)) state.bentoBlocks = cached.bentoBlocks;
     }
     render();
 
@@ -846,7 +965,8 @@
       get('/api/branding'),
       get('/api/site-settings'),
       get('/api/website/pages'),
-    ]).then(([nav, header, footer, typo, wbrand, search, pbrand, site, pages]) => {
+      get('/api/features/bento'),
+    ]).then(([nav, header, footer, typo, wbrand, search, pbrand, site, pages, bento]) => {
       if (nav && Array.isArray(nav.navigation)) state.navigation = nav.navigation;
       if (header) state.header = header.saved || header.defaults || HEADER_D;
       if (footer) state.footer = footer.saved || footer.defaults || FOOTER_D;
@@ -861,6 +981,8 @@
       // instant-load cache may have pre-populated state.pages, but the fetch is
       // authoritative, so a cache alone must not block it.)
       if (pages && Array.isArray(pages.pages) && !hostProvidedPages) state.pages = pages.pages;
+      state.bentoBlocks = (bento && bento.saved && Array.isArray(bento.saved.blocks)) ? bento.saved.blocks : [];
+      ensureBentoSearch(!!(bento && bento.integrationConfigured && state.bentoBlocks.length));
       render();
       writeCache(cacheSnapshot());
     });

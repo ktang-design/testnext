@@ -43,6 +43,26 @@
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   function onChange() { saveError = null; pushPreview(); updateSaveBar(); }
+
+  // Features > Bento: when a Bento search integration is configured (EDS filled
+  // in + at least one block), a "Bento search" is pre-created in the list. It
+  // has no URL — selecting it runs the unified Bento search. It can't be edited
+  // or deleted here (managed from Features > Bento); it drops out if Bento is
+  // unconfigured. bentoConfigured() reads the /api/features/bento response.
+  function bentoConfigured(bento) {
+    return !!(bento && bento.integrationConfigured && bento.saved && Array.isArray(bento.saved.blocks) && bento.saved.blocks.length);
+  }
+  function ensureBentoSearch(configured) {
+    const list = config.searches || (config.searches = []);
+    const idx = list.findIndex((s) => s.type === 'bento');
+    if (configured && idx === -1) {
+      list.push({ id: 'search-bento', type: 'bento', name: 'Bento search', displayLabel: 'Bento search', url: '', urlencode: true, buttonLabel: 'Search', isDefault: list.length === 0 });
+    } else if (!configured && idx !== -1) {
+      const wasDefault = list[idx].isDefault;
+      list.splice(idx, 1);
+      if (wasDefault && list.length && !list.some((s) => s.isDefault)) list[0].isDefault = true;
+    }
+  }
   const pushPreview = () => { if (config && preview) preview.update({ search: config }); };
 
   // ---------- background colour (shared .colorrow component) ----------
@@ -172,9 +192,11 @@
       star.appendChild(svg('<path d="M8 2.1 9.85 5.85 14 6.46 11 9.38 11.71 13.5 8 11.56 4.29 13.5 5 9.38 2 6.46 6.15 5.85Z"/>'));
       wrap.appendChild(star);
     }
-    const items = [{ label: 'Edit', onSelect: () => openSearchModal(s.type, s.id) }];
+    // The Bento search is managed from Features > Bento — no Edit/Delete here.
+    const items = [];
+    if (s.type !== 'bento') items.push({ label: 'Edit', onSelect: () => openSearchModal(s.type, s.id) });
     if (!s.isDefault) items.push({ label: 'Make default search', onSelect: () => makeDefault(s.id) });
-    items.push({ label: 'Delete', danger: true, onSelect: () => deleteSearch(s.id) });
+    if (s.type !== 'bento') items.push({ label: 'Delete', danger: true, onSelect: () => deleteSearch(s.id) });
     wrap.appendChild(rowKebab(labelOf(s), items));
     return wrap;
   }
@@ -190,7 +212,11 @@
       maxDepth: 1,
       ariaLabel: 'Searches',
       labelOf: (it) => { const s = config.searches.find((x) => x.id === it.id); return s ? labelOf(s) : 'Search'; },
-      renderContent: (it) => { const s = config.searches.find((x) => x.id === it.id); return rowLabel(s ? labelOf(s) : 'Search', () => openSearchModal(s.type, s.id)); },
+      renderContent: (it) => {
+        const s = config.searches.find((x) => x.id === it.id);
+        if (s && s.type === 'bento') { const span = document.createElement('span'); span.className = 'navtree__label'; span.textContent = labelOf(s); return span; }
+        return rowLabel(s ? labelOf(s) : 'Search', () => openSearchModal(s.type, s.id));
+      },
       renderTrailing: (it) => { const s = config.searches.find((x) => x.id === it.id); return s ? rowActions(s) : null; },
       onChange: () => { reorderSearches(tree.getItems().map((it) => it.id)); onChange(); },
     });
@@ -398,15 +424,16 @@
   applyToControls();
   updateSaveBar();
 
-  fetch('/api/website/search', { credentials: 'include' })
-    .then((r) => (r.ok ? r.json() : Promise.reject()))
-    .then((data) => {
+  const getJSON = (url) => fetch(url, { credentials: 'include' }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  Promise.all([getJSON('/api/website/search'), getJSON('/api/features/bento')])
+    .then(([data, bento]) => {
+      if (!data) return; // search fetch failed — keep the cached/default view
       cacheConfig(data.saved);
       if (isDirty()) return; // the user already started editing — keep their work
       config = clone(data.saved || data.defaults || DEFAULTS);
+      ensureBentoSearch(bentoConfigured(bento)); // pre-create the Bento search when configured
       baseline = serialize();
       applyToControls();
       updateSaveBar();
-    })
-    .catch(() => { /* keep the cached/default view already rendered */ });
+    });
 })();

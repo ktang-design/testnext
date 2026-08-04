@@ -37,7 +37,8 @@ class ValidationError extends Error {
 
 function cleanSearch(raw, used) {
   const s = raw && typeof raw === 'object' ? raw : {};
-  const type = s.type === 'eds' ? 'eds' : 'custom';
+  // 'bento' is the pre-created unified search backed by Features > Bento (no URL).
+  const type = (s.type === 'eds' || s.type === 'bento') ? s.type : 'custom';
   const name = str(s.name).trim();
   if (!name) throw new ValidationError('Every search needs a name.');
   if (name.length > SEARCH_NAME_MAX) throw new ValidationError(`Names must be ${SEARCH_NAME_MAX} characters or fewer.`);

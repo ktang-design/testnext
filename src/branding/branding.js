@@ -189,7 +189,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!saving) {
       if (saveError) { status = saveError; isError = true; }
       else if (dirty) status = 'Unsaved changes';
-      else if (justSaved) status = 'Saved!';
     }
     statusEl.textContent = status;
     statusEl.hidden = status === '';
@@ -294,6 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
       writeCache({ defaults: systemDefault, saved: lastSaved });
       syncWebsiteBrandingCache(lastSaved.primaryColor, lastSaved.secondaryColor);
       justSaved = true;
+      if (window.Toast) window.Toast.show('Branding saved.');
     } catch (err) {
       saveError = err.message || 'Couldn’t save. Try again.';
     } finally {
@@ -323,6 +323,30 @@ document.addEventListener('DOMContentLoaded', () => {
       applyConfig(baseline());
       render();
     } catch (_) { /* keep the cached/fallback view */ }
+  })();
+
+  // ---- Browser-tab (favicon) preview title ----
+  // Reflect the saved Site details as "{site name} | {description}". Those live
+  // on another page, so paint from its instant-load cache first, then confirm
+  // from the API (was a hardcoded "StacksNext | …" that never synced).
+  const browserTitle = $('.browser__title');
+  function setTabTitle(cfg) {
+    if (!browserTitle || !cfg) return;
+    const name = (cfg.name || '').trim();
+    const desc = (cfg.description || '').trim();
+    browserTitle.textContent = desc ? (name + ' | ' + desc) : name;
+  }
+  try {
+    const sd = JSON.parse(localStorage.getItem('site-details-config') || 'null');
+    if (sd) setTabTitle(sd.saved || sd.defaults);
+  } catch (_) { /* no cache — the API call below fills it in */ }
+  (async () => {
+    try {
+      const res = await fetch('/api/site-settings', { credentials: 'include' });
+      if (!res.ok) return;
+      const data = await res.json();
+      setTabTitle(data.saved || data.defaults);
+    } catch (_) { /* keep the current title */ }
   })();
 
   // ---- Unsaved-changes navigation guard (mirrors Site details) ----

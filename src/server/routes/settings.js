@@ -6,6 +6,7 @@
 const express = require('express');
 const { requireApiAuth } = require('../auth/authGuard');
 const { settingsRepository } = require('../settings/SiteSettingsRepository');
+const { logActivity } = require('../platform/activity');
 const { FACTORY_DEFAULTS, NAME_MAX, DESCRIPTION_MAX } = require('../settings/defaults');
 
 const router = express.Router();
@@ -36,7 +37,13 @@ router.put('/', requireApiAuth, ah(async (req, res) => {
     });
   }
 
+  const prev = await settingsRepository.get(req.session.userId);
   const saved = await settingsRepository.save(req.session.userId, { name, description });
+  if (!prev || prev.name !== name) {
+    await logActivity(req.session.userId, { pre: 'Updated ', linkLabel: 'site name', linkHref: '/site-details/', post: ' to “' + name + '”.' });
+  } else if (prev.description !== description) {
+    await logActivity(req.session.userId, { pre: 'Updated ', linkLabel: 'site description', linkHref: '/site-details/', post: '.' });
+  }
   res.json({ saved });
 }));
 

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bento — StacksNext</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/components/navigation/navigation.css" />
+  <link rel="stylesheet" href="/site-details/site-details.css" />
+  <link rel="stylesheet" href="/shared/sortable-tree.css" />
+  <link rel="stylesheet" href="/shared/app-shell.css" />
+  <link rel="stylesheet" href="bento.css" />
+  <!-- Pre-paint: apply the collapsed sidenav state before first paint so navigating between pages doesn’t flash the expanded rail (see app-shell.js). -->
+  <script>try{if(localStorage.getItem('sn.sidenav')==='collapsed')document.documentElement.classList.add('is-nav-collapsed');}catch(e){}</script>
+</head>
+<body>
+  <div class="sysmsg">
+    <p class="sysmsg__text">This product is currently in alpha and under active development. The functionality and designs presented are for demonstration purposes only and may change as the product evolves.</p>
+  </div>
+
+  <!-- ============ Top navigation (Features layer active) ============ -->
+  <header class="topnav">
+    <div class="topnav__left">
+      <a class="topnav__logo" href="#" aria-label="Stratum home">
+        <img src="/site-details/assets/app-logo.png" alt="Stratum" width="28" height="28" />
+      </a>
+      <nav class="topnav__menu" aria-label="Primary">
+        <a class="navpill" href="/website/pages/">
+          <span class="navpill__icon navpill__icon--website" aria-hidden="true"></span>
+          <span class="navpill__label">Website</span>
+        </a>
+        <a class="navpill navpill--active" href="/features/bento/" aria-current="page">
+          <span class="navpill__icon navpill__icon--features" aria-hidden="true"></span>
+          <span class="navpill__label">Features</span>
+        </a>
+        <a class="navpill" href="/site-details/">
+          <span class="navpill__icon navpill__icon--platform" aria-hidden="true"></span>
+          <span class="navpill__label">Platform</span>
+        </a>
+      </nav>
+    </div>
+    <button type="button" class="usermenu" aria-label="User menu" aria-haspopup="true">
+      <img class="usermenu__avatar" src="/site-details/assets/user-avatar.svg" alt="" aria-hidden="true" />
+      <img class="usermenu__caret" src="/shared/chevron-down.svg" alt="" aria-hidden="true" />
+    </button>
+  </header>
+
+  <div class="layout">
+    <!-- ============ Features sidenav (single item) ============ -->
+    <aside class="sidenav" aria-label="Features">
+      <nav aria-label="Features">
+        <ul class="sidenav__list">
+          <li>
+            <a class="nav-item nav-item--interactive is-active" href="/features/bento/" aria-current="page">
+              <span class="nav-item__icon"><svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><rect x="1.6" y="1.6" width="5.4" height="5.4" rx="1.2"/><rect x="9" y="1.6" width="5.4" height="5.4" rx="1.2"/><rect x="1.6" y="9" width="5.4" height="5.4" rx="1.2"/><rect x="9" y="9" width="5.4" height="5.4" rx="1.2"/></svg></span>
+              <span class="nav-item__label">Bento</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- ============ Content ============ -->
+    <div class="content">
+      <main class="platform-page bento">
+        <div class="section-heading">
+          <div class="section-heading__text">
+            <h1 class="section-heading__title">Bento</h1>
+            <p class="section-heading__desc">
+              Create a unified search experience by displaying results from multiple sources in a single search.
+              Configure and organize search blocks to help users quickly explore different types of content.
+              Navigate to <a href="/analytics/">Platform &gt; Integrations</a> to configure search connections and settings.
+            </p>
+          </div>
+        </div>
+
+        <!-- No search integration configured -->
+        <div class="bento-notice" data-state="no-integration" hidden>
+          <span class="bento-notice__icon" aria-hidden="true">
+            <svg viewBox="0 0 16 16" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2.2v3.2M10 2.2v3.2M4.4 5.4h7.2v2a3.6 3.6 0 0 1-7.2 0v-2ZM8 11v2.8"/></svg>
+          </span>
+          <div class="bento-notice__text">
+            <p class="bento-notice__title">No search integration configured</p>
+            <p class="bento-notice__desc">
+              <a href="/analytics/">Set up a search integration</a> before creating a bento search.
+              Once an integration has been configured, you&rsquo;ll be able to add and manage search blocks.
+            </p>
+          </div>
+        </div>
+
+        <!-- Integration configured: create + (optional) block list -->
+        <div class="bento-configured" data-state="configured" hidden>
+          <button type="button" class="btn btn--secondary bento-create" data-create>Create bento block</button>
+          <p class="bento-hint" data-list-hint hidden>The first item appears first on the page. Drag items to reorder.</p>
+          <div class="bento-list" data-tree hidden></div>
+        </div>
+      </main>
+
+      <!-- Save bar -->
+      <footer class="pageactions">
+        <div class="pageactions__inner">
+          <span class="save-status" data-save-status role="status" aria-live="polite" hidden></span>
+          <button type="button" class="btn btn--primary" data-action="save" disabled>
+            <span class="btn__spinner" aria-hidden="true"></span>
+            <span class="btn__label">Save</span>
+          </button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+
+  <!-- Unsaved-changes guard -->
+  <div class="modal-overlay" data-modal="unsaved" role="dialog" aria-modal="true" aria-labelledby="unsaved-title" hidden>
+    <div class="modal">
+      <div class="modal__header">
+        <h2 class="modal__title" id="unsaved-title">Unsaved changes</h2>
+        <button type="button" class="modal__close" data-modal-close aria-label="Close dialog"><img src="/shared/close.svg" alt="" /></button>
+      </div>
+      <div class="modal__body">
+        <p class="modal__text">You have unsaved changes that will be lost if you leave this page. Do you want to continue?</p>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="modal__btn modal__btn--discard" data-modal-discard>Discard changes</button>
+        <button type="button" class="modal__btn modal__btn--keep" data-modal-keep>Keep editing</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/shared/app-shell.js"></script>
+  <script src="/shared/auth-client.js"></script>
+  <script src="/shared/popover.js"></script>
+  <script src="/shared/modal.js"></script>
+  <script src="/shared/sortable-tree.js"></script>
+  <script src="bento.js"></script>
+</body>
+</html>

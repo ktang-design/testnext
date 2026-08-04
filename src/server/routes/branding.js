@@ -49,12 +49,19 @@ router.put('/', requireApiAuth, ah(async (req, res) => {
     altText: typeof b.altText === 'string' ? b.altText.slice(0, ALT_TEXT_MAX) : '',
     favicon: b.favicon || null,
   };
+  const prev = await brandingRepository.get(req.session.userId);
   const saved = await brandingRepository.save(req.session.userId, config);
   // Propagate the brand primary / secondary down to the Website branding palette
   // so the Website section stays in sync with Platform.
   await websiteBrandingRepository.syncPrimarySecondary(
     req.session.userId, config.primaryColor, config.secondaryColor
   );
+  const { logActivity } = require('../platform/activity');
+  if (!prev || prev.primaryColor !== config.primaryColor) {
+    await logActivity(req.session.userId, { pre: 'Updated ', linkLabel: 'primary brand color', linkHref: '/branding/', post: '.' });
+  } else {
+    await logActivity(req.session.userId, { pre: 'Updated ', linkLabel: 'branding', linkHref: '/branding/', post: '.' });
+  }
   res.json({ saved });
 }));
 

@@ -157,8 +157,8 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 .wsprev__section.is-secdropbefore::after { top: -3px; }
 .wsprev__body.is-secdropend::after { bottom: 4px; }
 
-.wsprev__sectitle { margin: 0 0 12px; font-size: var(--wsprev-heading-size, 22px); font-weight: var(--wsprev-heading-weight, 600); color: #3d3f42; }
-.wsprev__eltitle { margin: 0 0 8px; font-size: var(--wsprev-heading-size, 18px); font-weight: var(--wsprev-heading-weight, 600); color: #3d3f42; }
+.wsprev__sectitle { margin: 0 0 12px; font-size: var(--wsprev-heading-size, 22px); font-weight: var(--wsprev-heading-weight, 600); color: var(--wsprev-heading, #3d3f42); }
+.wsprev__eltitle { margin: 0 0 8px; font-size: var(--wsprev-heading-size, 18px); font-weight: var(--wsprev-heading-weight, 600); color: var(--wsprev-heading, #3d3f42); }
 .wsprev__eltext { margin: 0 0 12px; font-size: var(--wsprev-body-size, 15px); font-weight: var(--wsprev-body-weight, 400); line-height: 1.6; color: #55585d; white-space: pre-wrap; }
 .wsprev__eltext:last-child { margin-bottom: 0; }
 .wsprev__elempty { margin: 0; font-size: 14px; font-style: italic; color: #8d9095; }
@@ -167,10 +167,10 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
    WYSIWYG editor (H1 3X large 48 / H2 2X large 32 / H3 extra large 24 / H4 large
    18 / H5 medium 16) — the Typography panel's heading size/weight applies to the
    section + element titles, not these in-content headings. */
-.wsprev__richtext { font-size: var(--wsprev-body-size, 15px); font-weight: var(--wsprev-body-weight, 400); line-height: 1.6; color: var(--rt-text, #55585d); }
+.wsprev__richtext { font-size: var(--wsprev-body-size, 15px); font-weight: var(--wsprev-body-weight, 400); line-height: 1.6; color: var(--rt-text, var(--wsprev-bodyc, #55585d)); }
 .wsprev__richtext h1, .wsprev__richtext h2, .wsprev__richtext h3,
 .wsprev__richtext h4, .wsprev__richtext h5, .wsprev__richtext h6 {
-  font-weight: 600; color: var(--rt-heading, #3d3f42);
+  font-weight: 600; color: var(--rt-heading, var(--wsprev-heading, #3d3f42));
 }
 .wsprev__richtext h1 { font-size: 48px; font-weight: 700; margin: 0 0 12px; }
 .wsprev__richtext h2 { font-size: 32px; margin: 0 0 12px; }
@@ -186,7 +186,7 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 .wsprev__richtext > :last-child { margin-bottom: 0; }
 .wsprev__richtext ul, .wsprev__richtext ol { margin: 0 0 12px; padding-left: 24px; }
 .wsprev__richtext li { margin: 0 0 4px; }
-.wsprev__richtext a { color: var(--rt-link, #255096); text-decoration: underline; }
+.wsprev__richtext a { color: var(--rt-link, var(--wsprev-link, #255096)); text-decoration: underline; }
 .wsprev__richtext blockquote { margin: 0 0 12px; padding: 4px 0 4px 16px; border-left: 3px solid var(--gray-200, #d7d8da); color: #6e7277; }
 .wsprev__richtext hr { border: 0; border-top: 1px solid var(--gray-200, #d7d8da); margin: 16px 0; }
 .wsprev__richtext img { max-width: 100%; height: auto; border-radius: 4px; }
@@ -266,3 +266,44 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 }
 .wsprev-hud__dot { opacity: 0.5; }
 .wsprev-hud__pct { opacity: 0.85; font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
+
+/* ---------------------------  Bento results page  ------------------------- */
+/* Synthetic, non-editable page rendered by website-preview.js when the user has
+   created Bento blocks. Search-results layout: one column for a single block,
+   two columns for more (Figma 1410:2604). */
+/* Results content margins per the Figma: 48px top/left/right, 64px bottom.
+   Colours come from Branding via CSS vars set in website-preview.js
+   (--wsprev-link / --wsprev-heading / --wsprev-bodyc), so links, headings and
+   body text on the Bento page track the branding controls. */
+.wsprev__body--bento { padding: 48px 48px 64px; box-sizing: border-box; }
+.wsprev__bsummary {
+  margin: 0 0 24px;
+  font-size: 14px;
+  color: var(--wsprev-bodyc, #3d3f42);
+}
+.wsprev__bsource { color: var(--wsprev-link, #2d62b7); text-decoration: underline; margin-right: 14px; white-space: nowrap; }
+.wsprev__bento { display: grid; grid-template-columns: 1fr; gap: 40px 28px; align-items: start; }
+.wsprev__bento--two { grid-template-columns: 1fr 1fr; }
+.wsprev__bblock { min-width: 0; }
+.wsprev__bbhead {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  border-bottom: 2px solid var(--wsprev-link, #2d62b7); padding-bottom: 8px; margin-bottom: 0;
+}
+.wsprev__bbtitle { margin: 0; font-size: 20px; font-weight: 700; color: var(--wsprev-heading, #1a1c1e); line-height: 1.3; }
+.wsprev__bbseeall { color: var(--wsprev-link, #2d62b7); text-decoration: underline; font-size: 14px; white-space: nowrap; }
+.wsprev__bbcards { background: #f7f8f9; }
+.wsprev__bcard { padding: 16px; border-bottom: 1px solid #e6e8eb; }
+.wsprev__bcard:last-child { border-bottom: 0; }
+.wsprev__bctype { font-size: 13px; color: var(--wsprev-bodyc, #55585d); margin-bottom: 4px; }
+.wsprev__bctitle { font-size: 15px; font-weight: 700; color: var(--wsprev-link, #2d62b7); line-height: 1.35; margin-bottom: 6px; }
+.wsprev__bcext { display: inline-flex; vertical-align: -2px; color: var(--wsprev-link, #2d62b7); }
+.wsprev__bcauthors { font-size: 13px; color: var(--wsprev-link, #2d62b7); margin-bottom: 6px; }
+.wsprev__bcmore { text-decoration: underline; }
+.wsprev__bcsnippet { font-size: 13px; color: var(--wsprev-bodyc, #3d3f42); line-height: 1.45; margin-bottom: 14px; }
+.wsprev__bcactions { display: flex; flex-wrap: wrap; gap: 8px; }
+.wsprev__bcbtn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px;
+  border: 1px solid #c7cace; border-radius: 4px;
+  font-size: 13px; font-weight: 600; color: var(--wsprev-link, #2d62b7); background: #fff;
+}
+.wsprev__bcbtn svg { display: block; flex-shrink: 0; }

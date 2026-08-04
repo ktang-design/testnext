@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EBSCO Discovery Service — StacksNext</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/components/navigation/navigation.css" />
+  <link rel="stylesheet" href="/site-details/site-details.css" />
+  <link rel="stylesheet" href="/platform/platform.css" />
+  <link rel="stylesheet" href="/shared/app-shell.css" />
+  <link rel="stylesheet" href="eds.css" />
+  <!-- Pre-paint: apply the collapsed sidenav state before first paint so navigating between pages doesn’t flash the expanded rail (see app-shell.js). -->
+  <script>try{if(localStorage.getItem('sn.sidenav')==='collapsed')document.documentElement.classList.add('is-nav-collapsed');}catch(e){}</script>
+</head>
+<body>
+  <div class="sysmsg">
+    <p class="sysmsg__text">This product is currently in alpha and under active development. The functionality and designs presented are for demonstration purposes only and may change as the product evolves.</p>
+  </div>
+
+  <header class="topnav">
+    <div class="topnav__left">
+      <a class="topnav__logo" href="#" aria-label="Stratum home">
+        <img src="/site-details/assets/app-logo.png" alt="Stratum" width="28" height="28" />
+      </a>
+      <nav class="topnav__menu" aria-label="Primary">
+        <a class="navpill" href="/website/pages/">
+          <span class="navpill__icon navpill__icon--website" aria-hidden="true"></span>
+          <span class="navpill__label">Website</span>
+        </a>
+        <a class="navpill" href="/features/bento/">
+          <span class="navpill__icon navpill__icon--features" aria-hidden="true"></span>
+          <span class="navpill__label">Features</span>
+        </a>
+        <a class="navpill navpill--active" href="/site-details/" aria-current="page">
+          <span class="navpill__icon navpill__icon--platform" aria-hidden="true"></span>
+          <span class="navpill__label">Platform</span>
+        </a>
+      </nav>
+    </div>
+    <button type="button" class="usermenu" aria-label="User menu" aria-haspopup="true">
+      <img class="usermenu__avatar" src="/site-details/assets/user-avatar.svg" alt="" aria-hidden="true" />
+      <img class="usermenu__caret" src="/shared/chevron-down.svg" alt="" aria-hidden="true" />
+    </button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidenav" data-platform-nav aria-label="Settings"></aside>
+
+    <div class="content">
+      <main class="platform-page">
+        <div class="section-heading">
+          <div class="section-heading__text">
+            <h1 class="section-heading__title">EBSCO Discovery Service</h1>
+            <p class="section-heading__desc">Integrate with EBSCO Discovery Service (EDS) to deliver a unified search experience. Users can search and access information from multiple institutional resources through a single search interface. Log into <a href="https://eadmin.ebscohost.com/" target="_blank" rel="noopener">EBSCO admin</a> to locate your integration configuration information.</p>
+          </div>
+        </div>
+
+        <form class="fields" novalidate>
+          <!-- Endpoint URL (read-only, fixed) -->
+          <div class="field">
+            <label class="field__label" for="eds-endpoint">EDS API Endpoint URL</label>
+            <div class="field__control">
+              <input class="input input--readonly" id="eds-endpoint" type="text" value="https://eds-api.ebscohost.com/edsapi/rest" readonly />
+            </div>
+          </div>
+
+          <!-- API Username -->
+          <div class="field">
+            <label class="field__label" for="eds-username">API Username</label>
+            <div class="field__control">
+              <input class="input" id="eds-username" data-field="apiUsername" type="text" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="eds-username-error" />
+            </div>
+            <div class="field__footer">
+              <p class="field__error" id="eds-username-error" data-error-for="eds-username" role="alert" hidden>
+                <img class="field__error-icon" src="/shared/error.svg" alt="" aria-hidden="true" />
+                <span class="field__error-text">API username cannot be empty.</span>
+              </p>
+              <p class="field__count"><span data-count-for="eds-username">0</span>/100</p>
+            </div>
+          </div>
+
+          <!-- API Password -->
+          <div class="field">
+            <label class="field__label" for="eds-password">API Password</label>
+            <div class="field__control">
+              <input class="input" id="eds-password" data-field="apiPassword" type="password" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="eds-password-error" />
+            </div>
+            <div class="field__footer">
+              <p class="field__error" id="eds-password-error" data-error-for="eds-password" role="alert" hidden>
+                <img class="field__error-icon" src="/shared/error.svg" alt="" aria-hidden="true" />
+                <span class="field__error-text">API password cannot be empty.</span>
+              </p>
+              <p class="field__count"><span data-count-for="eds-password">0</span>/100</p>
+            </div>
+          </div>
+
+          <!-- Customer ID -->
+          <div class="field">
+            <label class="field__label" for="eds-customer">Customer ID</label>
+            <div class="field__control">
+              <input class="input" id="eds-customer" data-field="customerId" type="text" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="eds-customer-error" />
+            </div>
+            <div class="field__footer">
+              <p class="field__error" id="eds-customer-error" data-error-for="eds-customer" role="alert" hidden>
+                <img class="field__error-icon" src="/shared/error.svg" alt="" aria-hidden="true" />
+                <span class="field__error-text">Customer ID cannot be empty.</span>
+              </p>
+              <p class="field__count"><span data-count-for="eds-customer">0</span>/100</p>
+            </div>
+          </div>
+
+          <!-- Group ID -->
+          <div class="field">
+            <label class="field__label" for="eds-group">Group ID</label>
+            <div class="field__control">
+              <input class="input" id="eds-group" data-field="groupId" type="text" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="eds-group-error" />
+            </div>
+            <div class="field__footer">
+              <p class="field__error" id="eds-group-error" data-error-for="eds-group" role="alert" hidden>
+                <img class="field__error-icon" src="/shared/error.svg" alt="" aria-hidden="true" />
+                <span class="field__error-text">Group ID cannot be empty.</span>
+              </p>
+              <p class="field__count"><span data-count-for="eds-group">0</span>/100</p>
+            </div>
+          </div>
+
+          <!-- Profile -->
+          <div class="field">
+            <label class="field__label" for="eds-profile">Profile</label>
+            <div class="field__control">
+              <input class="input" id="eds-profile" data-field="profile" type="text" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="eds-profile-error" />
+            </div>
+            <div class="field__footer">
+              <p class="field__error" id="eds-profile-error" data-error-for="eds-profile" role="alert" hidden>
+                <img class="field__error-icon" src="/shared/error.svg" alt="" aria-hidden="true" />
+                <span class="field__error-text">Profile cannot be empty.</span>
+              </p>
+              <p class="field__count"><span data-count-for="eds-profile">0</span>/100</p>
+            </div>
+          </div>
+
+          <!-- Authentication type (optional; ships with a default) -->
+          <div class="field">
+            <label class="field__label" for="eds-auth">Authentication type</label>
+            <div class="field__control">
+              <input class="input" id="eds-auth" data-field="authType" type="text" maxlength="100" autocomplete="off" spellcheck="false" value="cookie,url,ip,sso,uid" />
+            </div>
+          </div>
+        </form>
+      </main>
+
+      <footer class="pageactions">
+        <div class="pageactions__inner">
+          <span class="save-status" data-save-status role="status" aria-live="polite" hidden></span>
+          <button type="button" class="btn btn--primary" data-action="save" disabled>
+            <span class="btn__spinner" aria-hidden="true"></span>
+            <span class="btn__label">Save</span>
+          </button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+
+  <!-- Unsaved-changes guard -->
+  <div class="modal-overlay" data-modal="unsaved" role="dialog" aria-modal="true" aria-labelledby="unsaved-title" hidden>
+    <div class="modal">
+      <div class="modal__header">
+        <h2 class="modal__title" id="unsaved-title">Unsaved changes</h2>
+        <button type="button" class="modal__close" data-modal-close aria-label="Close dialog"><img src="/shared/close.svg" alt="" /></button>
+      </div>
+      <div class="modal__body">
+        <p class="modal__text">You have unsaved changes that will be lost if you leave this page. Do you want to continue?</p>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="modal__btn modal__btn--discard" data-modal-discard>Discard changes</button>
+        <button type="button" class="modal__btn modal__btn--keep" data-modal-keep>Keep editing</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/platform/platform-nav.js"></script>
+  <script src="/shared/app-shell.js"></script>
+  <script src="/shared/auth-client.js"></script>
+  <script src="eds.js"></script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+/* ===========================================================================
+   Features > Bento page. Builds on the shared foundation from
+   site-details.css (tokens, topnav, layout, content, section-heading, buttons,
+   pageactions, save-status, toast) + sortable-tree.css (the block list) +
+   app-shell.css. This file adds only the Bento-specific content styles.
+   =========================================================================== */
+
+/* Centered content column, matching the other Platform/settings pages. The
+   app-shell .platform-page rule supplies the padding + centering context; add
+   the flex column here (Bento doesn't link platform.css) and cap each block at
+   960px so it lines up with the section heading. */
+.platform-page.bento {
+  flex: 1;                 /* fill the content column so the save bar sits at the bottom */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+.platform-page.bento > * { width: 100%; max-width: 960px; }
+
+/* ----- No-integration notice ------------------------------------------------ */
+.bento-notice {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: var(--gray-50, #f7f8f9);
+  border-radius: var(--radius-sm, 4px);
+}
+.bento-notice__icon { flex-shrink: 0; color: var(--gray-600); margin-top: 1px; }
+.bento-notice__title { margin: 0 0 4px; font-weight: 600; font-size: 14px; line-height: 21px; color: var(--gray-700); }
+.bento-notice__desc { margin: 0; font-size: 14px; line-height: 21px; color: var(--gray-700); }
+.bento-notice__desc a,
+.section-heading__desc a { color: var(--blue-700); text-decoration: underline; }
+
+/* ----- Configured state ----------------------------------------------------- */
+.bento-configured { display: flex; flex-direction: column; gap: 16px; align-items: flex-start; }
+/* The create action reads as an outline button with blue label (Figma). */
+.bento-create { color: var(--blue-700); }
+.bento-hint { margin: 0; font-size: 14px; line-height: 21px; color: var(--gray-600); }
+.bento-list { width: 100%; }
+
+/* ----- Block rows (SortableTree) -------------------------------------------
+   The shared .navtree row is a compact, hover-reveal row; the Bento blocks are
+   full-width bordered cards, so bump the row into a card. */
+.bento-list .navtree__row {
+  padding: 16px;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  background: var(--white);
+}
+.bento-list .navtree__item { margin: 0 0 12px; }
+.bento-list .navtree__label { font-weight: 600; font-size: 16px; line-height: 24px; color: var(--gray-700); }
+/* Kebab is always visible on these cards (not hover-only). */
+.bento-list .navtree__kebab { opacity: 1; }
+
+/* Popover menu (shared shared/popover.js). Its styles live in website.css,
+   which this page doesn't link, so include them here (same rules) — without
+   position:absolute the menu would flow to the bottom of the page. */
+.popover {
+  position: absolute; z-index: 1000; min-width: 160px;
+  padding: 4px; background: #fff;
+  border: 1px solid var(--gray-200); border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+.popover__item {
+  display: block; width: 100%; text-align: left;
+  padding: 8px 12px; background: none; border: 0; border-radius: 4px;
+  font: 400 14px/21px var(--font); color: var(--gray-700); cursor: pointer;
+}
+.popover__item:hover,
+.popover__item:focus-visible { background: var(--gray-100); outline: none; }
+.popover__item[aria-disabled="true"] { color: var(--gray-400); cursor: default; }
+.popover__item--danger { color: var(--error); }
+.popover__item--danger:hover, .popover__item--danger:focus-visible { background: #fdecec; }

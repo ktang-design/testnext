@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Users — StacksNext</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/components/navigation/navigation.css" />
+  <link rel="stylesheet" href="/site-details/site-details.css" />
+  <link rel="stylesheet" href="/platform/platform.css" />
+  <link rel="stylesheet" href="/shared/app-shell.css" />
+  <!-- Pre-paint: apply the collapsed sidenav state before first paint so navigating between pages doesn’t flash the expanded rail (see app-shell.js). -->
+  <script>try{if(localStorage.getItem('sn.sidenav')==='collapsed')document.documentElement.classList.add('is-nav-collapsed');}catch(e){}</script>
+</head>
+<body>
+  <div class="sysmsg">
+    <p class="sysmsg__text">This product is currently in alpha and under active development. The functionality and designs presented are for demonstration purposes only and may change as the product evolves.</p>
+  </div>
+
+  <header class="topnav">
+    <div class="topnav__left">
+      <a class="topnav__logo" href="#" aria-label="Stratum home"><img src="/site-details/assets/app-logo.png" alt="Stratum" width="28" height="28" /></a>
+      <nav class="topnav__menu" aria-label="Primary">
+        <a class="navpill" href="/website/pages/"><span class="navpill__icon navpill__icon--website" aria-hidden="true"></span><span class="navpill__label">Website</span></a>
+        <a class="navpill" href="/features/bento/"><span class="navpill__icon navpill__icon--features" aria-hidden="true"></span><span class="navpill__label">Features</span></a>
+        <button type="button" class="navpill navpill--active" aria-current="page"><span class="navpill__icon navpill__icon--platform" aria-hidden="true"></span><span class="navpill__label">Platform</span></button>
+      </nav>
+    </div>
+    <button type="button" class="usermenu" aria-label="User menu" aria-haspopup="true">
+      <img class="usermenu__avatar" src="/site-details/assets/user-avatar.svg" alt="" aria-hidden="true" />
+      <img class="usermenu__caret" src="/shared/chevron-down.svg" alt="" aria-hidden="true" />
+    </button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidenav" data-platform-nav aria-label="Settings"></aside>
+    <div class="content">
+      <main class="platform-page">
+        <div class="section-heading">
+          <div class="section-heading__text">
+            <h1 class="section-heading__title">Users</h1>
+            <p class="section-heading__desc">View and manage accounts for users who can access the website.</p>
+          </div>
+          <button type="button" class="btn btn--primary" data-open-create-user>
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
+            <span>Create user</span>
+          </button>
+        </div>
+        <div data-table-page></div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-overlay" data-modal="create-user" role="dialog" aria-modal="true" aria-labelledby="cu-title" hidden>
+    <div class="modal">
+      <div class="modal__header">
+        <h2 class="modal__title" id="cu-title">Create user</h2>
+        <button type="button" class="modal__close" data-modal-close aria-label="Close dialog"><img src="/shared/close.svg" alt="" /></button>
+      </div>
+      <form class="modal__body" data-create-user-form>
+        <div class="field"><label class="field__label" for="cu-name">Name</label><div class="field__control"><input class="input" id="cu-name" name="name" type="text" required /></div></div>
+        <div class="field"><label class="field__label" for="cu-email">Email</label><div class="field__control"><input class="input" id="cu-email" name="email" type="email" required autocomplete="off" /></div></div>
+        <div class="field"><label class="field__label" for="cu-password">Temporary password</label><div class="field__control"><input class="input" id="cu-password" name="password" type="text" required autocomplete="off" spellcheck="false" placeholder="At least 8 chars, a letter and a number" /></div></div>
+        <div class="field"><label class="field__label" for="cu-role">Role</label><div class="field__control"><select class="select" id="cu-role" name="role"><option value="Administrator">Administrator</option><option value="Content manager">Content manager</option><option value="Editor">Editor</option></select></div></div>
+        <p class="field__error" data-create-user-error role="alert" hidden><span class="field__error-text"></span></p>
+      </form>
+      <div class="modal__footer">
+        <button type="button" class="modal__btn modal__btn--keep" data-modal-close>Cancel</button>
+        <button type="submit" form="" class="btn btn--primary" data-create-user-submit><span class="btn__label">Create user</span></button>
+      </div>
+    </div>
+  </div>
+  <script src="/platform/platform-nav.js"></script>
+  <script src="/shared/app-shell.js"></script>
+  <script src="/shared/auth-client.js"></script>
+  <script src="/users/users.js"></script>
+  <script src="/platform/platform-table.js"></script>
+</body>
+</html>

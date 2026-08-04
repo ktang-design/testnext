@@ -12,6 +12,8 @@
   <link rel="stylesheet" href="../components/navigation/navigation.css" />
   <link rel="stylesheet" href="access.css" />
   <link rel="stylesheet" href="../shared/app-shell.css" />
+  <!-- Pre-paint: apply the collapsed sidenav state before first paint so navigating between pages doesn’t flash the expanded rail (see app-shell.js). -->
+  <script>try{if(localStorage.getItem('sn.sidenav')==='collapsed')document.documentElement.classList.add('is-nav-collapsed');}catch(e){}</script>
 </head>
 <body>
   <!-- Persistent system message (alpha notice) — always at the top of the product, not dismissible. -->
@@ -30,10 +32,10 @@
           <span class="navpill__icon navpill__icon--website" aria-hidden="true"></span>
           <span class="navpill__label">Website</span>
         </a>
-        <button type="button" class="navpill" disabled aria-disabled="true" data-node-id="1:156">
+        <a class="navpill" href="/features/bento/">
           <span class="navpill__icon navpill__icon--features" aria-hidden="true"></span>
           <span class="navpill__label">Features</span>
-        </button>
+        </a>
         <button type="button" class="navpill navpill--active" aria-current="page" data-node-id="1:157">
           <span class="navpill__icon navpill__icon--platform" aria-hidden="true"></span>
           <span class="navpill__label">Platform</span>
@@ -48,30 +50,7 @@
 
   <div class="layout">
     <!-- ============ Side navigation ============ -->
-    <aside class="sidenav" data-node-id="1:1285">
-      <nav aria-label="Settings">
-        <ul class="sidenav__list">
-          <li>
-            <a class="nav-item nav-item--interactive" href="../site-details/index.html">
-              <span class="nav-item__icon"><img src="assets/table-columns.svg" alt="" aria-hidden="true" /></span>
-              <span class="nav-item__label">Site details</span>
-            </a>
-          </li>
-          <li>
-            <a class="nav-item nav-item--interactive" href="../branding/index.html">
-              <span class="nav-item__icon"><img src="assets/swatchbook.svg" alt="" aria-hidden="true" /></span>
-              <span class="nav-item__label">Branding</span>
-            </a>
-          </li>
-          <li>
-            <a class="nav-item nav-item--interactive is-active" href="#" aria-current="page">
-              <span class="nav-item__icon"><img src="assets/shield-check.svg" alt="" aria-hidden="true" /></span>
-              <span class="nav-item__label">Access</span>
-            </a>
-          </li>
-        </ul>
-      </nav>
-    </aside>
+    <aside class="sidenav" data-platform-nav aria-label="Settings"></aside>
 
     <!-- ============ Main content ============ -->
     <div class="content">
@@ -126,7 +105,8 @@
     </div>
   </div>
 
-  <div class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="/platform/platform-nav.js"></script>
 
   <script src="../shared/app-shell.js"></script>
   <script src="../shared/auth-client.js"></script>

@@ -11,6 +11,58 @@
   --sysmsg-h: 0px;  /* height of the persistent system message, measured by app-shell.js */
 }
 
+/* Screen-reader-only utility (used by shared components like sortable-tree.js).
+   Also declared in website.css / access.css; kept here so it applies on any
+   page that links only the app shell. */
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0);
+  white-space: nowrap; border: 0;
+}
+
+/* Shared toast — top-right of the viewport, by the top nav. Built by
+   window.Toast.show() in app-shell.js. Dark pill: info icon + message +
+   dismiss. Multiple toasts stack like Sonner (newest in front, older ones
+   peeking behind; the stack fans out on hover) — positions/opacity/z-index are
+   set inline by layoutToasts(); this file supplies the look + the transition. */
+.toast-region {
+  position: fixed;
+  top: calc(var(--sysmsg-h, 0px) + 12px);
+  right: 16px;
+  z-index: 9990;
+  width: min(360px, calc(100vw - 32px));
+  pointer-events: none;
+}
+.toast {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--gray-700, #3d3f42);
+  color: var(--white, #fff);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.18);
+  font: 400 14px/20px var(--font, 'Noto Sans', sans-serif);
+  transform-origin: top center;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
+  will-change: transform;
+}
+.toast__icon { flex-shrink: 0; display: flex; margin-top: 1px; }
+.toast__msg { flex: 1; min-width: 0; }
+.toast__close {
+  flex-shrink: 0; display: inline-flex; padding: 0;
+  background: none; border: 0; color: var(--white, #fff);
+  opacity: 0.8; cursor: pointer;
+}
+.toast__close:hover { opacity: 1; }
+
 /* ===========================================================================
    Persistent system message (alpha notice). Sits at the very top of every
    product page, above the main navigation, and pushes the content down. It is
@@ -66,7 +118,8 @@
 /* Center the form column within the area next to the panel (was left-aligned). */
 .branding,
 .access,
-.site-details {
+.site-details,
+.platform-page {
   max-width: none;
   width: 100%;
   padding: 48px 24px;
@@ -159,10 +212,29 @@ body:not(.has-sysfooter) .sidenav {
   .sidenav:hover .sidenav__collapse,
   .sidenav__collapse:focus-visible { opacity: 1; }
 
-  .sidenav--collapsed { width: 64px; }
-  .sidenav--collapsed .nav-item { justify-content: center; padding: 10px 0; gap: 0; position: relative; }
-  .sidenav--collapsed .nav-item__label { display: none; }
-  .sidenav--collapsed .sidenav__collapse img { transform: rotate(180deg); }
+  .is-nav-collapsed .sidenav { width: 64px; }
+  .is-nav-collapsed .sidenav .nav-item { justify-content: center; padding: 10px 0; gap: 0; position: relative; }
+  .is-nav-collapsed .sidenav .nav-item__label { display: none; }
+  .is-nav-collapsed .sidenav .sidenav__collapse img { transform: rotate(180deg); }
+  /* Icon-only rail: no group dropdown chevron, and hide the (icon-less) sub-items.
+     The parent group's icon shows the active state instead (e.g. on Users, the
+     "Users and permissions" icon is highlighted). */
+  .is-nav-collapsed .sidenav .nav-item__chevron { display: none; }
+  .is-nav-collapsed .sidenav .sidenav__subitem { display: none; }
+  .is-nav-collapsed .sidenav .nav-item.is-active-parent { color: var(--blue-700, #255096); }
+  /* Active item: the icon sits inside a blue rounded-square chip (matches the
+     Figma collapsed-rail selected state, and the top-nav grid/hamburger active
+     treatment). Applies to a current page (.is-active) and the active group
+     parent (.is-active-parent). Icons are inline SVGs on currentColor, so the
+     colour turns the glyph blue. */
+  .is-nav-collapsed .sidenav .nav-item.is-active .nav-item__icon,
+  .is-nav-collapsed .sidenav .nav-item.is-active-parent .nav-item__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--blue-50, #e9effa);
+    color: var(--blue-700, #255096);
+  }
 }
 
 /* Buttons injected by app-shell.js — hidden on desktop. */
@@ -229,25 +301,67 @@ a.navpill, a.navpill:hover, a.navpill:visited { text-decoration: none; }
 
 body.is-locked { overflow: hidden; }
 
+/* ---------------------------  Unified mobile nav  ------------------------- */
+/* Built by app-shell.js from the product pills + the page's section nav. Hidden
+   on desktop; becomes the off-canvas hamburger drawer at ≤899px (below). */
+.mobilenav { display: none; }
+.mobilenav__list { list-style: none; margin: 0; padding: 0; }
+.mobilenav__group { border-bottom: 1px solid var(--gray-200, #d7d8da); }
+.mobilenav__product {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 16px 20px;
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  font: 600 16px/24px var(--font, 'Noto Sans', sans-serif);
+  color: var(--gray-700, #3d3f42);
+  text-decoration: none;
+}
+.mobilenav__product .navpill__icon { width: 20px; height: 20px; }
+.mobilenav__label { flex: 1 1 auto; min-width: 0; }
+.mobilenav__chevron { display: inline-flex; width: 20px; height: 20px; color: var(--gray-500, #8b8e92); }
+.mobilenav__chevron svg { display: block; }
+.mobilenav__chevron .chevron--up { display: none; }
+.mobilenav__product.is-active { color: var(--blue-700, #255096); }
+.mobilenav__product.is-open .chevron--down { display: none; }
+.mobilenav__product.is-open .chevron--up { display: block; }
+.mobilenav__panel { padding: 4px 8px 12px; }
+.mobilenav__panel[hidden] { display: none; }
+.mobilenav__panel .sidenav__list { display: flex; flex-direction: column; gap: 2px; }
+.mobilenav__panel .nav-item { width: 100%; }
+
 /* ===========================  Tablet & below (≤ 899px)  =================== */
 @media (max-width: 899px) {
   /* The top nav is NOT sticky — only the system message (above) stays pinned. */
   .topnav__hamburger { display: inline-flex; }
 
-  /* Sidebar becomes an off-canvas drawer below the message + top nav. */
-  .sidenav {
+  /* Product pills + the grid product-menu are replaced by the hamburger drawer. */
+  .topnav__menu { display: none; }
+  .topnav__apps { display: none; }
+
+  /* The docked section sidenav is replaced by the unified mobile drawer. */
+  .sidenav { display: none; }
+  .mobilenav {
+    display: block;
     position: fixed;
     left: 0;
     top: calc(var(--sysmsg-h) + var(--topnav-h));
     height: calc(100% - var(--sysmsg-h) - var(--topnav-h));
-    width: 288px;
-    max-width: 86vw;
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    overflow-y: auto;
     transform: translateX(-100%);
     transition: transform 0.22s ease;
     box-shadow: 2px 0 16px rgba(0, 0, 0, 0.12);
     z-index: 50;
   }
-  .sidenav.is-open { transform: translateX(0); }
+  .mobilenav.is-open { transform: translateX(0); }
 
   /* Content fills the row once the sidebar is out of flow. */
   .content { width: 100%; }
@@ -255,40 +369,21 @@ body.is-locked { overflow: hidden; }
   /* Trim the generous desktop padding. */
   .branding,
   .access,
-  .site-details { padding: 32px 24px; }
+  .site-details,
+  .platform-page { padding: 32px 24px; }
   .pageactions { padding: 16px 24px; }
 }
 
 /* ===========================  Mobile (≤ 599px)  =========================== */
 @media (max-width: 599px) {
-  /* Product nav (Website / Features / Platform) collapses to a grid icon. */
-  .topnav__menu {
-    display: none;
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;                 /* right-align the dropdown under the grid icon */
-    flex-direction: column;
-    align-items: stretch;
-    gap: 2px;
-    min-width: 200px;
-    padding: 6px;
-    background: #fff;
-    border: 1px solid var(--gray-200, #d7d8da);
-    border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    z-index: 70;
-  }
-  .topnav__menu.is-open { display: flex; }
-  .topnav__menu .navpill { justify-content: flex-start; width: 100%; }
-  .topnav__apps { display: inline-flex; }
-
   /* Section heading + action button stack. */
   .section-heading { flex-direction: column; align-items: stretch; gap: 16px; }
   .section-heading .btn { align-self: flex-start; }
 
   .branding,
   .access,
-  .site-details { padding: 24px 20px; gap: 28px; }
+  .site-details,
+  .platform-page { padding: 24px 20px; gap: 28px; }
   .pageactions { padding: 16px 20px; }
   .pageactions__inner { gap: 12px; }
 

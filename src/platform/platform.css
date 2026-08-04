@@ -1,0 +1,177 @@
+/* ===========================================================================
+   Platform pages — shared additions on top of the base chrome.
+   New Platform pages link: navigation.css + ../site-details/site-details.css
+   (tokens, topnav, layout, section-heading, fields, inputs, buttons,
+   pageactions) + this file + app-shell.css. This file adds only what the new
+   pages need beyond site-details: the main-content wrapper, native <select>,
+   help-text links, and (data-table / status pills / pagination) primitives.
+   =========================================================================== */
+
+/* Main content column — matches .site-details / .branding padding. */
+.platform-page {
+  flex: 1;
+  padding: 48px 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+  max-width: 1152px;
+}
+.platform-page .section-heading,
+.platform-page .fields,
+.platform-page [data-table-page],
+.platform-page .panel { width: 100%; max-width: 960px; }
+/* The table container centers its panel + pager within the 960px column. */
+.platform-page [data-table-page] { display: flex; flex-direction: column; gap: 16px; }
+
+/* Links inside descriptions / hints. */
+.section-heading__desc a,
+.field__hint a { color: var(--blue-700); text-decoration: underline; }
+
+/* ---------------------------  Table skeleton (loading)  --------------------------- */
+/* Shown by platform-table.js while rows load. A shimmering placeholder bar per cell. */
+.dtable__skeleton td { border-bottom: 1px solid var(--gray-100); }
+.skeleton {
+  display: block;
+  height: 14px;
+  width: 100%;
+  max-width: 180px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 37%, var(--gray-100) 63%);
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+@keyframes skeleton-shimmer {
+  from { background-position: 100% 50%; }
+  to { background-position: 0 50%; }
+}
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
+
+/* ---------------------------  Native select  --------------------------- */
+.select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 40px 8px 8px;
+  font: 400 16px/24px var(--font);
+  color: var(--gray-700);
+  background-color: var(--white);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%2355585D' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  border: 1px solid var(--gray-400);
+  border-radius: var(--radius-sm);
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+.select:focus {
+  outline: none;
+  border-color: var(--blue-500);
+  box-shadow: 0 0 0 1px var(--blue-500);
+}
+.select:disabled {
+  background-color: var(--gray-50);
+  border-color: var(--gray-200);
+  color: var(--gray-600);
+  cursor: default;
+}
+
+/* ---------------------------  Panel / data table  --------------------------- */
+.panel {
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.panel__toolbar { display: flex; align-items: center; gap: 12px; }
+.panel__search {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  font: 400 14px/21px var(--font);
+  color: var(--gray-700);
+  background: var(--white);
+  border: 1px solid var(--gray-400);
+  border-radius: var(--radius-sm);
+}
+.panel__search::placeholder { color: var(--gray-500); }
+.panel__search:focus { outline: none; border-color: var(--blue-500); box-shadow: 0 0 0 1px var(--blue-500); }
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px;
+  background: var(--white);
+  border: 1px solid var(--gray-400);
+  border-radius: var(--radius-sm);
+  font: 600 14px/21px var(--font);
+  color: var(--gray-700);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.icon-btn:hover { background: #f4f5f7; }
+.icon-btn svg { display: block; }
+.icon-btn--square { width: 40px; padding: 0; }
+
+/* Table */
+.dtable { width: 100%; border-collapse: collapse; }
+.dtable th {
+  text-align: left;
+  padding: 10px 12px;
+  font: 600 14px/21px var(--font);
+  color: var(--gray-700);
+  border-bottom: 1px solid var(--gray-200);
+}
+.dtable td {
+  padding: 14px 12px;
+  font: 400 14px/21px var(--font);
+  color: var(--gray-700);
+  border-bottom: 1px solid var(--gray-100);
+  vertical-align: middle;
+}
+.dtable tr:last-child td { border-bottom: 0; }
+.dtable a { color: var(--blue-700); text-decoration: underline; }
+.dtable__empty { padding: 28px 12px; text-align: center; color: var(--gray-500); }
+
+/* Status pill: colored dot + label */
+.status { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.status__dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--gray-400); }
+.status--active .status__dot { background: #1e874b; }
+.status--pending .status__dot { background: #e08a00; }
+.status--inactive .status__dot { background: #d71818; }
+
+/* Row kebab menu trigger */
+.row-kebab {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border: 0; background: transparent;
+  border-radius: var(--radius-sm); color: var(--gray-600); cursor: pointer;
+}
+.row-kebab:hover { background: var(--gray-100); }
+
+/* Floating per-row action menu (appended to <body> by users.js). */
+.rowmenu {
+  position: absolute; z-index: 100001; min-width: 150px;
+  background: var(--white); border: 1px solid var(--gray-200); border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.14); padding: 4px; display: flex; flex-direction: column;
+}
+.rowmenu button {
+  text-align: left; padding: 8px 10px; border: 0; background: transparent; border-radius: 4px;
+  font: 400 14px/21px var(--font); color: var(--gray-700); cursor: pointer;
+}
+.rowmenu button:hover { background: var(--gray-100); }
+
+/* ---------------------------  Pagination  --------------------------- */
+.pager { display: flex; align-items: center; justify-content: center; gap: 6px; padding-top: 4px; }
+.pager__btn {
+  min-width: 32px; height: 32px; padding: 0 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--white); border: 0; border-radius: var(--radius-sm);
+  font: 400 14px/21px var(--font); color: var(--blue-700); cursor: pointer;
+}
+.pager__btn:hover:not(:disabled) { background: var(--blue-50); }
+.pager__btn[aria-current="page"] { border: 1px solid var(--blue-500); color: var(--blue-700); font-weight: 600; }
+.pager__btn:disabled { color: var(--gray-400); cursor: default; }
