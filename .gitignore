@@ -8,3 +8,6 @@ data/
 
 # Large Figma API dump (contains AWS presigned-URL keys) — keep local only
 src/scripts/figma-a11y-test/wcag_report.txt
+/check-users.js
+/reset-user.js
+/remove-user.js
