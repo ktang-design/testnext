@@ -63,6 +63,7 @@ const SCHEMA = [
     user_id     TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     name        TEXT NOT NULL,
     description TEXT NOT NULL,
+    admin_email TEXT NOT NULL DEFAULT '',
     updated_at  TEXT NOT NULL
   )`,
   `CREATE TABLE IF NOT EXISTS branding_settings (
@@ -153,6 +154,7 @@ const COLUMN_PATCHES = [
   { table: 'users', column: 'role', ddl: "ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'Administrator'" },
   { table: 'users', column: 'status', ddl: "ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT 'active'" },
   { table: 'users', column: 'last_accessed_at', ddl: 'ALTER TABLE users ADD COLUMN last_accessed_at TEXT' },
+  { table: 'site_settings', column: 'admin_email', ddl: "ALTER TABLE site_settings ADD COLUMN admin_email TEXT NOT NULL DEFAULT ''" },
 ];
 async function ensureColumns() {
   for (const p of COLUMN_PATCHES) {

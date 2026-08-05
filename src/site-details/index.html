@@ -109,11 +109,12 @@
                   if (!el || val == null) return;
                   el.dataset.factory = el.value;
                   el.value = val;
-                  var cnt = document.querySelector(countSel);
+                  var cnt = countSel ? document.querySelector(countSel) : null;
                   if (cnt) cnt.textContent = String(val).length;
                 };
                 set(document.getElementById('site-name'), cfg.name, '[data-count-for="site-name"]');
                 set(document.getElementById('site-description'), cfg.description, '[data-count-for="site-description"]');
+                set(document.getElementById('site-admin-email'), cfg.adminEmail, null);
               } catch (e) { /* no cache / disabled — fall back to JS hydration */ }
             })();
           </script>
@@ -124,6 +125,21 @@
             <p class="field__hint">The primary web address visitors use to access your website.</p>
             <div class="field__control">
               <input class="input input--readonly" id="site-url" type="text" value="site.qstratum.app" readonly />
+            </div>
+          </div>
+
+          <!-- Admin email -->
+          <div class="field">
+            <label class="field__label" for="site-admin-email">Admin email</label>
+            <p class="field__hint">Sender address for system notifications, password resets, and automated emails.</p>
+            <div class="field__control">
+              <input class="input" id="site-admin-email" type="email" autocomplete="off" spellcheck="false" placeholder="admin@yoursite.com" aria-describedby="site-admin-email-error" />
+            </div>
+            <div class="field__footer">
+              <p class="field__error" id="site-admin-email-error" data-error-for="site-admin-email" role="alert" hidden>
+                <img class="field__error-icon" src="assets/error.svg" alt="" aria-hidden="true" />
+                <span class="field__error-text">Enter a valid admin email address.</span>
+              </p>
             </div>
           </div>
 
