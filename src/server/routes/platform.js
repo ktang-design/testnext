@@ -1,8 +1,8 @@
 'use strict';
 // Platform settings APIs (per authenticated user):
-//   GET/PUT /api/platform/communication    -> { defaults, saved }
 //   GET/PUT /api/platform/language-region   -> { defaults, saved }
 //   GET/PUT /api/platform/analytics         -> { defaults, saved }
+//   GET/PUT /api/platform/eds               -> { defaults, endpoint, saved }
 
 const express = require('express');
 const { requireApiAuth } = require('../auth/authGuard');
@@ -16,7 +16,6 @@ const D = require('../platform/defaults');
 const router = express.Router();
 const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const ROLES = ['Administrator', 'Content manager', 'Editor'];
 const STATUSES = ['active', 'pending', 'inactive'];
@@ -26,26 +25,6 @@ function paging(q) {
   const page = Math.max(1, parseInt(q.page, 10) || 1);
   return { limit: pageSize, offset: (page - 1) * pageSize, page, pageSize };
 }
-
-// ---- Communication --------------------------------------------------------
-router.get('/communication', requireApiAuth, ah(async (req, res) => {
-  res.json({ defaults: D.COMMUNICATION_DEFAULTS, saved: await repo.get(req.session.userId, 'communication') });
-}));
-router.put('/communication', requireApiAuth, ah(async (req, res) => {
-  const b = req.body || {};
-  const systemEmail = str(b.systemEmail, D.COMMUNICATION_MAX.systemEmail);
-  if (systemEmail && !EMAIL_RE.test(systemEmail)) {
-    return res.status(400).json({ error: 'INVALID_EMAIL', message: 'Enter a valid system email address.' });
-  }
-  const config = {
-    systemEmail,
-    phone: str(b.phone, D.COMMUNICATION_MAX.phone),
-    businessAddress: str(b.businessAddress, D.COMMUNICATION_MAX.businessAddress),
-  };
-  const saved = await repo.save(req.session.userId, 'communication', config);
-  await logActivity(req.session.userId, { pre: 'Updated ', linkLabel: 'communication settings', linkHref: '/communication/', post: '.' });
-  res.json({ saved });
-}));
 
 // ---- Language & region ----------------------------------------------------
 router.get('/language-region', requireApiAuth, ah(async (req, res) => {

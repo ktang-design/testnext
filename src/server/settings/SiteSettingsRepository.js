@@ -10,19 +10,20 @@ const { get, run } = require('../db/database');
 
 class SiteSettingsRepository {
   async get(userId) {
-    const row = await get('SELECT name, description FROM site_settings WHERE user_id = ?', [userId]);
-    return row ? { name: row.name, description: row.description } : null;
+    const row = await get('SELECT name, description, admin_email FROM site_settings WHERE user_id = ?', [userId]);
+    return row ? { name: row.name, description: row.description, adminEmail: row.admin_email || '' } : null;
   }
 
-  async save(userId, { name, description }) {
+  async save(userId, { name, description, adminEmail = '' }) {
     await run(
-      `INSERT INTO site_settings (user_id, name, description, updated_at)
-       VALUES (?, ?, ?, ?)
+      `INSERT INTO site_settings (user_id, name, description, admin_email, updated_at)
+       VALUES (?, ?, ?, ?, ?)
        ON CONFLICT(user_id) DO UPDATE SET
          name = excluded.name,
          description = excluded.description,
+         admin_email = excluded.admin_email,
          updated_at = excluded.updated_at`,
-      [userId, name, description, new Date().toISOString()]
+      [userId, name, description, adminEmail, new Date().toISOString()]
     );
     return this.get(userId);
   }

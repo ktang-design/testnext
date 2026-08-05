@@ -26,7 +26,6 @@
     { icon: 'site', label: 'Site details', href: '/site-details/' },
     { icon: 'branding', label: 'Branding', href: '/branding/' },
     { icon: 'globe', label: 'Language and region', href: '/language-region/' },
-    { icon: 'mail', label: 'Communication', href: '/communication/' },
     { icon: 'shield', label: 'Access', href: '/access/' },
     { icon: 'users', label: 'Users and permissions', children: [
       { label: 'Administrators', href: '/administrators/' },

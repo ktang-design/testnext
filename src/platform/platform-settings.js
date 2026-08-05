@@ -1,5 +1,5 @@
-// Generic controller for the simple Platform settings pages (Communication,
-// Language & region, Analytics). Declarative: a [data-settings="/api/..."]
+// Generic controller for the simple Platform settings pages (Language & region,
+// Analytics). Declarative: a [data-settings="/api/..."]
 // container holds [data-field="key"] inputs, a [data-action="save"] button, and
 // a [data-save-status] element. Handles load → populate → dirty-tracking → save
 // (with "Unsaved changes"/"Saved!" status + inline error) and the unsaved-changes
@@ -15,7 +15,6 @@
   var CACHE_KEY = 'platform-cache:' + endpoint;
   // Per-page toast message shown on a successful save (keyed by endpoint tail).
   var SAVED_MSG = {
-    communication: 'Communication settings saved.',
     'language-region': 'Language & region settings saved.',
     analytics: 'Analytics settings saved.',
   };

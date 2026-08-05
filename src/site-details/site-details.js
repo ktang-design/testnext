@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusEl = document.querySelector('[data-save-status]');
   const nameError = document.querySelector('[data-error-for="site-name"]');
   const descError = document.querySelector('[data-error-for="site-description"]');
+  const adminEmailInput = document.getElementById('site-admin-email');
+  const adminEmailError = document.querySelector('[data-error-for="site-admin-email"]');
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   // Fallbacks until the server responds. The factory default may have been
   // stashed on data-factory by the pre-paint hydration script (which sets the
@@ -25,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let systemDefault = {
     name: nameInput.dataset.factory != null ? nameInput.dataset.factory : nameInput.value,
     description: descInput.dataset.factory != null ? descInput.dataset.factory : descInput.value,
+    adminEmail: adminEmailInput && adminEmailInput.dataset.factory != null ? adminEmailInput.dataset.factory : (adminEmailInput ? adminEmailInput.value : ''),
   };
   let lastSaved = null; // null = never saved
   let saving = false;
@@ -38,8 +42,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const readCache = () => { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (_) { return null; } };
   const writeCache = (data) => { try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (_) { /* ignore */ } };
 
-  const current = () => ({ name: nameInput.value, description: descInput.value });
-  const eq = (a, b) => !!a && !!b && a.name === b.name && a.description === b.description;
+  const current = () => ({ name: nameInput.value, description: descInput.value, adminEmail: adminEmailInput ? adminEmailInput.value : '' });
+  const eq = (a, b) => !!a && !!b && a.name === b.name && a.description === b.description && (a.adminEmail || '') === (b.adminEmail || '');
+  // Admin email is optional; valid only when empty or a well-formed address.
+  const emailOk = () => !adminEmailInput || isEmpty(adminEmailInput.value) || EMAIL_RE.test(adminEmailInput.value.trim());
   // The baseline for "unsaved changes": the last saved value, or the system
   // default while nothing has been saved yet.
   const baseline = () => lastSaved || systemDefault;
@@ -57,7 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
     descError.hidden = !descBad;
     nameInput.setAttribute('aria-invalid', nameBad ? 'true' : 'false');
     descInput.setAttribute('aria-invalid', descBad ? 'true' : 'false');
-    return !nameBad && !descBad;
+    const emailBad = adminEmailInput && !isEmpty(adminEmailInput.value) && !EMAIL_RE.test(adminEmailInput.value.trim());
+    if (adminEmailError) adminEmailError.hidden = !emailBad;
+    if (adminEmailInput) adminEmailInput.setAttribute('aria-invalid', emailBad ? 'true' : 'false');
+    return !nameBad && !descBad && !emailBad;
   }
 
   function refreshDerived() {
@@ -77,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function render() {
     const dirty = isDirty();
 
-    saveBtn.disabled = saving || !dirty || !requiredFilled();
+    saveBtn.disabled = saving || !dirty || !requiredFilled() || !emailOk();
     saveBtn.classList.toggle('is-saving', saving);
     saveLabel.textContent = saving ? 'Saving' : 'Save';
 
@@ -95,6 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function setInputs(values) {
     nameInput.value = values.name;
     descInput.value = values.description;
+    if (adminEmailInput) adminEmailInput.value = values.adminEmail || '';
     refreshDerived();
   }
 
@@ -107,12 +117,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   nameInput.addEventListener('input', handleInput);
   descInput.addEventListener('input', handleInput);
+  if (adminEmailInput) adminEmailInput.addEventListener('input', handleInput);
 
   // Save → persist to the user's account.
   saveBtn.addEventListener('click', async () => {
     if (saveBtn.disabled || saving) return;
     if (!updateValidation()) {
-      (isEmpty(nameInput.value) ? nameInput : descInput).focus();
+      const firstBad = isEmpty(nameInput.value) ? nameInput
+        : isEmpty(descInput.value) ? descInput
+        : adminEmailInput;
+      if (firstBad) firstBad.focus();
       return;
     }
     saving = true;

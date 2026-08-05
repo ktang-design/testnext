@@ -2,14 +2,6 @@
 // Factory defaults + option lists for the Platform settings pages.
 
 module.exports = {
-  COMMUNICATION_DEFAULTS: {
-    systemEmail: '',
-    phone: '',
-    businessAddress: '',
-  },
-  // Reasonable upper bounds so a bad client can't store huge blobs.
-  COMMUNICATION_MAX: { systemEmail: 254, phone: 40, businessAddress: 300 },
-
   LANGUAGE_DEFAULTS: {
     timezone: 'America/New_York',
     timeFormat: '12h', // '12h' | '24h'

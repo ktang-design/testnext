@@ -7,9 +7,12 @@ module.exports = {
   FACTORY_DEFAULTS: {
     name: 'Stratum',
     description: 'The world’s most powerful and accessible library website builder.',
+    adminEmail: '',
   },
   NAME_MAX: 100,
   DESCRIPTION_MAX: 300,
+  ADMIN_EMAIL_MAX: 254,
+  EMAIL_RE: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
 
   // Factory defaults for the Branding page.
   BRANDING_DEFAULTS: {
