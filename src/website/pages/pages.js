@@ -257,10 +257,12 @@
   }
   function selectSection(id) { selectedSectionId = id; selectedElementId = null; selectedCardId = null; renderAll(); }
   function selectElement(secId, elId) {
-    // Moving to a different element resets its panel to the first tab and drops
-    // any card selection from the element we were on.
-    if (elId !== selectedElementId) { cardsTab = 'styling'; selectedCardId = null; }
-    selectedSectionId = secId; selectedElementId = elId;
+    // Moving to a different element resets its panel to the first tab. Clicking
+    // the element ALWAYS clears the card selection — including when a card in
+    // this element was selected — so the element's own toolbar (and its reorder
+    // grip) comes back and the element can be moved within its section.
+    if (elId !== selectedElementId) cardsTab = 'styling';
+    selectedSectionId = secId; selectedElementId = elId; selectedCardId = null;
     renderAll();
   }
   function selectCard(secId, elId, cardId) {
@@ -936,7 +938,7 @@
       heading: { color: '#3D3F42', opacity: 100 },
       text: { color: '#55585D', opacity: 100 },
       link: { color: '#255096', opacity: 100 },
-      background: { color: '#FFFFFF', opacity: 100 },
+      background: { color: '#FFFFFF', opacity: 0 }, // transparent until a colour is chosen
       borderWidth: '1', // "Default" = 1px
       borderSides: { top: true, right: true, bottom: true, left: true }, // first option = all
       borderColor: { color: '#FFFFFF', opacity: 0 }, // border only appears once a colour is set
@@ -1394,12 +1396,18 @@
         settings.appendChild(top);
 
         const layout = grp('pgb__group');
-        layout.appendChild(buildRadio('Card layout', CARD_LAYOUTS, elc.cardLayout, (v) => { elc.cardLayout = v; afterFieldEdit(); }));
+        // Icon mode is a single fixed layout (icon left, title + description
+        // beside it), so there is no image/title order to choose.
+        if (elc.imageMode !== 'icon') {
+          layout.appendChild(buildRadio('Card layout', CARD_LAYOUTS, elc.cardLayout, (v) => { elc.cardLayout = v; afterFieldEdit(); }));
+        }
         layout.appendChild(buildDropdown('Radius', CARD_RADII, elc.radius, (v) => { elc.radius = v; afterFieldEdit(); }, CARD_RADIUS_HINT));
         settings.appendChild(layout);
       } else if (cardsTab === 'image') {
         const image = grp('pgb__group');
-        image.appendChild(buildRadio('Image mode', CARD_IMAGE_MODES, elc.imageMode, (v) => { elc.imageMode = v; afterFieldEdit(); }));
+        // Image mode decides whether the Styling tab shows "Card layout", so the
+        // panel is rebuilt (not just the preview) when it changes.
+        image.appendChild(buildRadio('Image mode', CARD_IMAGE_MODES, elc.imageMode, (v) => { elc.imageMode = v; afterContentChange(); }));
         image.appendChild(buildRadio('Image size', CARD_IMAGE_SIZES, elc.imageSize, (v) => { elc.imageSize = v; afterFieldEdit(); }));
         image.appendChild(buildRadio('Image fit', CARD_IMAGE_FITS, elc.imageFit, (v) => { elc.imageFit = v; afterFieldEdit(); }));
         settings.appendChild(image);

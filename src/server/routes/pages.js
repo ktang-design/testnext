@@ -87,7 +87,7 @@ function normalizeRichtextStyle(raw) {
     heading: styleColor(s.heading, '#3D3F42', 100),
     text: styleColor(s.text, '#55585D', 100),
     link: styleColor(s.link, '#255096', 100),
-    background: styleColor(s.background, '#FFFFFF', 100),
+    background: styleColor(s.background, '#FFFFFF', 0), // transparent until a colour is chosen
     borderWidth: RT_BORDER_WIDTHS.includes(String(s.borderWidth)) ? String(s.borderWidth) : '1',
     borderSides: { top: bool(sides.top), right: bool(sides.right), bottom: bool(sides.bottom), left: bool(sides.left) },
     borderColor: styleColor(s.borderColor, '#FFFFFF', 0),

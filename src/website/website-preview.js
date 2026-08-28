@@ -167,7 +167,18 @@
       if (sides.left) elt.style.borderLeft = b;
       padded = true;
     }
-    if (padded) elt.style.padding = '16px';
+    padForStyle(elt, padded);
+  }
+  // A chosen background or border earns the element 16px of padding so the
+  // colour doesn't crowd the text. The box then grows 1rem OUTWARD rather than
+  // pushing its content in, so content stays on the page gutter and still lines
+  // up with the header's logo and search.
+  function padForStyle(elt, padded) {
+    if (!padded) return;
+    elt.style.padding = '16px';
+    // The outward 1rem is CSS, so a split column only grows on its page-facing
+    // side and two coloured columns can't eat into the 24px gap between them.
+    elt.classList.add('is-padded');
   }
 
   // A Cards element (Figma 5624:73759 builder / 5624:75414 published).
@@ -192,8 +203,9 @@
     const radius = CARD_RADIUS_PX[element.radius] != null ? CARD_RADIUS_PX[element.radius] : 6;
     const ratio = String(element.imageSize || '4:3').replace(':', ' / ');
     const icon = element.imageMode === 'icon';
-    const titleFirst = element.cardLayout === 'title-first';
-    const st = element.style;
+    // Icon mode has a single fixed layout — icon on the left with the title and
+    // description stacked beside it — so "Title first" does not apply there.
+    const titleFirst = !icon && element.cardLayout === 'title-first';
     cards.forEach((c) => {
       // Nothing in the preview navigates: a card is an edit target in the
       // builder and a hover-only tile once you're done. A card that HAS a URL is
@@ -203,7 +215,6 @@
         + (icon ? ' wsprev__card--icon' : '')
         + (c.href ? ' wsprev__card--link' : '');
       if (radius) card.style.borderRadius = radius + 'px';
-      applyCardStyle(card, st);
       // The toolbar lives on a wrapper, not the card: the card keeps its own
       // overflow clipping so the image stays inside the rounded corners.
       let slot = card;
@@ -212,7 +223,7 @@
         slot.dataset.cardId = c.id;
         if (c.id === ctx.selectedCardId) slot.classList.add('is-selected');
         slot.addEventListener('click', (e) => { e.stopPropagation(); ctx.onSelect(c.id); });
-        slot.appendChild(ctx.toolbar(c.id, slot));
+        slot.appendChild(ctx.toolbar(c.id, slot, cards.length > 1));
         slot.appendChild(card);
       }
       const imgBox = el('div', 'wsprev__cardimg' + (icon ? ' wsprev__cardimg--icon' : ''));
@@ -265,27 +276,27 @@
   }
   // Cards carry the element's Color-tab choices themselves (there is no wrapper
   // to paint), so heading/body/link/background/border land on each card.
-  // A card is frameless by default (the designs show bare image + text), so the
-  // factory white background is treated as "no background" — same "default means
-  // inherit" rule applyRichtextStyle uses for text colours.
-  const CARD_DEFAULT_BG = '#FFFFFF';
-  function applyCardStyle(card, st) {
+  // A cards element is styled like a richtext one: background + border land on
+  // the ELEMENT box (with the same padding rule), while the text colours cascade
+  // into the cards through CSS variables.
+  function applyCardsStyle(elt, grid, st) {
     if (!st) return;
-    if (st.background && st.background.opacity > 0 && !isDefaultColor(st.background, CARD_DEFAULT_BG)) {
-      card.style.background = rgba(st.background);
-    }
-    if (st.heading && st.heading.opacity > 0 && !isDefaultColor(st.heading, EL_DEFAULT.heading)) card.style.setProperty('--wsprev-heading', rgba(st.heading));
-    if (st.text && st.text.opacity > 0 && !isDefaultColor(st.text, EL_DEFAULT.text)) card.style.setProperty('--wsprev-bodyc', rgba(st.text));
-    if (st.link && st.link.opacity > 0 && !isDefaultColor(st.link, EL_DEFAULT.link)) card.style.setProperty('--rt-link', rgba(st.link));
+    let padded = false;
+    if (st.background && st.background.opacity > 0) { elt.style.background = rgba(st.background); padded = true; }
+    if (st.heading && st.heading.opacity > 0 && !isDefaultColor(st.heading, EL_DEFAULT.heading)) grid.style.setProperty('--wsprev-heading', rgba(st.heading));
+    if (st.text && st.text.opacity > 0 && !isDefaultColor(st.text, EL_DEFAULT.text)) grid.style.setProperty('--wsprev-bodyc', rgba(st.text));
+    if (st.link && st.link.opacity > 0 && !isDefaultColor(st.link, EL_DEFAULT.link)) grid.style.setProperty('--rt-link', rgba(st.link));
     const bw = ({ 1: 1, 2: 2, 4: 4 })[st.borderWidth] || 1;
     const sides = st.borderSides || {};
     if (st.borderColor && st.borderColor.opacity > 0 && (sides.top || sides.right || sides.bottom || sides.left)) {
       const b = `${bw}px solid ${rgba(st.borderColor)}`;
-      if (sides.top) card.style.borderTop = b;
-      if (sides.right) card.style.borderRight = b;
-      if (sides.bottom) card.style.borderBottom = b;
-      if (sides.left) card.style.borderLeft = b;
+      if (sides.top) elt.style.borderTop = b;
+      if (sides.right) elt.style.borderRight = b;
+      if (sides.bottom) elt.style.borderBottom = b;
+      if (sides.left) elt.style.borderLeft = b;
+      padded = true;
     }
+    padForStyle(elt, padded);
   }
 
   function create(container, opts) {
@@ -456,28 +467,34 @@
 
     // `onEdit` may be null — a cards element has no single-content modal, so its
     // toolbar is grip + trash only (Figma 5624:73770).
-    function blockToolbar(onEdit, onDelete) {
+    // `showGrip` is false when there is nothing to reorder (a lone element in a
+    // single-column section).
+    function blockToolbar(onEdit, onDelete, showGrip) {
       const tb = el('div', 'wsprev__toolbar');
-      const grip = el('span', 'wsprev__tbgrip');
-      grip.innerHTML = GRIP;
-      // Native title here (not the styled tooltip): the preview is drawn inside a
-      // scaled canvas, where an absolutely-positioned bubble would scale/clip.
-      grip.title = 'Click to drag and reorder';
-      tb.appendChild(grip);
+      if (showGrip !== false) {
+        const grip = el('span', 'wsprev__tbgrip');
+        grip.innerHTML = GRIP;
+        // Native title here (not the styled tooltip): the preview is drawn inside a
+        // scaled canvas, where an absolutely-positioned bubble would scale/clip.
+        grip.title = 'Click to drag and reorder';
+        tb.appendChild(grip);
+      }
       if (onEdit) tb.appendChild(iconBtn('wsprev__tbbtn', 'Edit', PENCIL, onEdit));
       tb.appendChild(iconBtn('wsprev__tbbtn', 'Delete', TRASH, onDelete));
       return tb;
     }
     // A single card's toolbar: grip + edit + trash (Figma 5621:73657). The grip
     // arms dragging on the card's wrapper, so cards reorder like elements do.
-    function cardToolbar(onEdit, onDelete, wrapper) {
+    function cardToolbar(onEdit, onDelete, wrapper, canReorder) {
       const tb = el('div', 'wsprev__toolbar wsprev__toolbar--card');
-      const grip = el('span', 'wsprev__tbgrip');
-      grip.innerHTML = GRIP;
-      grip.title = 'Click to drag and reorder';
-      grip.addEventListener('mousedown', () => { wrapper.draggable = true; });
-      grip.addEventListener('mouseup', () => { wrapper.draggable = false; });
-      tb.appendChild(grip);
+      if (canReorder) {
+        const grip = el('span', 'wsprev__tbgrip');
+        grip.innerHTML = GRIP;
+        grip.title = 'Click to drag and reorder';
+        grip.addEventListener('mousedown', () => { wrapper.draggable = true; });
+        grip.addEventListener('mouseup', () => { wrapper.draggable = false; });
+        tb.appendChild(grip);
+      }
       tb.appendChild(iconBtn('wsprev__tbbtn', 'Edit card', PENCIL, onEdit));
       tb.appendChild(iconBtn('wsprev__tbbtn', 'Delete card', TRASH, onDelete));
       return tb;
@@ -631,12 +648,17 @@
         elt.dataset.id = element.id;
         if (element.id === blr.selectedElementId) elt.classList.add('is-selected');
         elt.addEventListener('click', (e) => { e.stopPropagation(); cb.onSelectElement && cb.onSelectElement(section.id, element.id); });
-        elt.appendChild(blockToolbar(
+        // Reordering is possible with more than one element, or in a two-column
+        // section where a lone element can still move across.
+        const canMoveEl = (section.elements || []).length > 1 || Number(section.columns) === 2;
+        const elToolbar = blockToolbar(
           element.type === 'cards' ? null : () => cb.onEditElement && cb.onEditElement(section.id, element.id),
-          () => cb.onDeleteElement && cb.onDeleteElement(section.id, element.id)
-        ));
+          () => cb.onDeleteElement && cb.onDeleteElement(section.id, element.id),
+          canMoveEl
+        );
+        elt.appendChild(elToolbar);
         // The grip arms native dragging; the element drags only when grabbed there.
-        const grip = elt.querySelector('.wsprev__tbgrip');
+        const grip = elToolbar.querySelector('.wsprev__tbgrip');
         if (grip) {
           grip.addEventListener('mousedown', () => { elt.draggable = true; });
           grip.addEventListener('mouseup', () => { elt.draggable = false; });
@@ -679,6 +701,7 @@
           wireCardDrag(gridNode, (draggedId, beforeId) => {
             cb.onReorderCard && cb.onReorderCard(section.id, element.id, draggedId, beforeId);
           });
+          applyCardsStyle(elt, gridNode, element.style);
           elt.appendChild(gridNode);
           // "Add card" sits under the cards on the selected element (Figma 5624:73768).
           const roomForCard = (element.cards || []).length < (blr.maxCards || Infinity);
@@ -884,7 +907,11 @@
         if (element.type === 'code') {
           if (String(element.code || '').trim()) elt.appendChild(buildCodeFrame(element));
         } else if (element.type === 'cards') {
-          if ((element.cards || []).length) elt.appendChild(buildCardsGrid(element));
+          if ((element.cards || []).length) {
+            const gridNode = buildCardsGrid(element);
+            applyCardsStyle(elt, gridNode, element.style);
+            elt.appendChild(gridNode);
+          }
         } else {
           const html = String(element.body || '');
           const hasContent = html.replace(/<[^>]*>/g, '').trim() || /<(br|img|hr)/i.test(html);
