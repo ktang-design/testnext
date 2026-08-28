@@ -22,7 +22,7 @@ const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const opt = (v, allowed) => (allowed.includes(v) ? v : '');
 
 // A search integration is "configured" once every required EDS field is filled.
-const EDS_REQUIRED = ['apiUsername', 'apiPassword', 'customerId', 'groupId', 'profile'];
+const EDS_REQUIRED = ['apiUsername', 'apiPassword', 'customerId', 'groupId', 'profile', 'opid'];
 async function edsConfigured(userId) {
   const eds = await platformSettingsRepository.get(userId, 'eds');
   if (!eds) return false;

@@ -144,6 +144,21 @@
             </div>
           </div>
 
+          <!-- OPID -->
+          <div class="field">
+            <label class="field__label" for="eds-opid">OPID</label>
+            <div class="field__control">
+              <input class="input" id="eds-opid" data-field="opid" type="text" maxlength="100" autocomplete="off" spellcheck="false" aria-describedby="eds-opid-error" />
+            </div>
+            <div class="field__footer">
+              <p class="field__error" id="eds-opid-error" data-error-for="eds-opid" role="alert" hidden>
+                <img class="field__error-icon" src="/shared/error.svg" alt="" aria-hidden="true" />
+                <span class="field__error-text">OPID cannot be empty.</span>
+              </p>
+              <p class="field__count"><span data-count-for="eds-opid">0</span>/100</p>
+            </div>
+          </div>
+
           <!-- Authentication type (optional; ships with a default) -->
           <div class="field">
             <label class="field__label" for="eds-auth">Authentication type</label>

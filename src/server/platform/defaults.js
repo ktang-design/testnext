@@ -34,6 +34,7 @@ module.exports = {
     customerId: '',
     groupId: '',
     profile: '',
+    opid: '',
     authType: 'cookie,url,ip,sso,uid',
   },
   EDS_MAX: 100,

@@ -88,6 +88,7 @@ router.put('/eds', requireApiAuth, ah(async (req, res) => {
     customerId: str(b.customerId, D.EDS_MAX),
     groupId: str(b.groupId, D.EDS_MAX),
     profile: str(b.profile, D.EDS_MAX),
+    opid: str(b.opid, D.EDS_MAX),
     // authType is optional; fall back to the default when cleared.
     authType: str(b.authType, D.EDS_MAX) || D.EDS_DEFAULTS.authType,
   };

@@ -6,8 +6,8 @@
 // not part of the saved config; Authentication type is optional.
 document.addEventListener('DOMContentLoaded', () => {
   const ENDPOINT = '/api/platform/eds';
-  const KEYS = ['apiUsername', 'apiPassword', 'customerId', 'groupId', 'profile', 'authType'];
-  const REQUIRED = ['apiUsername', 'apiPassword', 'customerId', 'groupId', 'profile'];
+  const KEYS = ['apiUsername', 'apiPassword', 'customerId', 'groupId', 'profile', 'opid', 'authType'];
+  const REQUIRED = ['apiUsername', 'apiPassword', 'customerId', 'groupId', 'profile', 'opid'];
 
   const inputs = {};
   document.querySelectorAll('[data-field]').forEach((el) => { inputs[el.dataset.field] = el; });
