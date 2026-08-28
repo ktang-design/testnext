@@ -33,8 +33,11 @@
   let builderPageId = null;
   let selectedSectionId = null;
   let selectedElementId = null;
+  // Cards element: which card is picked in the canvas, and which of the three
+  // panel tabs (Styling / Image settings / Color) is showing.
+  let selectedCardId = null;
+  let cardsTab = 'styling';
   let sectionTree = null;
-  let elementTree = null;
   const contentById = {};   // pageId -> { sections: [...] }
 
   const uid = (prefix) =>
@@ -248,14 +251,25 @@
     builderPageId = null;
     selectedSectionId = null;
     selectedElementId = null;
+    selectedCardId = null;
     if (sectionTree) { sectionTree.destroy(); sectionTree = null; }
-    if (elementTree) { elementTree.destroy(); elementTree = null; }
     renderAll();
   }
-  function selectSection(id) { selectedSectionId = id; selectedElementId = null; renderAll(); }
-  function selectElement(secId, elId) { selectedSectionId = secId; selectedElementId = elId; renderAll(); }
-  function backToSectionList() { selectedSectionId = null; selectedElementId = null; renderAll(); }
-  function backToSection() { selectedElementId = null; renderAll(); }
+  function selectSection(id) { selectedSectionId = id; selectedElementId = null; selectedCardId = null; renderAll(); }
+  function selectElement(secId, elId) {
+    // Moving to a different element resets its panel to the first tab and drops
+    // any card selection from the element we were on.
+    if (elId !== selectedElementId) { cardsTab = 'styling'; selectedCardId = null; }
+    selectedSectionId = secId; selectedElementId = elId;
+    renderAll();
+  }
+  function selectCard(secId, elId, cardId) {
+    if (elId !== selectedElementId) cardsTab = 'styling';
+    selectedSectionId = secId; selectedElementId = elId; selectedCardId = cardId;
+    renderAll();
+  }
+  function backToSectionList() { selectedSectionId = null; selectedElementId = null; selectedCardId = null; renderAll(); }
+  function backToSection() { selectedElementId = null; selectedCardId = null; renderAll(); }
 
   // Re-render the panel + preview after a structural change.
   function afterContentChange() { renderAll(); }
@@ -674,7 +688,13 @@
         '<div class="modal__body"><div class="elchoose">' +
         '<button type="button" class="elchoose__card" data-type="richtext"><span class="elchoose__vis elchoose__vis--rt" aria-hidden="true"></span><span class="elchoose__name">Richtext</span></button>' +
         '<button type="button" class="elchoose__card" data-type="code"><span class="elchoose__vis elchoose__vis--code" aria-hidden="true"></span><span class="elchoose__name">Code</span></button>' +
-        '<button type="button" class="elchoose__card" data-type="cards"><span class="elchoose__vis elchoose__vis--cards" aria-hidden="true"></span><span class="elchoose__name">Cards</span></button>' +
+        // Cards tile per Figma 5601:69472 — a full-width image block over a
+        // 124x8 title bar, on the shared #fafafa tile canvas.
+        '<button type="button" class="elchoose__card" data-type="cards">' +
+        '<span class="elchoose__vis elchoose__vis--cards" aria-hidden="true">' +
+        '<span class="elchoose__sk elchoose__sk--fill"></span>' +
+        '<span class="elchoose__sk elchoose__sk--title"></span>' +
+        '</span><span class="elchoose__name">Cards</span></button>' +
         '</div></div><div class="modal__footer">' +
         '<button type="button" class="modal__btn modal__btn--cancel">Cancel</button>' +
         '<button type="button" class="modal__btn modal__btn--primary" data-add disabled>Add to page</button></div></div>';
@@ -943,6 +963,8 @@
   const CARD_TITLE_MAX = 120;
   const CARD_DESC_MAX = 500;
   const CARD_HREF_MAX = 2048;
+  const CARD_TABS = [{ key: 'styling', label: 'Styling' }, { key: 'image', label: 'Image settings' }, { key: 'color', label: 'Color' }];
+  const CARD_RADIUS_HINT = 'This will be applied to all cards created in the section and images.';
   const CARD_LAYOUTS = [{ value: 'image-first', label: 'Image first' }, { value: 'title-first', label: 'Title first' }];
   const CARD_RADII = [{ value: 'none', label: 'None' }, { value: 'small', label: 'Small' }, { value: 'medium', label: 'Medium' }, { value: 'large', label: 'Large' }];
   const CARD_IMAGE_MODES = [{ value: 'full', label: 'Full size' }, { value: 'icon', label: 'Icon' }];
@@ -960,18 +982,16 @@
       style: defaultRichtextStyle(), cards: [placeholderCard()],
     };
   }
-  function cardLabel(elc, cardId) {
-    const c = (elc.cards || []).find((x) => x.id === cardId);
-    return (c && c.title && c.title.trim()) || 'Untitled card';
-  }
-  function addCard(secId, elId) { openCardModal(secId, elId, null); }
-  function duplicateCard(secId, elId, cardId) {
+  // "Add card" appends a card straight into the canvas (no separate add form) —
+  // the new card is selected so its Edit toolbar is ready.
+  function addCard(secId, elId) {
     const elc = findElement(secId, elId);
-    if (!elc || (elc.cards || []).length >= MAX_CARDS) return;
-    const src = (elc.cards || []).find((c) => c.id === cardId);
-    if (!src) return;
-    const i = elc.cards.findIndex((c) => c.id === cardId);
-    elc.cards.splice(i + 1, 0, Object.assign({}, src, { id: uid('card') }));
+    if (!elc || elc.type !== 'cards' || (elc.cards || []).length >= MAX_CARDS) return;
+    const c = placeholderCard();
+    elc.cards = (elc.cards || []).concat([c]);
+    selectedSectionId = secId;
+    selectedElementId = elId;
+    selectedCardId = c.id;
     afterContentChange();
   }
   async function deleteCard(secId, elId, cardId) {
@@ -988,40 +1008,32 @@
     });
     if (!ok) return;
     elc.cards.splice(i, 1);
+    if (selectedCardId === cardId) selectedCardId = null;
     afterContentChange();
   }
-  function reorderCards(secId, elId, orderedIds) {
-    const elc = findElement(secId, elId);
-    if (!elc) return;
-    const map = Object.fromEntries((elc.cards || []).map((c) => [c.id, c]));
-    elc.cards = orderedIds.map((id) => map[id]).filter(Boolean);
-    afterFieldEdit();
-  }
 
-  // Focused "Edit card" modal — image + title + description + link. Like the
-  // richtext/code modals it can't be dismissed by clicking outside (data loss).
-  // cardId === null creates a new card on Save; otherwise it edits in place.
+  // Focused "Edit card" modal — image + title + description + link, opened from
+  // the card's own Edit button in the canvas. Like the richtext/code modals it
+  // can't be dismissed by clicking outside (data loss). Cards are always created
+  // in the canvas first (see addCard), so this only ever edits in place.
   function openCardModal(secId, elId, cardId) {
     const elc = findElement(secId, elId);
     if (!elc) return;
-    const editing = cardId ? (elc.cards || []).find((c) => c.id === cardId) : null;
-    if (cardId && !editing) return;
-    if (!editing && (elc.cards || []).length >= MAX_CARDS) return;
-    const draft = editing
-      ? Object.assign({}, editing)
-      : { id: uid('card'), image: null, title: '', description: '', href: '' };
+    const editing = (elc.cards || []).find((c) => c.id === cardId);
+    if (!editing) return;
+    const draft = Object.assign({}, editing);
     const prev = document.activeElement;
 
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', editing ? 'Edit card' : 'Add card');
+    overlay.setAttribute('aria-label', 'Edit card');
     const modal = document.createElement('div');
     modal.className = 'modal modal--card';
     overlay.appendChild(modal);
     modal.innerHTML =
-      `<div class="modal__header"><h2 class="modal__title">${editing ? 'Edit card' : 'Add card'}</h2>` +
+      '<div class="modal__header"><h2 class="modal__title">Edit card</h2>' +
       '<button type="button" class="modal__close" aria-label="Close dialog"><img src="/shared/close.svg" alt="" /></button></div>';
 
     const body = document.createElement('div');
@@ -1041,7 +1053,7 @@
     footer.className = 'modal__footer';
     footer.innerHTML =
       '<button type="button" class="modal__btn modal__btn--cancel">Cancel</button>' +
-      `<button type="button" class="modal__btn modal__btn--primary" data-save>${editing ? 'Save' : 'Add card'}</button>`;
+      '<button type="button" class="modal__btn modal__btn--primary" data-save>Save</button>';
     modal.appendChild(footer);
 
     document.body.appendChild(overlay);
@@ -1056,10 +1068,8 @@
     modal.querySelector('.modal__close').addEventListener('click', close);
     footer.querySelector('.modal__btn--cancel').addEventListener('click', close);
     footer.querySelector('[data-save]').addEventListener('click', () => {
-      const target = findElement(secId, elId);
-      if (target) {
-        if (editing) Object.assign(editing, draft);
-        else target.cards = (target.cards || []).concat([draft]);
+      if (findElement(secId, elId)) {
+        Object.assign(editing, draft);
         afterContentChange();
       }
       close();
@@ -1082,7 +1092,7 @@
   }
 
   function buildDivider() { const d = document.createElement('div'); d.className = 'pgb__divider'; return d; }
-  function buildDropdown(labelText, options, value, onChange) {
+  function buildDropdown(labelText, options, value, onChange, hint) {
     const field = document.createElement('div');
     field.className = 'pgb__field';
     const id = uid('d');
@@ -1096,8 +1106,28 @@
     options.forEach((o) => { const opt = document.createElement('option'); opt.value = o.value; opt.textContent = o.label; if (String(o.value) === String(value)) opt.selected = true; sel.appendChild(opt); });
     sel.addEventListener('change', () => onChange(sel.value));
     field.appendChild(lab);
+    if (hint) { const h = document.createElement('p'); h.className = 'pgb__hint'; h.textContent = hint; field.appendChild(h); }
     field.appendChild(sel);
     return field;
+  }
+  // Tab strip for a settings panel (Figma 123:10170) — one row of text tabs over
+  // a 2px rule, the active one blue/semibold with a 2px indicator.
+  function buildTabs(tabs, activeKey, onSelect) {
+    const nav = document.createElement('div');
+    nav.className = 'pgb__tabs';
+    nav.setAttribute('role', 'tablist');
+    tabs.forEach((t) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      const active = t.key === activeKey;
+      b.className = 'pgb__tab' + (active ? ' is-active' : '');
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-selected', String(active));
+      b.textContent = t.label;
+      b.addEventListener('click', () => { if (!active) onSelect(t.key); });
+      nav.appendChild(b);
+    });
+    return nav;
   }
   function borderIcon(side) {
     const faint = '<rect x="2.5" y="2.5" width="11" height="11" rx="1" stroke="currentColor" stroke-opacity="0.3" stroke-width="1.2" fill="none"/>';
@@ -1169,7 +1199,6 @@
   function renderBuilderPanel() {
     builderView.innerHTML = '';
     if (sectionTree) { sectionTree.destroy(); sectionTree = null; }
-    if (elementTree) { elementTree.destroy(); elementTree = null; }
     if (selectedElementId) renderElementSettings();
     else if (selectedSectionId) renderSectionSettings();
     else renderSectionList();
@@ -1236,7 +1265,8 @@
       { label: sec.title || 'Section', onClick: backToSection },
       { label: elName },
     ]));
-    builderView.appendChild(buildHead(elName));
+    // The Cards panel leads with its tab strip instead of a title (Figma 5601:69510).
+    if (elc.type !== 'cards') builderView.appendChild(buildHead(elName));
 
     const settings = document.createElement('div');
     settings.className = 'pgb__settings';
@@ -1249,62 +1279,45 @@
       codeName.appendChild(buildCheckbox('Display element title', elc.displayTitle, (v) => { elc.displayTitle = v; afterFieldEdit(); }));
       settings.appendChild(codeName);
     } else if (elc.type === 'cards') {
+      // Three tabs over one shared panel (Figma 5601:69510 / 69881 / 70324).
+      // Card CONTENT is not edited here — each card is picked in the canvas and
+      // edited from its own toolbar.
       const grp = (cls) => { const g = document.createElement('div'); g.className = cls; return g; };
+      settings.appendChild(buildTabs(CARD_TABS, cardsTab, (k) => { cardsTab = k; renderBuilderPanel(); }));
 
-      const top = grp('pgb__namegroup');
-      top.appendChild(buildTextField('Title', elc.title, limits.elementTitle, (v) => { elc.title = v; afterFieldEdit(); }));
-      top.appendChild(buildCheckbox('Display element title', elc.displayTitle, (v) => { elc.displayTitle = v; afterFieldEdit(); }));
-      settings.appendChild(top);
+      if (cardsTab === 'styling') {
+        const top = grp('pgb__namegroup');
+        top.appendChild(buildTextField('Title', elc.title, limits.elementTitle, (v) => { elc.title = v; afterFieldEdit(); }));
+        top.appendChild(buildCheckbox('Display element title', elc.displayTitle, (v) => { elc.displayTitle = v; afterFieldEdit(); }));
+        settings.appendChild(top);
 
-      const layout = grp('pgb__group');
-      layout.appendChild(buildDropdown('Card layout', CARD_LAYOUTS, elc.cardLayout, (v) => { elc.cardLayout = v; afterFieldEdit(); }));
-      layout.appendChild(buildDropdown('Corner radius', CARD_RADII, elc.radius, (v) => { elc.radius = v; afterFieldEdit(); }));
-      layout.appendChild(buildDropdown('Image mode', CARD_IMAGE_MODES, elc.imageMode, (v) => { elc.imageMode = v; afterFieldEdit(); }));
-      layout.appendChild(buildDropdown('Image size', CARD_IMAGE_SIZES, elc.imageSize, (v) => { elc.imageSize = v; afterFieldEdit(); }));
-      layout.appendChild(buildDropdown('Image fit', CARD_IMAGE_FITS, elc.imageFit, (v) => { elc.imageFit = v; afterFieldEdit(); }));
-      settings.appendChild(layout);
-
-      settings.appendChild(buildDivider());
-
-      const list = grp('pgb__group');
-      const cards = elc.cards || [];
-      const listHead = document.createElement('div');
-      listHead.className = 'pgb__field--row';
-      const listLab = document.createElement('span');
-      listLab.className = 'pgb__label';
-      listLab.textContent = `Cards (${cards.length}/${MAX_CARDS})`;
-      listHead.appendChild(listLab);
-      const addBtn = document.createElement('button');
-      addBtn.type = 'button';
-      addBtn.className = 'navpanel__add pgb__add';
-      addBtn.disabled = cards.length >= MAX_CARDS;
-      addBtn.setAttribute('aria-label', 'Add card');
-      addBtn.setAttribute('data-tooltip', 'Add card');
-      addBtn.innerHTML = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>';
-      addBtn.addEventListener('click', () => addCard(sec.id, elc.id));
-      listHead.appendChild(addBtn);
-      list.appendChild(listHead);
-      if (!cards.length) {
-        list.appendChild(buildEmpty('No cards yet. Use the + button to add your first card.'));
+        const layout = grp('pgb__group');
+        layout.appendChild(buildRadio('Card layout', CARD_LAYOUTS, elc.cardLayout, (v) => { elc.cardLayout = v; afterFieldEdit(); }));
+        layout.appendChild(buildDropdown('Radius', CARD_RADII, elc.radius, (v) => { elc.radius = v; afterFieldEdit(); }, CARD_RADIUS_HINT));
+        settings.appendChild(layout);
+      } else if (cardsTab === 'image') {
+        const image = grp('pgb__group');
+        image.appendChild(buildRadio('Image mode', CARD_IMAGE_MODES, elc.imageMode, (v) => { elc.imageMode = v; afterFieldEdit(); }));
+        image.appendChild(buildRadio('Image size', CARD_IMAGE_SIZES, elc.imageSize, (v) => { elc.imageSize = v; afterFieldEdit(); }));
+        image.appendChild(buildRadio('Image fit', CARD_IMAGE_FITS, elc.imageFit, (v) => { elc.imageFit = v; afterFieldEdit(); }));
+        settings.appendChild(image);
       } else {
-        const mount = document.createElement('div');
-        mount.className = 'navpanel__tree';
-        list.appendChild(mount);
-        elementTree = window.SortableTree.create(mount, {
-          items: cards.map((c) => ({ id: c.id, children: [] })),
-          maxDepth: 1,
-          ariaLabel: 'Cards',
-          labelOf: (it) => cardLabel(elc, it.id),
-          renderContent: (it) => rowLabel(cardLabel(elc, it.id), () => openCardModal(sec.id, elc.id, it.id)),
-          renderTrailing: (it) => rowKebab(cardLabel(elc, it.id), [
-            { label: 'Edit', onSelect: () => openCardModal(sec.id, elc.id, it.id) },
-            { label: 'Duplicate', onSelect: () => duplicateCard(sec.id, elc.id, it.id) },
-            { label: 'Delete', danger: true, onSelect: () => deleteCard(sec.id, elc.id, it.id) },
-          ]),
-          onChange: () => reorderCards(sec.id, elc.id, elementTree.getItems().map((it) => it.id)),
-        });
+        const st = rtStyle(elc);
+        const colors = grp('pgb__colors pgb__colors--stack');
+        colors.appendChild(makeColorRow('Heading', st.heading, afterFieldEdit));
+        colors.appendChild(makeColorRow('Body', st.text, afterFieldEdit));
+        colors.appendChild(makeColorRow('Link', st.link, afterFieldEdit));
+        colors.appendChild(makeColorRow('Background', st.background, afterFieldEdit));
+        settings.appendChild(colors);
+
+        settings.appendChild(buildDivider());
+
+        const border = grp('pgb__group');
+        border.appendChild(buildDropdown('Border width', BORDER_WIDTHS, st.borderWidth, (v) => { st.borderWidth = v; afterFieldEdit(); }));
+        border.appendChild(buildToggleSelect('Border style', st.borderSides, afterFieldEdit));
+        border.appendChild(makeColorRow('Border', st.borderColor, afterFieldEdit));
+        settings.appendChild(border);
       }
-      settings.appendChild(list);
     } else {
       // Richtext: title + colours + border, in 3 groups (2rem apart; colours are
       // a compact sub-group). Content is edited via the toolbar edit icon.
@@ -1341,7 +1354,7 @@
     if (!preview) return;
     if (view !== 'builder') { preview.update({ builder: null, pages: livePages() }); return; }
     preview.update({
-      builder: { sections: getSections(), selectedSectionId, selectedElementId },
+      builder: { sections: getSections(), selectedSectionId, selectedElementId, selectedCardId, maxCards: MAX_CARDS },
       pages: livePages(),
       builderCallbacks: {
         onAddSection: addSection,
@@ -1351,6 +1364,10 @@
         onEditElement: (sid, elId) => editElement(sid, elId),
         onDeleteSection: deleteSection,
         onDeleteElement: deleteElement,
+        onAddCard: (sid, elId) => addCard(sid, elId),
+        onSelectCard: (sid, elId, cardId) => selectCard(sid, elId, cardId),
+        onEditCard: (sid, elId, cardId) => openCardModal(sid, elId, cardId),
+        onDeleteCard: (sid, elId, cardId) => deleteCard(sid, elId, cardId),
         onReorderElement: (sid, draggedId, col, beforeId) => moveElement(sid, draggedId, col, beforeId),
         onReorderSection: (draggedId, beforeId) => moveSection(draggedId, beforeId),
       },
