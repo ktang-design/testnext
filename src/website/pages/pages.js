@@ -980,7 +980,9 @@
   function defaultCardsElement(col) {
     return {
       id: uid('el'), type: 'cards', title: 'Cards', displayTitle: true, column: col,
-      cardLayout: 'image-first', radius: 'small', imageMode: 'full', imageSize: '4:3', imageFit: 'cover',
+      // Banner (3:1) by default: a card can span the full container, where a
+      // taller ratio would make the image a wall (4:3 at full width is ~890px).
+      cardLayout: 'image-first', radius: 'small', imageMode: 'full', imageSize: '3:1', imageFit: 'cover',
       style: defaultRichtextStyle(), cards: [placeholderCard()],
     };
   }
