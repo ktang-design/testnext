@@ -13,6 +13,8 @@ const crypto = require('crypto');
 const sanitizeHtml = require('sanitize-html');
 const { requireApiAuth } = require('../auth/authGuard');
 const { pagesRepository } = require('../website/PagesRepository');
+const { pagesActivity } = require('../website/pagesActivity');
+const { logActivities } = require('../platform/activity');
 const {
   TITLE_MAX, DESCRIPTION_MAX, MAX_PAGES,
   SECTION_TITLE_MAX, ELEMENT_TITLE_MAX, ELEMENT_BODY_MAX, MAX_SECTIONS, MAX_ELEMENTS,
@@ -259,7 +261,13 @@ router.put('/', requireApiAuth, ah(async (req, res) => {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.code, message: err.message });
     throw err;
   }
-  res.json({ saved: await pagesRepository.replaceAll(req.session.userId, pages) });
+  // Read the current set first so the save can be described in the Activity log.
+  // The builder sends the whole set every time, so only the diff is worth
+  // recording — a save that changed nothing structural logs nothing.
+  const before = await pagesRepository.list(req.session.userId);
+  const saved = await pagesRepository.replaceAll(req.session.userId, pages);
+  await logActivities(req.session.userId, pagesActivity(before, pages));
+  res.json({ saved });
 }));
 
 module.exports = router;

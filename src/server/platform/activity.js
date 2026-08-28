@@ -16,4 +16,17 @@ async function logActivity(userId, parts) {
   } catch (_) { /* never block the primary action */ }
 }
 
-module.exports = { logActivity };
+// logActivities(userId, list) — record several entries from one action (e.g. a
+// Pages save that changed a few things), resolving the actor once instead of
+// per entry. Same best-effort contract as logActivity.
+async function logActivities(userId, list) {
+  try {
+    const parts = (list || []).filter((p) => p && p.pre);
+    if (!userId || !parts.length) return;
+    const user = await userRepository.findById(userId);
+    const actorLabel = (user && (user.name || user.email)) || 'system';
+    for (const p of parts) await activityRepository.add(userId, actorLabel, p);
+  } catch (_) { /* never block the primary action */ }
+}
+
+module.exports = { logActivity, logActivities };

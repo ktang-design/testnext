@@ -57,8 +57,9 @@
   <script>
     window.PLATFORM_TABLE = {
       endpoint: '/api/platform/activity', exportPath: '/api/platform/activity/export',
-      searchPlaceholder: 'Search activities',
-      columns: [{ label: 'Time', width: '30%' }, { label: 'Activity' }, { label: 'User', width: '22%' }],
+      searchPlaceholder: 'Search activities', showFilter: true,
+      // Fixed Time/User columns with Activity taking the slack (Figma 2901:37740).
+      columns: [{ label: 'Time', width: '280px' }, { label: 'Activity' }, { label: 'User', width: '200px' }],
       getRows: function (d) { return d.events; },
       rowHtml: function (e) {
         var T = window.PlatformTable;

@@ -1603,6 +1603,11 @@
       loaded = true;
       mountTree(data.pages || []);
       pushPreview(); // give the read-only preview the loaded pages + content
+      // Deep link: /website/pages/?page=<id> opens that page straight in the
+      // builder. Activity-log rows link here so a row takes you to the page it
+      // describes. An unknown id just leaves the list showing.
+      const wanted = new URLSearchParams(window.location.search).get('page');
+      if (wanted && (data.pages || []).some((p) => p.id === wanted)) enterBuilder(wanted);
     })
     .catch(() => {
       loaded = true;
