@@ -1415,7 +1415,7 @@
         settings.appendChild(image);
       } else {
         const st = rtStyle(elc);
-        const colors = grp('pgb__colors pgb__colors--stack');
+        const colors = grp('pgb__colors');
         colors.appendChild(makeColorRow('Heading', st.heading, afterFieldEdit));
         colors.appendChild(makeColorRow('Body', st.text, afterFieldEdit));
         colors.appendChild(makeColorRow('Link', st.link, afterFieldEdit));

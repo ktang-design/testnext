@@ -163,37 +163,60 @@ img { display: block; }
 .checkbox__label { font-size: 14px; line-height: 21px; color: var(--gray-600); }
 
 /* ===========================  Colour row  =========================== */
-/* label + swatch + hex + opacity, shared by the Header and Branding pages. */
+/* The Color input, PANEL variant (Figma 3483:49549, type=Panel). Used by every
+   left-hand panel that picks colours — Header, Footer, Search, Website branding
+   and the Pages builder — so restyling here covers all of them.
+   Label sits above a full-width #F5F5F5 pill holding: 24px swatch, hex (flexes),
+   a hairline divider, then opacity. */
 .colorrow {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 8px 0;
+  display: flex; flex-direction: column; align-items: stretch; gap: 4px;
+  padding: 0;
 }
-.colorrow__label { font-size: 14px; color: var(--gray-700); }
-.colorrow__controls { display: inline-flex; align-items: center; gap: 8px; }
+/* Stacked colour inputs sit 16px apart in a panel (Figma 545:24294). Owned here
+   so every panel spaces them identically without its own rule. */
+.colorrow + .colorrow { margin-top: 16px; }
+.colorrow__label { font-size: 14px; line-height: 21px; color: var(--gray-600); }
+.colorrow__controls {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px; border-radius: var(--radius-sm); background: var(--gray-100);
+}
 .colorrow__swatch {
-  width: 20px; height: 20px; padding: 0; flex-shrink: 0;
-  border: 1px solid var(--gray-200); border-radius: 4px;
+  width: 24px; height: 24px; padding: 0; flex-shrink: 0;
+  border: 1px solid var(--gray-500); border-radius: var(--radius-sm);
   background: none; cursor: pointer;
 }
 .colorrow__swatch::-webkit-color-swatch-wrapper { padding: 0; }
 .colorrow__swatch::-webkit-color-swatch { border: none; border-radius: 3px; }
 .colorrow__swatch::-moz-color-swatch { border: none; border-radius: 3px; }
+/* Hex takes the slack; opacity is a fixed sliver after the divider. */
 .colorrow__hex {
-  width: 74px; padding: 3px 6px;
-  border: 1px solid transparent; border-radius: 4px; background: none;
-  font: 400 13px/19px var(--font); color: var(--gray-600); text-align: left;
+  flex: 1 1 auto; min-width: 62px; width: auto; height: 24px; padding: 0 2px;
+  border: 1px solid transparent; border-radius: var(--radius-sm); background: none;
+  font: 400 14px/21px var(--font); color: var(--gray-700); text-align: left;
 }
-.colorrow__hex:focus { outline: none; border-color: var(--gray-200); }
-.colorrow__opacity { display: inline-flex; align-items: center; gap: 1px; font-size: 13px; color: var(--gray-600); }
+.colorrow__opacity {
+  flex: none; display: inline-flex; align-items: center; gap: 1px;
+  padding-left: 8px; border-left: 1px solid var(--gray-200);
+  font-size: 14px; line-height: 21px; color: var(--gray-700);
+}
 .colorrow__opacityval {
-  width: 38px; padding: 3px 2px 3px 6px;
-  border: 1px solid transparent; border-radius: 4px; background: none;
-  font: 400 13px/19px var(--font); color: var(--gray-600); text-align: right;
+  width: 42px; min-width: 40px; max-width: 48px; height: 24px; padding: 0 0 0 2px;
+  border: 1px solid transparent; border-radius: var(--radius-sm); background: none;
+  font: 400 14px/21px var(--font); color: var(--gray-700); text-align: left;
   -moz-appearance: textfield;
 }
 .colorrow__opacityval::-webkit-outer-spin-button,
 .colorrow__opacityval::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.colorrow__opacityval:focus { outline: none; border-color: var(--gray-200); }
+/* Focus lifts the field out of the pill onto white, with the standard blue ring. */
+.colorrow__hex:focus,
+.colorrow__opacityval:focus {
+  outline: none; background: var(--white); border-color: var(--blue-500);
+  box-shadow: 0 0 0 1px var(--blue-500), 0 0 0 4px var(--blue-100, #d8e3f5);
+}
+.colorrow__swatch:focus-visible {
+  outline: none; border-color: var(--blue-500);
+  box-shadow: 0 0 0 1px var(--blue-500), 0 0 0 4px var(--blue-100, #d8e3f5);
+}
 
 /* ===========================  Popover menu  =========================== */
 .popover {

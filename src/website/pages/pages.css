@@ -72,8 +72,7 @@
    the surrounding settings by the 24px .pgb__settings gap). */
 .pgb__namegroup { display: flex; flex-direction: column; gap: 12px; }
 /* Colour rows — a compact group with no per-row padding. */
-.pgb__colors { display: flex; flex-direction: column; gap: 12px; }
-.pgb__colors .colorrow { padding: 0; }
+.pgb__colors { display: flex; flex-direction: column; } /* spacing comes from .colorrow + .colorrow */
 .pgb__field { display: flex; flex-direction: column; gap: 6px; }
 .pgb__label { font-size: 14px; font-weight: 600; color: var(--gray-700); }
 .pgb__hint { margin: -2px 0 2px; font-size: 13px; line-height: 18px; color: var(--gray-500); }
@@ -170,17 +169,6 @@
 }
 .pgb__tab:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); border-radius: 2px; }
 
-/* Colour inputs stacked label-over-control, on a filled strip (Figma 123:10563). */
-.pgb__colors--stack { gap: 16px; }
-.pgb__colors--stack .colorrow { flex-direction: column; align-items: stretch; gap: 4px; padding: 0; }
-.pgb__colors--stack .colorrow__label { color: var(--gray-600); }
-.pgb__colors--stack .colorrow__controls {
-  display: flex; align-items: center; gap: 8px;
-  padding: 6px; border-radius: 4px; background: var(--gray-100, #f5f5f5);
-}
-.pgb__colors--stack .colorrow__swatch { width: 24px; height: 24px; border-color: var(--gray-500, #6e7277); }
-.pgb__colors--stack .colorrow__hex { flex: 1 1 auto; width: auto; }
-.pgb__colors--stack .colorrow__opacity { flex: none; border-left: 1px solid var(--gray-200); padding-left: 8px; }
 
 /* Character counter under a textarea field (mirrors the shared modal's count). */
 .pgb__count { align-self: flex-end; font-size: 13px; color: var(--gray-500); font-variant-numeric: tabular-nums; }
