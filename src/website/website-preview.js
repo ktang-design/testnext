@@ -170,6 +170,46 @@
     if (padded) elt.style.padding = '16px';
   }
 
+  // A Cards element (Figma 5601:69136) — a grid of image + title + description
+  // cards, each an <a> when it has a link. Shared by the builder canvas and the
+  // published read-only render.
+  const CARD_RADIUS_PX = { none: 0, small: 6, medium: 12, large: 20 };
+  function buildCardsGrid(element) {
+    const grid = el('div', 'wsprev__cards');
+    const cards = element.cards || [];
+    if (!cards.length) { grid.appendChild(el('p', 'wsprev__elempty', 'Add cards to see them here.')); return grid; }
+    const radius = CARD_RADIUS_PX[element.radius] != null ? CARD_RADIUS_PX[element.radius] : 6;
+    const ratio = String(element.imageSize || '4:3').replace(':', ' / ');
+    const icon = element.imageMode === 'icon';
+    const titleFirst = element.cardLayout === 'title-first';
+    cards.forEach((c) => {
+      const isLink = !!c.href;
+      const card = document.createElement(isLink ? 'a' : 'div');
+      card.className = 'wsprev__card' + (icon ? ' wsprev__card--icon' : '');
+      if (isLink) card.href = c.href;
+      card.style.borderRadius = radius + 'px';
+      const imgBox = el('div', 'wsprev__cardimg' + (icon ? ' wsprev__cardimg--icon' : ''));
+      if (!icon) { imgBox.style.aspectRatio = ratio; imgBox.style.borderRadius = titleFirst ? `0 0 ${radius}px ${radius}px` : `${radius}px ${radius}px 0 0`; }
+      else imgBox.style.borderRadius = radius + 'px';
+      if (c.image) {
+        const img = document.createElement('img');
+        img.src = c.image;
+        img.alt = '';
+        img.style.objectFit = element.imageFit === 'contain' ? 'contain' : 'cover';
+        imgBox.appendChild(img);
+      } else {
+        imgBox.classList.add('wsprev__cardimg--empty');
+      }
+      const body = el('div', 'wsprev__cardbody');
+      if (c.title) body.appendChild(el('h4', 'wsprev__cardtitle', c.title));
+      if (c.description) body.appendChild(el('p', 'wsprev__carddesc', c.description));
+      if (titleFirst) { card.appendChild(body); card.appendChild(imgBox); }
+      else { card.appendChild(imgBox); card.appendChild(body); }
+      grid.appendChild(card);
+    });
+    return grid;
+  }
+
   function create(container, opts) {
     const state = {
       // Which preview element to mark with the pink highlight (matches the section
@@ -472,6 +512,8 @@
           } else {
             elt.appendChild(el('div', 'wsprev__codeempty', 'Your code will appear in the preview of this block'));
           }
+        } else if (element.type === 'cards') {
+          elt.appendChild(buildCardsGrid(element));
         } else {
           const html = String(element.body || '');
           const hasContent = html.replace(/<[^>]*>/g, '').trim() || /<(br|img|hr)/i.test(html);
@@ -668,6 +710,8 @@
         }
         if (element.type === 'code') {
           if (String(element.code || '').trim()) elt.appendChild(buildCodeFrame(element));
+        } else if (element.type === 'cards') {
+          if ((element.cards || []).length) elt.appendChild(buildCardsGrid(element));
         } else {
           const html = String(element.body || '');
           const hasContent = html.replace(/<[^>]*>/g, '').trim() || /<(br|img|hr)/i.test(html);

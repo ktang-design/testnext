@@ -206,6 +206,35 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
   min-height: 96px; color: #55585d; font-size: 15px;
 }
 
+/* Cards element (Figma 5601:69136) — a responsive grid of image + title +
+   description cards. Radius/aspect-ratio are set inline per element settings. */
+.wsprev__cards {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px;
+}
+.wsprev__card {
+  display: flex; flex-direction: column; overflow: hidden; text-decoration: none;
+  background: #fff; border: 1px solid var(--gray-200, #d7d8da);
+}
+.wsprev__card--icon { flex-direction: row; align-items: flex-start; gap: 12px; padding: 16px; }
+.wsprev__cardimg { position: relative; width: 100%; overflow: hidden; background: var(--gray-50, #f9fafb); }
+.wsprev__cardimg img { width: 100%; height: 100%; display: block; }
+.wsprev__cardimg--icon { flex: 0 0 auto; width: 48px; height: 48px; }
+.wsprev__cardimg--empty {
+  min-height: 96px;
+  background:
+    linear-gradient(135deg, transparent 47%, var(--gray-200, #d7d8da) 47%, var(--gray-200, #d7d8da) 53%, transparent 53%),
+    var(--gray-50, #f9fafb);
+}
+.wsprev__cardimg--icon.wsprev__cardimg--empty { min-height: 0; border-radius: 6px; }
+.wsprev__cardbody { flex: 1 1 auto; padding: 16px; }
+.wsprev__card--icon .wsprev__cardbody { padding: 0; }
+.wsprev__cardtitle { margin: 0 0 6px; font-size: 16px; font-weight: 600; color: var(--wsprev-heading, #3d3f42); }
+.wsprev__carddesc {
+  margin: 0; font-size: 14px; line-height: 1.5; color: var(--wsprev-bodyc, #55585d);
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+}
+a.wsprev__card:hover { border-color: #6591d9; }
+
 /* Floating toolbar (Figma component 83:5303 / mockup 666:12297) — horizontally
    centered and straddling the TOP edge of the block; shown only on the selected
    section/element. White, r4, 8px padding/gap, grip/edit/trash buttons. */
