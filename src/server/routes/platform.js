@@ -54,7 +54,10 @@ router.get('/analytics', requireApiAuth, ah(async (req, res) => {
 }));
 router.put('/analytics', requireApiAuth, ah(async (req, res) => {
   const b = req.body || {};
-  const id = str(b.ga4MeasurementId, D.GA4_MAX);
+  // Cap generously (guard against huge blobs) but DON'T truncate to the exact
+  // length — otherwise an over-length ID would be trimmed into a valid one.
+  // GA4_RE requires exactly G- + 10 letters/digits.
+  const id = str(b.ga4MeasurementId, 64);
   if (id && !D.GA4_RE.test(id)) {
     return res.status(400).json({ error: 'INVALID_GA4', message: 'Measurement ID should look like G-XXXXXXXXXX.' });
   }

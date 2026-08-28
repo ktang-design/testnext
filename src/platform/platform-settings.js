@@ -28,6 +28,13 @@
     if (d.length < 7) return '(' + d.slice(0, 3) + ') ' + d.slice(3);
     return '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6);
   }
+  // GA4 Measurement ID mask: force "G-" + up to 10 letters/digits (uppercased);
+  // empty stays empty (the ID is optional).
+  function formatGa4(v) {
+    var rest = String(v == null ? '' : v).toUpperCase().replace(/^G-?/, '').replace(/[^A-Z0-9]/g, '').slice(0, 10);
+    return rest === '' ? '' : 'G-' + rest;
+  }
+  function applyMask(mask, v) { return mask === 'phone' ? formatPhone(v) : mask === 'ga4' ? formatGa4(v) : v; }
 
   var cur = function () { var o = {}; fields.forEach(function (f) { o[f.dataset.field] = f.value; }); return o; };
   var eq = function (a, b) { return fields.every(function (f) { return (a[f.dataset.field] || '') === (b[f.dataset.field] || ''); }); };
@@ -47,15 +54,15 @@
   function setValues(v) {
     fields.forEach(function (f) {
       if (v && v[f.dataset.field] != null) {
-        f.value = f.dataset.mask === 'phone' ? formatPhone(v[f.dataset.field]) : v[f.dataset.field];
+        f.value = applyMask(f.dataset.mask, v[f.dataset.field]);
       }
     });
   }
 
   fields.forEach(function (f) {
     var onEdit = function () {
-      if (f.dataset.mask === 'phone') {
-        var p = formatPhone(f.value);
+      if (f.dataset.mask) {
+        var p = applyMask(f.dataset.mask, f.value);
         if (p !== f.value) { f.value = p; try { f.setSelectionRange(p.length, p.length); } catch (_) {} }
       }
       justSaved = false; saveError = null; touched = true; render();

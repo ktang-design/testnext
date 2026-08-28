@@ -20,8 +20,8 @@ module.exports = {
     ga4MeasurementId: '',
   },
   // GA4 IDs look like G-XXXXXXXXXX (letters/digits after G-).
-  GA4_RE: /^G-[A-Z0-9]{4,20}$/i,
-  GA4_MAX: 24,
+  GA4_RE: /^G-[A-Z0-9]{10}$/i,
+  GA4_MAX: 12,
 
   // EBSCO Discovery Service (Platform > Integrations). The endpoint URL is
   // fixed/read-only; authType ships with a sensible default. The API password
