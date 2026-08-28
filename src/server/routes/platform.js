@@ -81,6 +81,11 @@ router.put('/eds', requireApiAuth, ah(async (req, res) => {
   const b = req.body || {};
   const current = (await repo.get(req.session.userId, 'eds')) || {};
   const incomingPw = str(b.apiPassword, D.EDS_MAX);
+  // OPID must be exactly 6 letters/digits when provided.
+  const opid = str(b.opid, 6);
+  if (opid && !/^[A-Za-z0-9]{6}$/.test(opid)) {
+    return res.status(400).json({ error: 'INVALID_OPID', message: 'OPID must be 6 letters or numbers.' });
+  }
   const config = {
     apiUsername: str(b.apiUsername, D.EDS_MAX),
     // Write-only: keep the stored password unless a new, non-empty one is sent.
@@ -88,7 +93,7 @@ router.put('/eds', requireApiAuth, ah(async (req, res) => {
     customerId: str(b.customerId, D.EDS_MAX),
     groupId: str(b.groupId, D.EDS_MAX),
     profile: str(b.profile, D.EDS_MAX),
-    opid: str(b.opid, D.EDS_MAX),
+    opid,
     // authType is optional; fall back to the default when cleared.
     authType: str(b.authType, D.EDS_MAX) || D.EDS_DEFAULTS.authType,
   };

@@ -33,6 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // it's write-only, so an empty box is fine when one is already stored (blank
   // means "keep the current password").
   const isFilled = (k) => (k === 'apiPassword' && hasStoredPassword ? true : !isEmpty(inputs[k].value));
+  // OPID must be exactly 6 letters/digits; other required fields just non-empty.
+  const OPID_RE = /^[A-Za-z0-9]{6}$/;
+  const fieldInvalid = (k) => (k === 'opid' ? !OPID_RE.test((inputs.opid.value || '').trim()) : !isFilled(k));
   // Show a hint on the password box when a password is already stored.
   function reflectPasswordState() {
     const pw = inputs.apiPassword;
@@ -50,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let allFilled = true;
     REQUIRED.forEach((k) => {
       const el = inputs[k];
-      const empty = !isFilled(k);
+      const empty = fieldInvalid(k);
       if (empty) allFilled = false;
       const show = empty && validated;
       const err = errEls[el.id];
@@ -96,7 +99,11 @@ document.addEventListener('DOMContentLoaded', () => {
     updateValidation();
   }
 
-  function handleInput() {
+  function handleInput(e) {
+    // OPID accepts only up to 6 letters/digits — strip anything else as typed.
+    if (e && e.target === inputs.opid) {
+      inputs.opid.value = inputs.opid.value.replace(/[^A-Za-z0-9]/g, '').slice(0, 6);
+    }
     touched = true;
     saveError = null;
     refreshCounts();
@@ -110,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     touched = true;
     validated = true; // reveal empty-required errors from here on
     if (!updateValidation()) {
-      const firstEmpty = REQUIRED.find((k) => !isFilled(k));
+      const firstEmpty = REQUIRED.find((k) => fieldInvalid(k));
       if (firstEmpty) inputs[firstEmpty].focus();
       render();
       return;
