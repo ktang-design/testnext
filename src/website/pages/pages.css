@@ -144,7 +144,23 @@
     linear-gradient(#255096, #255096) 16px 56px / 80px 8px no-repeat,
     #fafafa;
 }
+.elchoose__vis--cards {
+  background:
+    linear-gradient(#c9d6ec, #c9d6ec) 16px 12px / 24px 24px no-repeat,
+    linear-gradient(#d7d8da, #d7d8da) 44px 16px / 60px 6px no-repeat,
+    linear-gradient(#d7d8da, #d7d8da) 44px 28px / 30px 6px no-repeat,
+    linear-gradient(#c9d6ec, #c9d6ec) 16px 52px / 24px 24px no-repeat,
+    linear-gradient(#d7d8da, #d7d8da) 44px 56px / 60px 6px no-repeat,
+    linear-gradient(#d7d8da, #d7d8da) 44px 68px / 30px 6px no-repeat,
+    #fafafa;
+}
 .elchoose__name { padding: 12px 16px; font-size: 14px; color: var(--gray-700); }
+
+/* Character counter under a textarea field (mirrors the shared modal's count). */
+.pgb__count { align-self: flex-end; font-size: 13px; color: var(--gray-500); font-variant-numeric: tabular-nums; }
+
+/* Edit-card modal — image + text fields, spaced like the settings panel. */
+.modal--card .modal__body { display: flex; flex-direction: column; gap: 16px; }
 
 /* Edit richtext modal — focused WYSIWYG editor. */
 .modal.modal--rt { width: min(800px, 94vw); }

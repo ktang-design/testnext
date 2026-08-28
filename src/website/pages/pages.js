@@ -334,6 +334,8 @@
     const col = column === 1 ? 1 : 0; // which 50% column (ignored in 100% layout)
     const e = type === 'code'
       ? { id: uid('el'), type: 'code', title: 'Code', displayTitle: false, column: col, code: '' }
+      : type === 'cards'
+      ? defaultCardsElement(col)
       : { id: uid('el'), type: 'richtext', title: 'Richtext', displayTitle: false, column: col, body: PLACEHOLDER_RICHTEXT, style: defaultRichtextStyle() };
     sec.elements.push(e);
     selectedSectionId = sectionId;
@@ -346,7 +348,8 @@
     if (!elc) return;
     selectElement(secId, elId);
     if (elc.type === 'code') openCodeModal(secId, elId);
-    else openRichtextModal(secId, elId);
+    else if (elc.type === 'richtext') openRichtextModal(secId, elId);
+    // cards: no single-content modal — each card is edited from the settings panel's card list.
   }
 
   // Focused "Edit richtext" modal — a small WYSIWYG editor. Cannot be dismissed
@@ -671,6 +674,7 @@
         '<div class="modal__body"><div class="elchoose">' +
         '<button type="button" class="elchoose__card" data-type="richtext"><span class="elchoose__vis elchoose__vis--rt" aria-hidden="true"></span><span class="elchoose__name">Richtext</span></button>' +
         '<button type="button" class="elchoose__card" data-type="code"><span class="elchoose__vis elchoose__vis--code" aria-hidden="true"></span><span class="elchoose__name">Code</span></button>' +
+        '<button type="button" class="elchoose__card" data-type="cards"><span class="elchoose__vis elchoose__vis--cards" aria-hidden="true"></span><span class="elchoose__name">Cards</span></button>' +
         '</div></div><div class="modal__footer">' +
         '<button type="button" class="modal__btn modal__btn--cancel">Cancel</button>' +
         '<button type="button" class="modal__btn modal__btn--primary" data-add disabled>Add to page</button></div></div>';
@@ -773,6 +777,29 @@
     field.appendChild(input);
     return field;
   }
+  function buildTextareaField(labelText, value, maxLen, onInput) {
+    const field = document.createElement('div');
+    field.className = 'pgb__field';
+    const id = uid('ta');
+    const lab = document.createElement('label');
+    lab.className = 'pgb__label';
+    lab.textContent = labelText;
+    lab.setAttribute('for', id);
+    const area = document.createElement('textarea');
+    area.className = 'pgb__input pgb__textarea';
+    area.id = id;
+    area.maxLength = maxLen;
+    area.value = value || '';
+    const count = document.createElement('div');
+    count.className = 'pgb__count';
+    const draw = () => { count.textContent = `${area.value.length}/${maxLen}`; };
+    draw();
+    area.addEventListener('input', () => { onInput(area.value); draw(); });
+    field.appendChild(lab);
+    field.appendChild(area);
+    field.appendChild(count);
+    return field;
+  }
   function buildRadio(labelText, options, value, onChange) {
     const field = document.createElement('div');
     field.className = 'pgb__field';
@@ -843,11 +870,14 @@
   // Background-image picker (same UX as the Search panel): choose / preview /
   // replace / remove. The image is stored on `obj.backgroundImage` as a data URL.
   const IMAGE_MAX = 2 * 1024 * 1024; // 2 MB (keeps the page body under the 4 MB request limit)
-  function buildImageField(obj, onChange) {
+  // opts: { key, label, hint } — which field on `obj` holds the data URL (default
+  // 'backgroundImage'), and the label/hint copy.
+  function buildImageField(obj, onChange, opts) {
+    const key = (opts && opts.key) || 'backgroundImage';
     const field = document.createElement('div');
     field.className = 'pgb__field pgb__imgfield';
-    const lab = document.createElement('span'); lab.className = 'pgb__label'; lab.textContent = 'Background image';
-    const help = document.createElement('p'); help.className = 'pgb__hint'; help.textContent = 'The image will automatically adjust to fit the available space across different screen sizes.';
+    const lab = document.createElement('span'); lab.className = 'pgb__label'; lab.textContent = (opts && opts.label) || 'Background image';
+    const help = document.createElement('p'); help.className = 'pgb__hint'; help.textContent = (opts && opts.hint) || 'The image will automatically adjust to fit the available space across different screen sizes.';
     const choose = document.createElement('button'); choose.type = 'button'; choose.className = 'btn btn--secondary'; choose.textContent = 'Choose an image';
     const preview = document.createElement('div'); preview.className = 'pgb__img'; preview.hidden = true;
     const box = document.createElement('div'); box.className = 'pgb__imgbox';
@@ -861,7 +891,7 @@
     const error = document.createElement('p'); error.className = 'pgb__error'; error.setAttribute('role', 'alert'); error.hidden = true;
 
     const render = () => {
-      if (obj.backgroundImage) { img.src = obj.backgroundImage; preview.hidden = false; choose.hidden = true; }
+      if (obj[key]) { img.src = obj[key]; preview.hidden = false; choose.hidden = true; }
       else { preview.hidden = true; choose.hidden = false; }
     };
     const pick = () => input.click();
@@ -872,13 +902,13 @@
       error.hidden = true;
       if (file.size > IMAGE_MAX) { error.textContent = 'Image must be 2 MB or smaller.'; error.hidden = false; return; }
       const reader = new FileReader();
-      reader.onload = () => { obj.backgroundImage = reader.result; render(); onChange(); };
+      reader.onload = () => { obj[key] = reader.result; render(); onChange(); };
       reader.onerror = () => { error.textContent = 'Couldn’t read that file. Try another.'; error.hidden = false; };
       reader.readAsDataURL(file);
     });
     choose.addEventListener('click', pick);
     replace.addEventListener('click', pick);
-    remove.addEventListener('click', () => { obj.backgroundImage = null; error.hidden = true; render(); onChange(); });
+    remove.addEventListener('click', () => { obj[key] = null; error.hidden = true; render(); onChange(); });
 
     field.append(lab, help, choose, preview, input, error);
     render();
@@ -908,6 +938,149 @@
     elc.style = s;
     return s;
   }
+  // ---- cards element (per Figma 5601:69136) ----
+  const MAX_CARDS = 12;
+  const CARD_TITLE_MAX = 120;
+  const CARD_DESC_MAX = 500;
+  const CARD_HREF_MAX = 2048;
+  const CARD_LAYOUTS = [{ value: 'image-first', label: 'Image first' }, { value: 'title-first', label: 'Title first' }];
+  const CARD_RADII = [{ value: 'none', label: 'None' }, { value: 'small', label: 'Small' }, { value: 'medium', label: 'Medium' }, { value: 'large', label: 'Large' }];
+  const CARD_IMAGE_MODES = [{ value: 'full', label: 'Full size' }, { value: 'icon', label: 'Icon' }];
+  const CARD_IMAGE_SIZES = [{ value: '4:3', label: 'Standard (4:3)' }, { value: '16:9', label: 'Wide (16:9)' }, { value: '3:1', label: 'Banner (3:1)' }, { value: '1:1', label: 'Square (1:1)' }];
+  const CARD_IMAGE_FITS = [{ value: 'cover', label: 'Crop image to fit' }, { value: 'contain', label: 'Show entire image' }];
+  const PLACEHOLDER_CARD_TITLE = 'Community Programs';
+  const PLACEHOLDER_CARD_DESC = 'Explore upcoming events, educational workshops, digital resources, and community services available throughout the month. Stay informed about activities, registration opportunities, and programs designed for visitors of all ages and interests.';
+  function placeholderCard() {
+    return { id: uid('card'), image: null, title: PLACEHOLDER_CARD_TITLE, description: PLACEHOLDER_CARD_DESC, href: '' };
+  }
+  function defaultCardsElement(col) {
+    return {
+      id: uid('el'), type: 'cards', title: 'Cards', displayTitle: true, column: col,
+      cardLayout: 'image-first', radius: 'small', imageMode: 'full', imageSize: '4:3', imageFit: 'cover',
+      style: defaultRichtextStyle(), cards: [placeholderCard()],
+    };
+  }
+  function cardLabel(elc, cardId) {
+    const c = (elc.cards || []).find((x) => x.id === cardId);
+    return (c && c.title && c.title.trim()) || 'Untitled card';
+  }
+  function addCard(secId, elId) { openCardModal(secId, elId, null); }
+  function duplicateCard(secId, elId, cardId) {
+    const elc = findElement(secId, elId);
+    if (!elc || (elc.cards || []).length >= MAX_CARDS) return;
+    const src = (elc.cards || []).find((c) => c.id === cardId);
+    if (!src) return;
+    const i = elc.cards.findIndex((c) => c.id === cardId);
+    elc.cards.splice(i + 1, 0, Object.assign({}, src, { id: uid('card') }));
+    afterContentChange();
+  }
+  async function deleteCard(secId, elId, cardId) {
+    const elc = findElement(secId, elId);
+    if (!elc) return;
+    const i = (elc.cards || []).findIndex((c) => c.id === cardId);
+    if (i === -1) return;
+    const ok = await window.Modal.confirm({
+      title: 'Delete card',
+      message: 'This card will be removed. This can’t be undone.',
+      confirmLabel: 'Delete card',
+      cancelLabel: 'Keep card',
+      danger: true,
+    });
+    if (!ok) return;
+    elc.cards.splice(i, 1);
+    afterContentChange();
+  }
+  function reorderCards(secId, elId, orderedIds) {
+    const elc = findElement(secId, elId);
+    if (!elc) return;
+    const map = Object.fromEntries((elc.cards || []).map((c) => [c.id, c]));
+    elc.cards = orderedIds.map((id) => map[id]).filter(Boolean);
+    afterFieldEdit();
+  }
+
+  // Focused "Edit card" modal — image + title + description + link. Like the
+  // richtext/code modals it can't be dismissed by clicking outside (data loss).
+  // cardId === null creates a new card on Save; otherwise it edits in place.
+  function openCardModal(secId, elId, cardId) {
+    const elc = findElement(secId, elId);
+    if (!elc) return;
+    const editing = cardId ? (elc.cards || []).find((c) => c.id === cardId) : null;
+    if (cardId && !editing) return;
+    if (!editing && (elc.cards || []).length >= MAX_CARDS) return;
+    const draft = editing
+      ? Object.assign({}, editing)
+      : { id: uid('card'), image: null, title: '', description: '', href: '' };
+    const prev = document.activeElement;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', editing ? 'Edit card' : 'Add card');
+    const modal = document.createElement('div');
+    modal.className = 'modal modal--card';
+    overlay.appendChild(modal);
+    modal.innerHTML =
+      `<div class="modal__header"><h2 class="modal__title">${editing ? 'Edit card' : 'Add card'}</h2>` +
+      '<button type="button" class="modal__close" aria-label="Close dialog"><img src="/shared/close.svg" alt="" /></button></div>';
+
+    const body = document.createElement('div');
+    body.className = 'modal__body';
+    body.appendChild(buildImageField(draft, () => {}, { key: 'image', label: 'Card image', hint: 'Shown at the top of the card. Square or landscape images work best.' }));
+    body.appendChild(buildTextField('Title', draft.title, CARD_TITLE_MAX, (v) => { draft.title = v; }));
+    body.appendChild(buildTextareaField('Description', draft.description, CARD_DESC_MAX, (v) => { draft.description = v; }));
+    const linkField = buildTextField('Link URL (optional)', draft.href, CARD_HREF_MAX, (v) => { draft.href = v; });
+    const linkHint = document.createElement('p');
+    linkHint.className = 'pgb__hint';
+    linkHint.textContent = 'An absolute https:// / mailto: link, or a path starting with /.';
+    linkField.appendChild(linkHint);
+    body.appendChild(linkField);
+    modal.appendChild(body);
+
+    const footer = document.createElement('div');
+    footer.className = 'modal__footer';
+    footer.innerHTML =
+      '<button type="button" class="modal__btn modal__btn--cancel">Cancel</button>' +
+      `<button type="button" class="modal__btn modal__btn--primary" data-save>${editing ? 'Save' : 'Add card'}</button>`;
+    modal.appendChild(footer);
+
+    document.body.appendChild(overlay);
+    document.body.classList.add('is-locked');
+
+    function close() {
+      document.removeEventListener('keydown', onKey, true);
+      overlay.remove();
+      document.body.classList.remove('is-locked');
+      if (prev && prev.focus) prev.focus();
+    }
+    modal.querySelector('.modal__close').addEventListener('click', close);
+    footer.querySelector('.modal__btn--cancel').addEventListener('click', close);
+    footer.querySelector('[data-save]').addEventListener('click', () => {
+      const target = findElement(secId, elId);
+      if (target) {
+        if (editing) Object.assign(editing, draft);
+        else target.cards = (target.cards || []).concat([draft]);
+        afterContentChange();
+      }
+      close();
+    });
+    // Deliberately NO overlay-click handler — the user can't click outside to exit.
+    function onKey(e) {
+      if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+      if (e.key === 'Tab') {
+        const f = Array.from(modal.querySelectorAll('button, input, textarea')).filter((el) => el.offsetParent !== null);
+        if (!f.length) return;
+        const first = f[0];
+        const last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    }
+    document.addEventListener('keydown', onKey, true);
+    const firstInput = modal.querySelector('.pgb__input, .pgb__imgfield button');
+    if (firstInput) firstInput.focus();
+  }
+
   function buildDivider() { const d = document.createElement('div'); d.className = 'pgb__divider'; return d; }
   function buildDropdown(labelText, options, value, onChange) {
     const field = document.createElement('div');
@@ -1056,7 +1229,7 @@
     const sec = findSection(selectedSectionId);
     const elc = findElement(selectedSectionId, selectedElementId);
     if (!sec || !elc) { backToSection(); return; }
-    const elName = elc.title || (elc.type === 'code' ? 'Code' : 'Richtext');
+    const elName = elc.title || (elc.type === 'code' ? 'Code' : elc.type === 'cards' ? 'Cards' : 'Richtext');
     builderView.appendChild(buildBreadcrumb([
       { label: 'Pages', onClick: exitBuilder },
       { label: page ? page.title : 'Page', onClick: backToSectionList },
@@ -1075,6 +1248,63 @@
       codeName.appendChild(buildTextField('Title', elc.title, limits.elementTitle, (v) => { elc.title = v; afterFieldEdit(); }));
       codeName.appendChild(buildCheckbox('Display element title', elc.displayTitle, (v) => { elc.displayTitle = v; afterFieldEdit(); }));
       settings.appendChild(codeName);
+    } else if (elc.type === 'cards') {
+      const grp = (cls) => { const g = document.createElement('div'); g.className = cls; return g; };
+
+      const top = grp('pgb__namegroup');
+      top.appendChild(buildTextField('Title', elc.title, limits.elementTitle, (v) => { elc.title = v; afterFieldEdit(); }));
+      top.appendChild(buildCheckbox('Display element title', elc.displayTitle, (v) => { elc.displayTitle = v; afterFieldEdit(); }));
+      settings.appendChild(top);
+
+      const layout = grp('pgb__group');
+      layout.appendChild(buildDropdown('Card layout', CARD_LAYOUTS, elc.cardLayout, (v) => { elc.cardLayout = v; afterFieldEdit(); }));
+      layout.appendChild(buildDropdown('Corner radius', CARD_RADII, elc.radius, (v) => { elc.radius = v; afterFieldEdit(); }));
+      layout.appendChild(buildDropdown('Image mode', CARD_IMAGE_MODES, elc.imageMode, (v) => { elc.imageMode = v; afterFieldEdit(); }));
+      layout.appendChild(buildDropdown('Image size', CARD_IMAGE_SIZES, elc.imageSize, (v) => { elc.imageSize = v; afterFieldEdit(); }));
+      layout.appendChild(buildDropdown('Image fit', CARD_IMAGE_FITS, elc.imageFit, (v) => { elc.imageFit = v; afterFieldEdit(); }));
+      settings.appendChild(layout);
+
+      settings.appendChild(buildDivider());
+
+      const list = grp('pgb__group');
+      const cards = elc.cards || [];
+      const listHead = document.createElement('div');
+      listHead.className = 'pgb__field--row';
+      const listLab = document.createElement('span');
+      listLab.className = 'pgb__label';
+      listLab.textContent = `Cards (${cards.length}/${MAX_CARDS})`;
+      listHead.appendChild(listLab);
+      const addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      addBtn.className = 'navpanel__add pgb__add';
+      addBtn.disabled = cards.length >= MAX_CARDS;
+      addBtn.setAttribute('aria-label', 'Add card');
+      addBtn.setAttribute('data-tooltip', 'Add card');
+      addBtn.innerHTML = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>';
+      addBtn.addEventListener('click', () => addCard(sec.id, elc.id));
+      listHead.appendChild(addBtn);
+      list.appendChild(listHead);
+      if (!cards.length) {
+        list.appendChild(buildEmpty('No cards yet. Use the + button to add your first card.'));
+      } else {
+        const mount = document.createElement('div');
+        mount.className = 'navpanel__tree';
+        list.appendChild(mount);
+        elementTree = window.SortableTree.create(mount, {
+          items: cards.map((c) => ({ id: c.id, children: [] })),
+          maxDepth: 1,
+          ariaLabel: 'Cards',
+          labelOf: (it) => cardLabel(elc, it.id),
+          renderContent: (it) => rowLabel(cardLabel(elc, it.id), () => openCardModal(sec.id, elc.id, it.id)),
+          renderTrailing: (it) => rowKebab(cardLabel(elc, it.id), [
+            { label: 'Edit', onSelect: () => openCardModal(sec.id, elc.id, it.id) },
+            { label: 'Duplicate', onSelect: () => duplicateCard(sec.id, elc.id, it.id) },
+            { label: 'Delete', danger: true, onSelect: () => deleteCard(sec.id, elc.id, it.id) },
+          ]),
+          onChange: () => reorderCards(sec.id, elc.id, elementTree.getItems().map((it) => it.id)),
+        });
+      }
+      settings.appendChild(list);
     } else {
       // Richtext: title + colours + border, in 3 groups (2rem apart; colours are
       // a compact sub-group). Content is edited via the toolbar edit icon.

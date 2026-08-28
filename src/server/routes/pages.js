@@ -94,6 +94,35 @@ function normalizeRichtextStyle(raw) {
   };
 }
 
+// ---- Cards element ---------------------------------------------------------
+const MAX_CARDS = 12;
+const CARD_TITLE_MAX = 120;
+const CARD_DESC_MAX = 500;
+const CARDS_ENUM = {
+  cardLayout: ['image-first', 'title-first'],
+  radius: ['none', 'small', 'medium', 'large'],
+  imageMode: ['full', 'icon'],
+  imageSize: ['4:3', '16:9', '3:1', '1:1'],
+  imageFit: ['cover', 'contain'],
+};
+const pickEnum = (v, list, dflt) => (list.includes(v) ? v : dflt);
+// Card link: only absolute http(s)/mailto or a root-relative path; else ''.
+function cleanHref(v) {
+  const s = str(v).trim().slice(0, 2048);
+  if (!s) return '';
+  return (/^https?:\/\//i.test(s) || /^mailto:/i.test(s) || s.startsWith('/')) ? s : '';
+}
+function normalizeCard(raw, used) {
+  const c = raw && typeof raw === 'object' ? raw : {};
+  return {
+    id: uniqueId(str(c.id), 'card', used),
+    image: cleanImage(c.image), // dedicated data-URL field (sanitize-html strips data: <img>)
+    title: str(c.title).slice(0, CARD_TITLE_MAX),
+    description: str(c.description).slice(0, CARD_DESC_MAX),
+    href: cleanHref(c.href),
+  };
+}
+
 // Re-shape a page's content (sections + elements) into the canonical stored
 // form. Never throws — invalid bits are coerced/dropped — so a save can't fail
 // on content. Richtext/code stay PLAIN TEXT (rendered via textContent client-
@@ -108,7 +137,7 @@ function normalizeContent(raw) {
     const usedEl = new Set();
     const elements = rawEls.map((re) => {
       const e = re && typeof re === 'object' ? re : {};
-      const type = e.type === 'code' ? 'code' : 'richtext';
+      const type = ['code', 'cards'].includes(e.type) ? e.type : 'richtext';
       const el = {
         id: uniqueId(str(e.id), 'el', usedEl),
         type,
@@ -118,6 +147,15 @@ function normalizeContent(raw) {
       };
       if (type === 'code') {
         el.code = str(e.code).slice(0, ELEMENT_BODY_MAX);
+      } else if (type === 'cards') {
+        el.cardLayout = pickEnum(e.cardLayout, CARDS_ENUM.cardLayout, 'image-first');
+        el.radius = pickEnum(e.radius, CARDS_ENUM.radius, 'small');
+        el.imageMode = pickEnum(e.imageMode, CARDS_ENUM.imageMode, 'full');
+        el.imageSize = pickEnum(e.imageSize, CARDS_ENUM.imageSize, '4:3');
+        el.imageFit = pickEnum(e.imageFit, CARDS_ENUM.imageFit, 'cover');
+        el.style = normalizeRichtextStyle(e.style);
+        const usedCard = new Set();
+        el.cards = (Array.isArray(e.cards) ? e.cards.slice(0, MAX_CARDS) : []).map((rc) => normalizeCard(rc, usedCard));
       } else {
         el.body = sanitizeRichtext(e.body).slice(0, ELEMENT_BODY_MAX);
         el.style = normalizeRichtextStyle(e.style);
