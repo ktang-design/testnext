@@ -119,17 +119,20 @@
 .pgb__toggle.is-on { background: var(--blue-50, #e9effa); color: var(--blue-700, #255096); }
 .pgb__toggle:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); }
 
-/* Add-element chooser cards. */
-.elchoose { display: flex; gap: 16px; }
+/* Add-element chooser cards — two per row (Figma 5601:69144). */
+.elchoose { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .elchoose__card {
-  flex: 1; display: flex; flex-direction: column; gap: 0;
+  display: flex; flex-direction: column; gap: 0; min-width: 0;
   border: 1px solid var(--gray-200); border-radius: 6px; overflow: hidden;
   background: #fff; cursor: pointer; padding: 0; text-align: left;
 }
 .elchoose__card:hover { border-color: #6591d9; }
-.elchoose__card.is-selected { border-color: #3e75cf; box-shadow: 0 0 0 1px #3e75cf; }
+.elchoose__card.is-selected { border-color: var(--blue-700, #255096); box-shadow: 0 0 0 1px var(--blue-700, #255096); }
 .elchoose__card:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); }
-.elchoose__vis { height: 88px; background: #fafafa; border-bottom: 1px solid var(--gray-200); display: block; }
+.elchoose__vis {
+  height: 88px; box-sizing: border-box; display: block;
+  background: #fafafa; border-bottom: 1px solid var(--gray-200);
+}
 .elchoose__vis--rt {
   background:
     linear-gradient(#255096, #255096) 16px 24px / 140px 8px no-repeat,
@@ -144,17 +147,40 @@
     linear-gradient(#255096, #255096) 16px 56px / 80px 8px no-repeat,
     #fafafa;
 }
-.elchoose__vis--cards {
-  background:
-    linear-gradient(#c9d6ec, #c9d6ec) 16px 12px / 24px 24px no-repeat,
-    linear-gradient(#d7d8da, #d7d8da) 44px 16px / 60px 6px no-repeat,
-    linear-gradient(#d7d8da, #d7d8da) 44px 28px / 30px 6px no-repeat,
-    linear-gradient(#c9d6ec, #c9d6ec) 16px 52px / 24px 24px no-repeat,
-    linear-gradient(#d7d8da, #d7d8da) 44px 56px / 60px 6px no-repeat,
-    linear-gradient(#d7d8da, #d7d8da) 44px 68px / 30px 6px no-repeat,
-    #fafafa;
-}
+.elchoose__vis--cards { display: flex; flex-direction: column; gap: 8px; padding: 16px; }
+.elchoose__sk { display: block; border-radius: 4px; }
+.elchoose__sk--fill { flex: 1 1 auto; width: 100%; background: #d7d8da; }
+.elchoose__sk--title { flex: none; width: 124px; height: 8px; background: var(--blue-700, #255096); }
 .elchoose__name { padding: 12px 16px; font-size: 14px; color: var(--gray-700); }
+
+/* Settings-panel tab strip (Figma 123:10170) — the active tab is blue/semibold
+   with a 2px indicator sitting on the group's 2px rule. */
+.pgb__tabs {
+  display: flex; align-items: flex-start; gap: 24px;
+  border-bottom: 2px solid var(--gray-200);
+}
+.pgb__tab {
+  position: relative; padding: 8px 0 6px; border: 0; background: none;
+  font: 400 14px/21px var(--font); color: var(--gray-600); cursor: pointer;
+}
+.pgb__tab.is-active { font-weight: 600; color: #3e75cf; }
+.pgb__tab.is-active::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px;
+  background: #3e75cf; border-radius: 4px 4px 0 0;
+}
+.pgb__tab:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); border-radius: 2px; }
+
+/* Colour inputs stacked label-over-control, on a filled strip (Figma 123:10563). */
+.pgb__colors--stack { gap: 16px; }
+.pgb__colors--stack .colorrow { flex-direction: column; align-items: stretch; gap: 4px; padding: 0; }
+.pgb__colors--stack .colorrow__label { color: var(--gray-600); }
+.pgb__colors--stack .colorrow__controls {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px; border-radius: 4px; background: var(--gray-100, #f5f5f5);
+}
+.pgb__colors--stack .colorrow__swatch { width: 24px; height: 24px; border-color: var(--gray-500, #6e7277); }
+.pgb__colors--stack .colorrow__hex { flex: 1 1 auto; width: auto; }
+.pgb__colors--stack .colorrow__opacity { flex: none; border-left: 1px solid var(--gray-200); padding-left: 8px; }
 
 /* Character counter under a textarea field (mirrors the shared modal's count). */
 .pgb__count { align-self: flex-end; font-size: 13px; color: var(--gray-500); font-variant-numeric: tabular-nums; }
