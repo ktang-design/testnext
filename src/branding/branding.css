@@ -233,19 +233,33 @@ img { display: block; }
 }
 .color-card__name { margin: 0; font-weight: 600; }
 .color-card__desc { margin: 0; font-weight: 400; }
+/* The Color input, DEFAULT variant (Figma 3483:49549, type=Default) — the same
+   pill as the panels, but hugging its content instead of filling a 287px panel:
+   the hex gets a 72px floor and opacity a fixed 48px. Used outside panels. */
 .color-card__value {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  background: var(--gray-100);
 }
 .color-card__hex,
 .color-card__opacity {
   font-weight: 400;
-  font-size: 16px;
-  line-height: 24px;
-  color: var(--gray-600);
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--gray-700);
   white-space: nowrap;
+}
+.color-card__hex { min-width: 72px; }
+/* Hairline divider between hex and opacity, matching the panel variant. */
+.color-card__opacity {
+  min-width: 48px;
+  width: 48px;
+  padding-left: 8px;
+  border-left: 1px solid var(--gray-200);
 }
 
 /* Color swatch built on a real <input type=color> for native picking */
@@ -259,7 +273,7 @@ img { display: block; }
   display: block;
   width: 24px;
   height: 24px;
-  border: 1px solid var(--gray-200);
+  border: 1px solid var(--gray-500);
   border-radius: var(--radius-sm);
   background: var(--swatch);
 }
