@@ -127,6 +127,15 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 .wsprev__body--published .wsprev__section:hover,
 .wsprev__body--published .wsprev__el:hover { outline: none; }
 
+/* An element that carries a chosen background/border is padded 16px (set inline
+   by padForStyle) and grows 1rem outward, so its CONTENT stays on the page
+   gutter and keeps lining up with the header logo + search. Only the OUTER side
+   grows: in a split section the inner edges face the 24px gap and must not
+   expand into it. */
+.wsprev__el.is-padded { margin-left: -1rem; margin-right: -1rem; }
+.wsprev__elements--split .wsprev__col:first-child .wsprev__el.is-padded { margin-right: 0; }
+.wsprev__elements--split .wsprev__col:last-child .wsprev__el.is-padded { margin-left: 0; }
+
 /* Element layout within a section (Column layout: 100% vs 50% / 50%). In split
    mode each column holds its own elements + a 50%-wide Add element area. */
 .wsprev__elements--split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
