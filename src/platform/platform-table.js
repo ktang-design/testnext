@@ -11,6 +11,10 @@
 
   var ICON_EXPORT = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 10.5V2.5"/><path d="m5 5.5 3-3 3 3"/><path d="M2.5 10.5v2a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-2"/></svg>';
   var ICON_FILTER = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2 4.5h12M4.5 8h7M6.5 11.5h3"/></svg>';
+  var chevron = function (dir) {
+    var d = dir === 'prev' ? 'M10 3.5 5.5 8l4.5 4.5' : 'M6 3.5 10.5 8 6 12.5';
+    return '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + d + '"/></svg>';
+  };
 
   var state = { q: '', page: 1, pageSize: 10, total: 0 };
   // Regional display prefs from Language & region — applied to every date/time
@@ -42,17 +46,23 @@
   search.placeholder = cfg.searchPlaceholder || 'Search';
   search.setAttribute('aria-label', cfg.searchPlaceholder || 'Search');
   toolbar.appendChild(search);
-  if (cfg.showFilter) {
-    var fb = document.createElement('button'); fb.type = 'button'; fb.className = 'icon-btn icon-btn--square';
-    fb.setAttribute('aria-label', 'Filters'); fb.innerHTML = ICON_FILTER;
-    fb.addEventListener('click', function () { search.focus(); });
-    toolbar.appendChild(fb);
-  }
-  if (cfg.exportPath) {
-    var ex = document.createElement('button'); ex.type = 'button'; ex.className = 'icon-btn';
-    ex.innerHTML = ICON_EXPORT + '<span>Export</span>';
-    ex.addEventListener('click', function () { window.location.href = cfg.exportPath + '?q=' + encodeURIComponent(state.q); });
-    toolbar.appendChild(ex);
+  // Filter + Export live in their own group so they stay 8px apart while the
+  // toolbar keeps a 24px gap after the search box.
+  if (cfg.showFilter || cfg.exportPath) {
+    var actions = document.createElement('div'); actions.className = 'panel__actions';
+    if (cfg.showFilter) {
+      var fb = document.createElement('button'); fb.type = 'button'; fb.className = 'icon-btn icon-btn--square';
+      fb.setAttribute('aria-label', 'Filters'); fb.innerHTML = ICON_FILTER;
+      fb.addEventListener('click', function () { search.focus(); });
+      actions.appendChild(fb);
+    }
+    if (cfg.exportPath) {
+      var ex = document.createElement('button'); ex.type = 'button'; ex.className = 'icon-btn';
+      ex.innerHTML = ICON_EXPORT + '<span>Export</span>';
+      ex.addEventListener('click', function () { window.location.href = cfg.exportPath + '?q=' + encodeURIComponent(state.q); });
+      actions.appendChild(ex);
+    }
+    toolbar.appendChild(actions);
   }
   panel.appendChild(toolbar);
 
@@ -81,11 +91,11 @@
 
   function renderPager() {
     var pages = Math.max(1, Math.ceil(state.total / state.pageSize));
-    var html = '<button class="pager__btn" data-p="prev" aria-label="Previous page"' + (state.page <= 1 ? ' disabled' : '') + '>‹</button>';
+    var html = '<button class="pager__btn" data-p="prev" aria-label="Previous page"' + (state.page <= 1 ? ' disabled' : '') + '>' + chevron('prev') + '</button>';
     for (var i = 1; i <= pages && i <= 10; i++) {
       html += '<button class="pager__btn" data-p="' + i + '"' + (i === state.page ? ' aria-current="page"' : '') + '>' + i + '</button>';
     }
-    html += '<button class="pager__btn" data-p="next" aria-label="Next page"' + (state.page >= pages ? ' disabled' : '') + '>›</button>';
+    html += '<button class="pager__btn" data-p="next" aria-label="Next page"' + (state.page >= pages ? ' disabled' : '') + '>' + chevron('next') + '</button>';
     pager.innerHTML = html;
     pager.querySelectorAll('.pager__btn').forEach(function (b) {
       b.addEventListener('click', function () {

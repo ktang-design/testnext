@@ -29,7 +29,7 @@
 
 /* ---------------------------  Table skeleton (loading)  --------------------------- */
 /* Shown by platform-table.js while rows load. A shimmering placeholder bar per cell. */
-.dtable__skeleton td { border-bottom: 1px solid var(--gray-100); }
+/* No rule here: real rows carry no borders either (Figma 2901:37770). */
 .skeleton {
   display: block;
   height: 14px;
@@ -77,18 +77,19 @@
 
 /* ---------------------------  Panel / data table  --------------------------- */
 .panel {
+  background: var(--white);
   border: 1px solid var(--gray-200);
-  border-radius: 8px;
-  padding: 20px;
+  border-radius: var(--radius-sm);
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
-.panel__toolbar { display: flex; align-items: center; gap: 12px; }
+.panel__toolbar { display: flex; align-items: center; gap: 24px; height: 36px; }
 .panel__search {
   flex: 1;
   min-width: 0;
-  padding: 9px 12px;
+  padding: 3px 8px;
   font: 400 14px/21px var(--font);
   color: var(--gray-700);
   background: var(--white);
@@ -103,38 +104,55 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 40px;
-  padding: 0 14px;
+  height: 36px;
+  padding: 0 12px;
   background: var(--white);
   border: 1px solid var(--gray-400);
   border-radius: var(--radius-sm);
   font: 600 14px/21px var(--font);
-  color: var(--gray-700);
+  color: var(--gray-600);
   cursor: pointer;
   white-space: nowrap;
 }
 .icon-btn:hover { background: #f4f5f7; }
 .icon-btn svg { display: block; }
-.icon-btn--square { width: 40px; padding: 0; }
+/* The filter control is a borderless round tool button, not a bordered one
+   (Figma 2901:37570). */
+.icon-btn--square {
+  width: 42px; height: 42px; padding: 0;
+  border: 0; border-radius: 21px; color: var(--gray-600);
+}
+.icon-btn--square svg { width: 24px; height: 24px; }
+/* The 24px toolbar gap is between the search box and the actions; the actions
+   themselves sit 8px apart (Figma 2901:37569). */
+.panel__actions { display: inline-flex; align-items: center; gap: 8px; }
 
 /* Table */
 .dtable { width: 100%; border-collapse: collapse; }
+/* Columns are separated by a 16px gutter rather than cell padding, so the first
+   column starts flush with the panel edge like the design. */
+.dtable th,
+.dtable td { padding-left: 0; padding-right: 16px; }
+.dtable th:last-child,
+.dtable td:last-child { padding-right: 0; }
 .dtable th {
   text-align: left;
-  padding: 10px 12px;
+  padding-top: 8px;
+  padding-bottom: 8px;
   font: 600 14px/21px var(--font);
   color: var(--gray-700);
   border-bottom: 1px solid var(--gray-200);
 }
+/* Rows carry no rules — they read as a list, spaced by their own padding. */
 .dtable td {
-  padding: 14px 12px;
+  padding-top: 14px;
+  padding-bottom: 14px;
   font: 400 14px/21px var(--font);
   color: var(--gray-700);
-  border-bottom: 1px solid var(--gray-100);
   vertical-align: middle;
 }
-.dtable tr:last-child td { border-bottom: 0; }
 .dtable a { color: var(--blue-700); text-decoration: underline; }
+.dtable a:hover { text-decoration-thickness: 2px; }
 .dtable__empty { padding: 28px 12px; text-align: center; color: var(--gray-500); }
 
 /* Status pill: colored dot + label */
@@ -165,13 +183,19 @@
 .rowmenu button:hover { background: var(--gray-100); }
 
 /* ---------------------------  Pagination  --------------------------- */
-.pager { display: flex; align-items: center; justify-content: center; gap: 6px; padding-top: 4px; }
+.pager { display: flex; align-items: center; justify-content: center; gap: 4px; padding-top: 24px; }
 .pager__btn {
   min-width: 32px; height: 32px; padding: 0 8px;
   display: inline-flex; align-items: center; justify-content: center;
-  background: var(--white); border: 0; border-radius: var(--radius-sm);
-  font: 400 14px/21px var(--font); color: var(--blue-700); cursor: pointer;
+  background: var(--white); border: 1px solid transparent; border-radius: var(--radius-sm);
+  font: 700 14px/21px var(--font); color: var(--blue-600, #2d62b7); cursor: pointer;
 }
 .pager__btn:hover:not(:disabled) { background: var(--blue-50); }
-.pager__btn[aria-current="page"] { border: 1px solid var(--blue-500); color: var(--blue-700); font-weight: 600; }
+/* Current page is filled and outlined, in the darker blue (Figma 2897:36372). */
+.pager__btn[aria-current="page"] {
+  background: var(--blue-100, #d8e3f5);
+  border-color: var(--blue-500);
+  color: var(--blue-700);
+}
 .pager__btn:disabled { color: var(--gray-400); cursor: default; }
+.pager__btn svg { display: block; }
