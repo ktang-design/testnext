@@ -220,10 +220,26 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
    A card has no frame of its own — just image, 12px gap, then heading over
    description. Border/background/radius come from the element's Color + Styling
    tabs and are set inline per card.
-   Published: a row of cards, 24px apart, four across at full width.
    Builder: one card per row (full column width) so each is easy to edit. */
+
+/* Published layout, in one track definition:
+   - Each track is at least (100% - 3 gaps) / 4, which caps a row at FOUR cards.
+   - auto-fit collapses the unused tracks and the rest absorb the space, so one
+     card fills the container, two sit side by side at half each, three at a
+     third, and a fifth wraps to the next row.
+   - --cards-min is the floor a card may shrink to. Once (100% - 3 gaps)/4 drops
+     below it the column count falls off on its own: 3 then 2 then 1. That is what
+     makes the grid responsive at tablet and phone widths, and it is also why a
+     cards element sitting in a 50% column shows fewer per row. */
 .wsprev__cards {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;
+  --cards-gap: 24px;
+  --cards-min: 240px;
+  display: grid;
+  gap: var(--cards-gap);
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(max(var(--cards-min), (100% - 3 * var(--cards-gap)) / 4), 1fr)
+  );
   align-items: start;
 }
 .wsprev__cards--edit { grid-template-columns: 1fr; gap: 32px; }
