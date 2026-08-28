@@ -163,7 +163,7 @@ function normalizeContent(raw) {
         el.cardLayout = pickEnum(e.cardLayout, CARDS_ENUM.cardLayout, 'image-first');
         el.radius = pickEnum(e.radius, CARDS_ENUM.radius, 'small');
         el.imageMode = pickEnum(e.imageMode, CARDS_ENUM.imageMode, 'full');
-        el.imageSize = pickEnum(e.imageSize, CARDS_ENUM.imageSize, '4:3');
+        el.imageSize = pickEnum(e.imageSize, CARDS_ENUM.imageSize, '3:1');
         el.imageFit = pickEnum(e.imageFit, CARDS_ENUM.imageFit, 'cover');
         el.style = normalizeRichtextStyle(e.style);
         const usedCard = new Set();

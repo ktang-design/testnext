@@ -201,7 +201,7 @@
     const cards = element.cards || [];
     if (!cards.length) { grid.appendChild(el('p', 'wsprev__elempty', 'Add cards to see them here.')); return grid; }
     const radius = CARD_RADIUS_PX[element.radius] != null ? CARD_RADIUS_PX[element.radius] : 6;
-    const ratio = String(element.imageSize || '4:3').replace(':', ' / ');
+    const ratio = String(element.imageSize || '3:1').replace(':', ' / ');
     const icon = element.imageMode === 'icon';
     // Icon mode has a single fixed layout — icon on the left with the title and
     // description stacked beside it — so "Title first" does not apply there.
@@ -228,10 +228,12 @@
       }
       const imgBox = el('div', 'wsprev__cardimg' + (icon ? ' wsprev__cardimg--icon' : ''));
       if (radius) imgBox.style.borderRadius = radius + 'px';
-      // Icon mode has its own fixed box; otherwise the bundled placeholder is
-      // pinned to 300px and an uploaded image follows the Image size ratio.
+      // Icon mode has its own fixed box. Otherwise: while EDITING, the bundled
+      // placeholder stays a compact 300px so a fresh card isn't a huge slab. Once
+      // you're done, every image — placeholder included — takes the element's
+      // Image size ratio, so all the cards match and only their widths differ.
       if (!icon) {
-        if (isPlaceholderImage(c)) imgBox.style.height = CARD_PLACEHOLDER_H + 'px';
+        if (ctx && isPlaceholderImage(c)) imgBox.style.height = CARD_PLACEHOLDER_H + 'px';
         else imgBox.style.aspectRatio = ratio;
       }
       if (c.image) {
@@ -691,10 +693,13 @@
           if ((element.cards || []).some((c) => c.id === blr.selectedCardId)) elt.classList.add('has-cardsel');
           const gridNode = buildCardsGrid(element, {
             selectedCardId: blr.selectedCardId,
-            toolbar: (cardId, wrapper) => cardToolbar(
+            // canReorder comes from the grid (false for a lone card) and must be
+            // forwarded — dropping it here left every card without a grip.
+            toolbar: (cardId, wrapper, canReorder) => cardToolbar(
               () => cb.onEditCard && cb.onEditCard(section.id, element.id, cardId),
               () => cb.onDeleteCard && cb.onDeleteCard(section.id, element.id, cardId),
-              wrapper
+              wrapper,
+              canReorder
             ),
             onSelect: (cardId) => cb.onSelectCard && cb.onSelectCard(section.id, element.id, cardId),
           });
