@@ -195,11 +195,13 @@
     const titleFirst = element.cardLayout === 'title-first';
     const st = element.style;
     cards.forEach((c) => {
-      // In the builder a card is an edit target, never a live link.
-      const isLink = !!c.href && !ctx;
-      const card = document.createElement(isLink ? 'a' : 'div');
-      card.className = 'wsprev__card' + (icon ? ' wsprev__card--icon' : '');
-      if (isLink) card.href = c.href;
+      // Nothing in the preview navigates: a card is an edit target in the
+      // builder and a hover-only tile once you're done. A card that HAS a URL is
+      // marked so the hover still hints that it will be a link once published.
+      const card = document.createElement('div');
+      card.className = 'wsprev__card'
+        + (icon ? ' wsprev__card--icon' : '')
+        + (c.href ? ' wsprev__card--link' : '');
       if (radius) card.style.borderRadius = radius + 'px';
       applyCardStyle(card, st);
       // The toolbar lives on a wrapper, not the card: the card keeps its own
@@ -230,17 +232,33 @@
       } else {
         imgBox.classList.add('wsprev__cardimg--empty');
       }
-      const body = el('div', 'wsprev__cardbody');
-      if (c.title) body.appendChild(el('h4', 'wsprev__cardtitle', c.title));
+      const titleNode = c.title ? el('h4', 'wsprev__cardtitle', c.title) : null;
       // The description is authored in a WYSIWYG, so it is markup.
       const descHtml = String(c.description || '');
+      let descNode = null;
       if (descHtml.trim()) {
-        const desc = el('div', 'wsprev__carddesc');
-        desc.innerHTML = window.RichText ? window.RichText.sanitize(descHtml) : '';
-        body.appendChild(desc);
+        descNode = el('div', 'wsprev__carddesc');
+        descNode.innerHTML = window.RichText ? window.RichText.sanitize(descHtml) : '';
       }
-      if (titleFirst) { card.appendChild(body); card.appendChild(imgBox); }
-      else { card.appendChild(imgBox); card.appendChild(body); }
+      if (titleFirst) {
+        // Title, then image, then description.
+        if (titleNode) card.appendChild(titleNode);
+        card.appendChild(imgBox);
+        if (descNode) card.appendChild(descNode);
+      } else {
+        // Image, then the title/description block.
+        card.appendChild(imgBox);
+        const body = el('div', 'wsprev__cardbody');
+        if (titleNode) body.appendChild(titleNode);
+        if (descNode) body.appendChild(descNode);
+        card.appendChild(body);
+      }
+      // A description can contain authored links. Swallow those clicks too so
+      // the preview can never leave the page it is previewing.
+      card.addEventListener('click', (e) => {
+        const a = e.target && e.target.closest ? e.target.closest('a') : null;
+        if (a && card.contains(a)) e.preventDefault();
+      });
       grid.appendChild(slot);
     });
     return grid;
@@ -319,6 +337,16 @@
 
     let zoom = 1, naturalH = 600, userZoomed = false, spaceDown = false, hovering = false;
     let userPanned = false; // set once the user scrolls/pans the canvas themselves
+    // render() rebuilds the canvas and re-fits the zoom, which resets the scroll.
+    // Normally we put the user back where they were (so selecting a card or an
+    // element doesn't yank the builder to the top); navigating the preview to a
+    // DIFFERENT page is the one case that should genuinely start at the top.
+    let resetScrollNext = false;
+    // Which highlight the last render drew. Auto-scrolling the highlighted block
+    // into view is only wanted when the highlight CHANGES (e.g. opening the
+    // Footer panel) — not on every unrelated re-render, which would fight the
+    // user's own scrolling. `undefined` until the first render.
+    let lastHighlight;
 
     // Scroll the highlighted element (the section the current panel edits) fully
     // into view — so opening e.g. Footer scrolls the canvas down until the whole
@@ -892,6 +920,10 @@
     }
 
     function render() {
+      const keepTop = canvas.scrollTop;
+      const keepLeft = canvas.scrollLeft;
+      const highlightChanged = state.highlight !== lastHighlight;
+      lastHighlight = state.highlight;
       const h = state.header || HEADER_D;
       const f = state.footer || FOOTER_D;
       const t = state.typography || TYPO_D;
@@ -926,7 +958,7 @@
       // In the read-only (non-builder) view the logo + page links navigate the
       // preview between published pages; the homepage is the default.
       const live = !state.builder;
-      const goTo = (pageId) => { state.viewPageId = pageId; render(); };
+      const goTo = (pageId) => { state.viewPageId = pageId; resetScrollNext = true; render(); };
       const homepage = (state.pages || []).find((p) => p.isHomepage) || (state.pages || [])[0];
       const viewId = currentViewPage() ? currentViewPage().id : null;
 
@@ -1098,7 +1130,13 @@
       // Re-measure and re-apply zoom (fit unless the user has zoomed manually).
       naturalH = root.offsetHeight || naturalH;
       if (userZoomed) applyZoom(zoom); else fitZoom();
-      scrollHighlightIntoView();
+      // fitZoom() parks the canvas at the top; restore the user's place unless
+      // we just moved to another page. The browser clamps an out-of-range value.
+      const toNewPage = resetScrollNext;
+      resetScrollNext = false;
+      if (toNewPage) { canvas.scrollTop = 0; canvas.scrollLeft = 0; }
+      else { canvas.scrollTop = keepTop; canvas.scrollLeft = keepLeft; }
+      if (highlightChanged || toNewPage) scrollHighlightIntoView();
     }
 
     // Instant-load cache: snapshot the saved website config (not the per-page

@@ -226,6 +226,19 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 .wsprev__card--icon { flex-direction: row; align-items: flex-start; gap: 12px; }
 .wsprev__cardimg { position: relative; width: 100%; overflow: hidden; background: #d9d9d9; }
 .wsprev__cardimg img { width: 100%; height: 100%; display: block; }
+/* Hovering a finished card eases its image in, and back out on leave. Only in
+   the read-only preview — in the builder the card is an edit target, where a
+   zoom would fight the selection outline and toolbar. */
+.wsprev__cards:not(.wsprev__cards--edit) .wsprev__cardimg img {
+  transition: transform 0.35s ease;
+}
+.wsprev__cards:not(.wsprev__cards--edit) .wsprev__card:hover .wsprev__cardimg img {
+  transform: scale(1.06);
+}
+@media (prefers-reduced-motion: reduce) {
+  .wsprev__cards:not(.wsprev__cards--edit) .wsprev__cardimg img { transition: none; }
+  .wsprev__cards:not(.wsprev__cards--edit) .wsprev__card:hover .wsprev__cardimg img { transform: none; }
+}
 .wsprev__cardimg--icon { flex: 0 0 auto; width: 48px; height: 48px; }
 .wsprev__cardimg--empty {
   min-height: 96px;
@@ -235,6 +248,9 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 }
 .wsprev__cardimg--icon.wsprev__cardimg--empty { min-height: 0; border-radius: 6px; }
 .wsprev__cardbody { flex: 1 1 auto; display: flex; flex-direction: column; gap: 4px; }
+/* "Title first" = title, image, description. With no body wrapper the texts sit
+   on the card's own 12px gap rather than the 4px in-block gap. */
+.wsprev__card > .wsprev__carddesc { flex: 1 1 auto; }
 .wsprev__cardtitle {
   margin: 0; font-size: 20px; line-height: 30px; font-weight: 400;
   color: var(--wsprev-heading, #3d3f42);
@@ -245,7 +261,13 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 .wsprev__carddesc > :first-child { margin-top: 0; }
 .wsprev__carddesc > :last-child { margin-bottom: 0; }
 .wsprev__carddesc a { color: var(--rt-link, #255096); }
-a.wsprev__card:hover .wsprev__cardtitle { text-decoration: underline; }
+/* A card with a URL hints that it will be a link once published — but the
+   preview never navigates, so this is hover feedback only. */
+.wsprev__cards:not(.wsprev__cards--edit) .wsprev__card--link { cursor: pointer; }
+.wsprev__cards:not(.wsprev__cards--edit) .wsprev__card--link:hover .wsprev__cardtitle { text-decoration: underline; }
+/* Authored links inside a description are inert here too (clicks are swallowed
+   in JS); keep them looking like links without inviting a click. */
+.wsprev__cards:not(.wsprev__cards--edit) .wsprev__carddesc a { cursor: default; }
 /* In the builder each card is wrapped so it becomes its own click target: pink
    outline when picked, dashed hint on hover, and a grip/edit/trash toolbar. The
    wrapper carries these so the card keeps clipping its image to the corners. */
