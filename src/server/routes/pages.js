@@ -97,7 +97,9 @@ function normalizeRichtextStyle(raw) {
 // ---- Cards element ---------------------------------------------------------
 const MAX_CARDS = 12;
 const CARD_TITLE_MAX = 120;
-const CARD_DESC_MAX = 500;
+// The description holds markup now, so the cap is on the HTML, not on the words.
+const CARD_DESC_MAX = 4000;
+const CARD_IMAGE_NAME_MAX = 200;
 const CARDS_ENUM = {
   cardLayout: ['image-first', 'title-first'],
   radius: ['none', 'small', 'medium', 'large'],
@@ -112,13 +114,23 @@ function cleanHref(v) {
   if (!s) return '';
   return (/^https?:\/\//i.test(s) || /^mailto:/i.test(s) || s.startsWith('/')) ? s : '';
 }
+// A card's image is either an uploaded data URL or THE bundled placeholder that
+// ships with the app (Figma 5624:73764). Only that one exact path is allowed —
+// arbitrary paths stay rejected so this can't be pointed at anything else.
+const CARD_PLACEHOLDER_SRC = '/website/assets/card-placeholder.jpg';
+const cleanCardImage = (v) => (str(v) === CARD_PLACEHOLDER_SRC ? CARD_PLACEHOLDER_SRC : cleanImage(v));
 function normalizeCard(raw, used) {
   const c = raw && typeof raw === 'object' ? raw : {};
+  const image = cleanCardImage(c.image);
   return {
     id: uniqueId(str(c.id), 'card', used),
-    image: cleanImage(c.image), // dedicated data-URL field (sanitize-html strips data: <img>)
+    image,
+    // Shown in the Edit card dialog's image row; meaningless with no image.
+    imageName: image ? str(c.imageName).slice(0, CARD_IMAGE_NAME_MAX) : '',
     title: str(c.title).slice(0, CARD_TITLE_MAX),
-    description: str(c.description).slice(0, CARD_DESC_MAX),
+    // The description is authored in a WYSIWYG, so it is richtext, not plain
+    // text — sanitize it with the same allowlist as a richtext element body.
+    description: sanitizeRichtext(str(c.description).slice(0, CARD_DESC_MAX)),
     href: cleanHref(c.href),
   };
 }

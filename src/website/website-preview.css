@@ -89,6 +89,7 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
   color: #2d62b7; font: 600 15px/1.2 "Noto Sans", Arial, sans-serif;
 }
 .wsprev__cta:hover { background: #dbe6fb; }
+.wsprev__cta--card { padding: 7px 16px 8px; margin: 12px 0 0; font: 600 14px/21px "Noto Sans", Arial, sans-serif; }
 .wsprev__cta svg { flex: none; }
 .wsprev__section > .wsprev__cta { margin: 12px 0 0; }
 
@@ -206,17 +207,24 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
   min-height: 96px; color: #55585d; font-size: 15px;
 }
 
-/* Cards element (Figma 5601:69506) — cards stack full-width so each one spans
-   the whole column it sits in. Radius/aspect-ratio are set inline per element
-   settings. */
-.wsprev__cards { display: flex; flex-direction: column; gap: 20px; }
+/* Cards element (Figma 5624:73759 builder / 5624:75414 published).
+   A card has no frame of its own — just image, 12px gap, then heading over
+   description. Border/background/radius come from the element's Color + Styling
+   tabs and are set inline per card.
+   Published: a row of cards, 24px apart, four across at full width.
+   Builder: one card per row (full column width) so each is easy to edit. */
+.wsprev__cards {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;
+  align-items: start;
+}
+.wsprev__cards--edit { grid-template-columns: 1fr; gap: 32px; }
 .wsprev__card {
   position: relative;
-  display: flex; flex-direction: column; overflow: hidden; text-decoration: none;
-  background: #fff; border: 1px solid var(--gray-200, #d7d8da);
+  display: flex; flex-direction: column; gap: 12px;
+  overflow: hidden; text-decoration: none;
 }
-.wsprev__card--icon { flex-direction: row; align-items: flex-start; gap: 12px; padding: 16px; }
-.wsprev__cardimg { position: relative; width: 100%; overflow: hidden; background: var(--gray-50, #f9fafb); }
+.wsprev__card--icon { flex-direction: row; align-items: flex-start; gap: 12px; }
+.wsprev__cardimg { position: relative; width: 100%; overflow: hidden; background: #d9d9d9; }
 .wsprev__cardimg img { width: 100%; height: 100%; display: block; }
 .wsprev__cardimg--icon { flex: 0 0 auto; width: 48px; height: 48px; }
 .wsprev__cardimg--empty {
@@ -226,22 +234,33 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
     var(--gray-50, #f9fafb);
 }
 .wsprev__cardimg--icon.wsprev__cardimg--empty { min-height: 0; border-radius: 6px; }
-.wsprev__cardbody { flex: 1 1 auto; padding: 16px; }
-.wsprev__card--icon .wsprev__cardbody { padding: 0; }
-.wsprev__cardtitle { margin: 0 0 6px; font-size: 16px; font-weight: 600; color: var(--wsprev-heading, #3d3f42); }
-.wsprev__carddesc {
-  margin: 0; font-size: 14px; line-height: 1.5; color: var(--wsprev-bodyc, #55585d);
-  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+.wsprev__cardbody { flex: 1 1 auto; display: flex; flex-direction: column; gap: 4px; }
+.wsprev__cardtitle {
+  margin: 0; font-size: 20px; line-height: 30px; font-weight: 400;
+  color: var(--wsprev-heading, #3d3f42);
 }
-a.wsprev__card:hover { border-color: #6591d9; }
+/* No line clamp: descriptions run their full length, which is why cards in a
+   published row end at different heights. */
+.wsprev__carddesc { font-size: 16px; line-height: 24px; color: var(--wsprev-bodyc, #3d3f42); }
+.wsprev__carddesc > :first-child { margin-top: 0; }
+.wsprev__carddesc > :last-child { margin-bottom: 0; }
+.wsprev__carddesc a { color: var(--rt-link, #255096); }
+a.wsprev__card:hover .wsprev__cardtitle { text-decoration: underline; }
 /* In the builder each card is wrapped so it becomes its own click target: pink
-   outline when picked, dashed hint on hover, and an Edit/Delete toolbar (no grip
-   — cards don't drag). The wrapper carries these so the card keeps clipping its
-   image to the rounded corners. */
+   outline when picked, dashed hint on hover, and a grip/edit/trash toolbar. The
+   wrapper carries these so the card keeps clipping its image to the corners. */
 .wsprev__cardwrap { position: relative; cursor: pointer; border-radius: 4px; }
 .wsprev__cardwrap.is-selected { outline: 2px solid #e0489b; outline-offset: 2px; }
 .wsprev__cardwrap:hover:not(.is-selected) { outline: 1px dashed #cdd6e6; outline-offset: 2px; }
 .wsprev__cardwrap.is-selected > .wsprev__toolbar { opacity: 1; visibility: visible; }
+.wsprev__cardwrap.is-dragging { opacity: 0.5; }
+.wsprev__cardwrap.is-dropbefore::before,
+.wsprev__cardwrap.is-dropend::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 3px;
+  background: #3e75cf; border-radius: 2px;
+}
+.wsprev__cardwrap.is-dropbefore::before { top: -18px; }
+.wsprev__cardwrap.is-dropend::after { bottom: -18px; }
 
 /* Floating toolbar (Figma component 83:5303 / mockup 666:12297) — horizontally
    centered and straddling the TOP edge of the block; shown only on the selected
@@ -250,7 +269,7 @@ a.wsprev__card:hover { border-color: #6591d9; }
   position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); z-index: 3;
   display: inline-flex; align-items: center; gap: 8px;
   padding: 8px; border-radius: 4px; background: #fff;
-  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.16);
+  border: 1px solid var(--gray-400, #8d9095);
   opacity: 0; visibility: hidden; transition: opacity 0.1s ease;
 }
 .wsprev__section.is-selected > .wsprev__toolbar,
@@ -259,7 +278,10 @@ a.wsprev__card:hover { border-color: #6591d9; }
    While a card is selected the ELEMENT's toolbar is hidden so the two can't
    stack on top of each other. */
 .wsprev__toolbar--card { padding: 4px; gap: 4px; }
+/* When a card is selected it is the active thing: the element gives up both its
+   toolbar and its outline so only the card is marked (Figma 5621:73631). */
 .wsprev__el.has-cardsel > .wsprev__toolbar { opacity: 0; visibility: hidden; }
+.wsprev__el.has-cardsel { outline: none; }
 .wsprev__tbgrip,
 .wsprev__tbbtn {
   display: inline-flex; align-items: center; justify-content: center;

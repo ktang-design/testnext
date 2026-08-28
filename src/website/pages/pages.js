@@ -366,6 +366,100 @@
     // cards: no single-content modal — each card is edited from the settings panel's card list.
   }
 
+  // ---- shared WYSIWYG ----
+  // Builds the {wrap, editor} pair used by the richtext modal and by the Edit
+  // card dialog's Description field. `toolKeys` picks and orders the toolbar;
+  // omit it for the full richtext set. Use 'sep' for a divider.
+  const WYSIWYG_FULL = [
+    'h1', 'h2', 'h3', 'h4', 'h5', 'p1', 'p2', 'sep',
+    'bold', 'italic', 'underline', 'strike', 'sub', 'sup', 'sep',
+    'alignLeft', 'alignCenter', 'alignRight', 'sep',
+    'indent', 'outdent', 'sep',
+    'ul', 'ol', 'sep',
+    'quote', 'hr', 'sep',
+    'link', 'image', 'table',
+  ];
+  function buildWysiwyg(html, toolKeys) {
+    const wrap = document.createElement('div');
+    wrap.className = 'rt';
+    const toolbar = document.createElement('div');
+    toolbar.className = 'rt__toolbar';
+    toolbar.setAttribute('role', 'toolbar');
+    toolbar.setAttribute('aria-label', 'Formatting');
+    const editor = document.createElement('div');
+    editor.className = 'rt__editor';
+    editor.contentEditable = 'true';
+    editor.setAttribute('role', 'textbox');
+    editor.setAttribute('aria-multiline', 'true');
+    editor.innerHTML = window.RichText.sanitize(html || '');
+
+    const exec = (cmd, val) => { editor.focus(); document.execCommand(cmd, false, val || null); };
+    // Paragraph size: make the block(s) a <p>, then tag the paragraph(s) in the
+    // selection with the size class (Paragraph 1 = large, Paragraph 2 = medium).
+    const setPara = (cls) => {
+      exec('formatBlock', 'P');
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+      let matched = false;
+      editor.querySelectorAll('p').forEach((p) => {
+        if (range.intersectsNode(p)) { p.classList.remove('rt-p1', 'rt-p2'); p.classList.add(cls); matched = true; }
+      });
+      if (!matched) {
+        let n = range.startContainer;
+        while (n && n !== editor) { if (n.nodeType === 1 && n.tagName === 'P') { n.classList.remove('rt-p1', 'rt-p2'); n.classList.add(cls); break; } n = n.parentNode; }
+      }
+    };
+    const ic = (paths) => `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
+    const insertLink = () => { const u = window.prompt('Link URL', 'https://'); if (u) exec('createLink', u.trim()); };
+    const insertImage = () => { const u = window.prompt('Image URL (https://…)', 'https://'); if (u) exec('insertImage', u.trim()); };
+    const insertTable = () => exec('insertHTML', '<table><tbody><tr><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td></tr></tbody></table><p><br></p>');
+    const DEFS = {
+      h1: { label: 'Heading 1', html: 'H1', run: () => exec('formatBlock', 'H1') },
+      h2: { label: 'Heading 2', html: 'H2', run: () => exec('formatBlock', 'H2') },
+      h3: { label: 'Heading 3', html: 'H3', run: () => exec('formatBlock', 'H3') },
+      h4: { label: 'Heading 4', html: 'H4', run: () => exec('formatBlock', 'H4') },
+      h5: { label: 'Heading 5', html: 'H5', run: () => exec('formatBlock', 'H5') },
+      p1: { label: 'Paragraph 1', html: 'P1', run: () => setPara('rt-p1') },
+      p2: { label: 'Paragraph 2', html: 'P2', run: () => setPara('rt-p2') },
+      bold: { label: 'Bold', html: '<b>B</b>', run: () => exec('bold') },
+      italic: { label: 'Italic', html: '<i>I</i>', run: () => exec('italic') },
+      underline: { label: 'Underline', html: '<u>U</u>', run: () => exec('underline') },
+      strike: { label: 'Strikethrough', html: '<s>S</s>', run: () => exec('strikeThrough') },
+      sub: { label: 'Subscript', html: 'X<sub>2</sub>', run: () => exec('subscript') },
+      sup: { label: 'Superscript', html: 'X<sup>2</sup>', run: () => exec('superscript') },
+      alignLeft: { label: 'Align left', html: ic('<path d="M2 4h12M2 8h8M2 12h11"/>'), run: () => exec('justifyLeft') },
+      alignCenter: { label: 'Align center', html: ic('<path d="M2 4h12M4 8h8M3 12h10"/>'), run: () => exec('justifyCenter') },
+      alignRight: { label: 'Align right', html: ic('<path d="M2 4h12M6 8h8M3 12h11"/>'), run: () => exec('justifyRight') },
+      indent: { label: 'Indent', html: ic('<path d="M7 4h7M7 8h7M2 12h12M2 5l3 3-3 3"/>'), run: () => exec('indent') },
+      outdent: { label: 'Outdent', html: ic('<path d="M7 4h7M7 8h7M2 12h12M5 5l-3 3 3 3"/>'), run: () => exec('outdent') },
+      ul: { label: 'Bulleted list', html: ic('<circle cx="3" cy="4.5" r="0.9"/><circle cx="3" cy="8" r="0.9"/><circle cx="3" cy="11.5" r="0.9"/><path d="M6.5 4.5h7.5M6.5 8h7.5M6.5 11.5h7.5"/>'), run: () => exec('insertUnorderedList') },
+      ol: { label: 'Numbered list', html: '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><text x="0" y="6" font-size="5.5" font-weight="700" fill="currentColor">1</text><text x="0" y="13.5" font-size="5.5" font-weight="700" fill="currentColor">2</text><path d="M6.5 4.5h7.5M6.5 11.5h7.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>', run: () => exec('insertOrderedList') },
+      quote: { label: 'Quote', html: ic('<path d="M4 5h3v3a3 3 0 0 1-3 3M9 5h3v3a3 3 0 0 1-3 3"/>'), run: () => exec('formatBlock', 'BLOCKQUOTE') },
+      hr: { label: 'Divider', html: ic('<path d="M2 8h12"/>'), run: () => exec('insertHorizontalRule') },
+      link: { label: 'Link', html: ic('<path d="M6.5 9.5 9.5 6.5M7 4.5 8.5 3a2.5 2.5 0 0 1 3.5 3.5L10.5 8M9 11.5 7.5 13A2.5 2.5 0 0 1 4 9.5L5.5 8"/>'), run: insertLink },
+      image: { label: 'Image / media', html: ic('<rect x="2" y="3" width="12" height="10" rx="1"/><circle cx="5.5" cy="6.5" r="1.1"/><path d="M3 12.5 6.5 9l2.5 2.5 2-2 2 2.5"/>'), run: insertImage },
+      table: { label: 'Table', html: ic('<rect x="2" y="3" width="12" height="10" rx="1"/><path d="M2 7h12M2 10.5h12M6.5 3v10M10 3v10"/>'), run: insertTable },
+    };
+    (toolKeys || WYSIWYG_FULL).forEach((key) => {
+      if (key === 'sep') { const sp = document.createElement('span'); sp.className = 'rt__sep'; toolbar.appendChild(sp); return; }
+      const t = DEFS[key];
+      if (!t) return;
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'rt__tool';
+      b.title = t.label;
+      b.setAttribute('aria-label', t.label);
+      b.innerHTML = t.html;
+      b.addEventListener('mousedown', (e) => e.preventDefault()); // keep the editor's selection
+      b.addEventListener('click', t.run);
+      toolbar.appendChild(b);
+    });
+    wrap.appendChild(toolbar);
+    wrap.appendChild(editor);
+    return { wrap, editor };
+  }
+
   // Focused "Edit richtext" modal — a small WYSIWYG editor. Cannot be dismissed
   // by clicking outside (only Cancel / Save / close / Escape).
   function openRichtextModal(secId, elId) {
@@ -392,88 +486,9 @@
     lab.textContent = 'Content';
     body.appendChild(lab);
 
-    const wrap = document.createElement('div');
-    wrap.className = 'rt';
-    const toolbar = document.createElement('div');
-    toolbar.className = 'rt__toolbar';
-    toolbar.setAttribute('role', 'toolbar');
-    toolbar.setAttribute('aria-label', 'Formatting');
-    const editor = document.createElement('div');
-    editor.className = 'rt__editor';
-    editor.contentEditable = 'true';
-    editor.setAttribute('role', 'textbox');
-    editor.setAttribute('aria-multiline', 'true');
-    editor.innerHTML = window.RichText.sanitize(elc.body || '');
-
-    const exec = (cmd, val) => { editor.focus(); document.execCommand(cmd, false, val || null); };
-    // Paragraph size: make the block(s) a <p>, then tag the paragraph(s) in the
-    // selection with the size class (Paragraph 1 = large, Paragraph 2 = medium).
-    const setPara = (cls) => {
-      exec('formatBlock', 'P');
-      const sel = window.getSelection();
-      if (!sel || !sel.rangeCount) return;
-      const range = sel.getRangeAt(0);
-      let matched = false;
-      editor.querySelectorAll('p').forEach((p) => {
-        if (range.intersectsNode(p)) { p.classList.remove('rt-p1', 'rt-p2'); p.classList.add(cls); matched = true; }
-      });
-      if (!matched) {
-        let n = range.startContainer;
-        while (n && n !== editor) { if (n.nodeType === 1 && n.tagName === 'P') { n.classList.remove('rt-p1', 'rt-p2'); n.classList.add(cls); break; } n = n.parentNode; }
-      }
-    };
-    const ic = (paths) => `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
-    const insertLink = () => { const u = window.prompt('Link URL', 'https://'); if (u) exec('createLink', u.trim()); };
-    const insertImage = () => { const u = window.prompt('Image URL (https://…)', 'https://'); if (u) exec('insertImage', u.trim()); };
-    const insertTable = () => exec('insertHTML', '<table><tbody><tr><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td></tr></tbody></table><p><br></p>');
-    const TOOLS = [
-      { label: 'Heading 1', html: 'H1', run: () => exec('formatBlock', 'H1') },
-      { label: 'Heading 2', html: 'H2', run: () => exec('formatBlock', 'H2') },
-      { label: 'Heading 3', html: 'H3', run: () => exec('formatBlock', 'H3') },
-      { label: 'Heading 4', html: 'H4', run: () => exec('formatBlock', 'H4') },
-      { label: 'Heading 5', html: 'H5', run: () => exec('formatBlock', 'H5') },
-      { label: 'Paragraph 1', html: 'P1', run: () => setPara('rt-p1') },
-      { label: 'Paragraph 2', html: 'P2', run: () => setPara('rt-p2') },
-      { sep: true },
-      { label: 'Bold', html: '<b>B</b>', run: () => exec('bold') },
-      { label: 'Italic', html: '<i>I</i>', run: () => exec('italic') },
-      { label: 'Underline', html: '<u>U</u>', run: () => exec('underline') },
-      { label: 'Strikethrough', html: '<s>S</s>', run: () => exec('strikeThrough') },
-      { label: 'Subscript', html: 'X<sub>2</sub>', run: () => exec('subscript') },
-      { label: 'Superscript', html: 'X<sup>2</sup>', run: () => exec('superscript') },
-      { sep: true },
-      { label: 'Align left', html: ic('<path d="M2 4h12M2 8h8M2 12h11"/>'), run: () => exec('justifyLeft') },
-      { label: 'Align center', html: ic('<path d="M2 4h12M4 8h8M3 12h10"/>'), run: () => exec('justifyCenter') },
-      { label: 'Align right', html: ic('<path d="M2 4h12M6 8h8M3 12h11"/>'), run: () => exec('justifyRight') },
-      { sep: true },
-      { label: 'Indent', html: ic('<path d="M7 4h7M7 8h7M2 12h12M2 5l3 3-3 3"/>'), run: () => exec('indent') },
-      { label: 'Outdent', html: ic('<path d="M7 4h7M7 8h7M2 12h12M5 5l-3 3 3 3"/>'), run: () => exec('outdent') },
-      { sep: true },
-      { label: 'Bulleted list', html: ic('<circle cx="3" cy="4.5" r="0.9"/><circle cx="3" cy="8" r="0.9"/><circle cx="3" cy="11.5" r="0.9"/><path d="M6.5 4.5h7.5M6.5 8h7.5M6.5 11.5h7.5"/>'), run: () => exec('insertUnorderedList') },
-      { label: 'Numbered list', html: '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><text x="0" y="6" font-size="5.5" font-weight="700" fill="currentColor">1</text><text x="0" y="13.5" font-size="5.5" font-weight="700" fill="currentColor">2</text><path d="M6.5 4.5h7.5M6.5 11.5h7.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>', run: () => exec('insertOrderedList') },
-      { sep: true },
-      { label: 'Quote', html: ic('<path d="M4 5h3v3a3 3 0 0 1-3 3M9 5h3v3a3 3 0 0 1-3 3"/>'), run: () => exec('formatBlock', 'BLOCKQUOTE') },
-      { label: 'Divider', html: ic('<path d="M2 8h12"/>'), run: () => exec('insertHorizontalRule') },
-      { sep: true },
-      { label: 'Link', html: ic('<path d="M6.5 9.5 9.5 6.5M7 4.5 8.5 3a2.5 2.5 0 0 1 3.5 3.5L10.5 8M9 11.5 7.5 13A2.5 2.5 0 0 1 4 9.5L5.5 8"/>'), run: insertLink },
-      { label: 'Image / media', html: ic('<rect x="2" y="3" width="12" height="10" rx="1"/><circle cx="5.5" cy="6.5" r="1.1"/><path d="M3 12.5 6.5 9l2.5 2.5 2-2 2 2.5"/>'), run: insertImage },
-      { label: 'Table', html: ic('<rect x="2" y="3" width="12" height="10" rx="1"/><path d="M2 7h12M2 10.5h12M6.5 3v10M10 3v10"/>'), run: insertTable },
-    ];
-    TOOLS.forEach((t) => {
-      if (t.sep) { const s = document.createElement('span'); s.className = 'rt__sep'; toolbar.appendChild(s); return; }
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'rt__tool';
-      b.title = t.label;
-      b.setAttribute('aria-label', t.label);
-      b.innerHTML = t.html;
-      b.addEventListener('mousedown', (e) => e.preventDefault()); // keep the editor's selection
-      b.addEventListener('click', t.run);
-      toolbar.appendChild(b);
-    });
-    wrap.appendChild(toolbar);
-    wrap.appendChild(editor);
+    const { wrap, editor } = buildWysiwyg(elc.body || '');
     body.appendChild(wrap);
+
     modal.appendChild(body);
 
     const footer = document.createElement('div');
@@ -778,7 +793,7 @@
   }
   function buildHelper(text) { const p = document.createElement('p'); p.className = 'navpanel__desc'; p.textContent = text; return p; }
   function buildEmpty(text) { const p = document.createElement('p'); p.className = 'navpanel__empty'; p.textContent = text; return p; }
-  function buildTextField(labelText, value, maxLen, onInput) {
+  function buildTextField(labelText, value, maxLen, onInput, hint) {
     const field = document.createElement('div');
     field.className = 'pgb__field';
     const id = uid('f');
@@ -794,30 +809,8 @@
     input.value = value || '';
     input.addEventListener('input', () => onInput(input.value));
     field.appendChild(lab);
+    if (hint) { const h = document.createElement('p'); h.className = 'pgb__hint'; h.textContent = hint; field.appendChild(h); }
     field.appendChild(input);
-    return field;
-  }
-  function buildTextareaField(labelText, value, maxLen, onInput) {
-    const field = document.createElement('div');
-    field.className = 'pgb__field';
-    const id = uid('ta');
-    const lab = document.createElement('label');
-    lab.className = 'pgb__label';
-    lab.textContent = labelText;
-    lab.setAttribute('for', id);
-    const area = document.createElement('textarea');
-    area.className = 'pgb__input pgb__textarea';
-    area.id = id;
-    area.maxLength = maxLen;
-    area.value = value || '';
-    const count = document.createElement('div');
-    count.className = 'pgb__count';
-    const draw = () => { count.textContent = `${area.value.length}/${maxLen}`; };
-    draw();
-    area.addEventListener('input', () => { onInput(area.value); draw(); });
-    field.appendChild(lab);
-    field.appendChild(area);
-    field.appendChild(count);
     return field;
   }
   function buildRadio(labelText, options, value, onChange) {
@@ -961,7 +954,6 @@
   // ---- cards element (per Figma 5601:69136) ----
   const MAX_CARDS = 12;
   const CARD_TITLE_MAX = 120;
-  const CARD_DESC_MAX = 500;
   const CARD_HREF_MAX = 2048;
   const CARD_TABS = [{ key: 'styling', label: 'Styling' }, { key: 'image', label: 'Image settings' }, { key: 'color', label: 'Color' }];
   const CARD_RADIUS_HINT = 'This will be applied to all cards created in the section and images.';
@@ -972,8 +964,16 @@
   const CARD_IMAGE_FITS = [{ value: 'cover', label: 'Crop image to fit' }, { value: 'contain', label: 'Show entire image' }];
   const PLACEHOLDER_CARD_TITLE = 'Community Programs';
   const PLACEHOLDER_CARD_DESC = 'Explore upcoming events, educational workshops, digital resources, and community services available throughout the month. Stay informed about activities, registration opportunities, and programs designed for visitors of all ages and interests.';
+  // The bundled photo from the designs (Figma 5624:73764). Because it is a known
+  // path rather than an upload, the canvas can render it at the fixed
+  // placeholder height instead of the configured aspect ratio.
+  const CARD_PLACEHOLDER_SRC = '/website/assets/card-placeholder.jpg';
+  const CARD_PLACEHOLDER_NAME = 'community-programs.jpg';
   function placeholderCard() {
-    return { id: uid('card'), image: null, title: PLACEHOLDER_CARD_TITLE, description: PLACEHOLDER_CARD_DESC, href: '' };
+    return {
+      id: uid('card'), image: CARD_PLACEHOLDER_SRC, imageName: CARD_PLACEHOLDER_NAME,
+      title: PLACEHOLDER_CARD_TITLE, description: PLACEHOLDER_CARD_DESC, href: '',
+    };
   }
   function defaultCardsElement(col) {
     return {
@@ -994,6 +994,20 @@
     selectedCardId = c.id;
     afterContentChange();
   }
+  // Drag-reorder within a cards element: drop `draggedId` before `beforeId`, or
+  // at the end when beforeId is null (mirrors moveElement).
+  function moveCard(secId, elId, draggedId, beforeId) {
+    const elc = findElement(secId, elId);
+    if (!elc || draggedId === beforeId) return;
+    const cards = elc.cards || [];
+    const from = cards.findIndex((c) => c.id === draggedId);
+    if (from === -1) return;
+    const [moved] = cards.splice(from, 1);
+    const at = beforeId ? cards.findIndex((c) => c.id === beforeId) : -1;
+    if (at === -1) cards.push(moved);
+    else cards.splice(at, 0, moved);
+    afterContentChange();
+  }
   async function deleteCard(secId, elId, cardId) {
     const elc = findElement(secId, elId);
     if (!elc) return;
@@ -1012,10 +1026,93 @@
     afterContentChange();
   }
 
-  // Focused "Edit card" modal — image + title + description + link, opened from
-  // the card's own Edit button in the canvas. Like the richtext/code modals it
+  // Compact image field for the Edit card dialog (Figma 5624:74461): a bordered
+  // row showing a 32px thumbnail + the file name, then Replace / Remove. Falls
+  // back to a single "Choose an image" button when the card has no image.
+  function buildCardImageField(draft, onChange) {
+    const field = document.createElement('div');
+    field.className = 'pgb__field pgb__field--img';
+    const lab = document.createElement('span');
+    lab.className = 'pgb__label';
+    lab.textContent = 'Image';
+    const body = document.createElement('div');
+    body.className = 'cardimg';
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/png,image/jpeg,image/svg+xml,image/webp,image/gif';
+    input.hidden = true;
+    const error = document.createElement('p');
+    error.className = 'pgb__error';
+    error.setAttribute('role', 'alert');
+    error.hidden = true;
+
+    const pick = () => input.click();
+    input.addEventListener('change', () => {
+      const file = input.files && input.files[0];
+      input.value = '';
+      if (!file) return;
+      error.hidden = true;
+      if (file.size > IMAGE_MAX) { error.textContent = 'Image must be 2 MB or smaller.'; error.hidden = false; return; }
+      const reader = new FileReader();
+      reader.onload = () => { draft.image = reader.result; draft.imageName = file.name; render(); onChange(); };
+      reader.onerror = () => { error.textContent = 'Couldn’t read that file. Try another.'; error.hidden = false; };
+      reader.readAsDataURL(file);
+    });
+
+    function render() {
+      body.innerHTML = '';
+      if (!draft.image) {
+        const choose = document.createElement('button');
+        choose.type = 'button';
+        choose.className = 'btn btn--secondary';
+        choose.textContent = 'Choose an image';
+        choose.addEventListener('click', pick);
+        body.appendChild(choose);
+        return;
+      }
+      const row = document.createElement('div');
+      row.className = 'cardimg__row';
+      const thumb = document.createElement('span');
+      thumb.className = 'cardimg__thumb';
+      const img = document.createElement('img');
+      img.src = draft.image;
+      img.alt = '';
+      thumb.appendChild(img);
+      const name = document.createElement('span');
+      name.className = 'cardimg__name';
+      name.textContent = draft.imageName || 'image';
+      row.append(thumb, name);
+      const actions = document.createElement('div');
+      actions.className = 'cardimg__actions';
+      const replace = document.createElement('button');
+      replace.type = 'button';
+      replace.className = 'btn btn--secondary';
+      replace.textContent = 'Replace image';
+      replace.addEventListener('click', pick);
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'btn--link';
+      remove.textContent = 'Remove';
+      remove.addEventListener('click', () => { draft.image = null; draft.imageName = ''; error.hidden = true; render(); onChange(); });
+      actions.append(replace, remove);
+      body.append(row, actions);
+    }
+    render();
+    field.append(lab, body, input, error);
+    return field;
+  }
+
+  // Focused "Edit card" modal (Figma 5624:74191) — Image, Title, URL, and a
+  // Description authored in the shared WYSIWYG. Like the richtext/code modals it
   // can't be dismissed by clicking outside (data loss). Cards are always created
   // in the canvas first (see addCard), so this only ever edits in place.
+  const CARD_DESC_TOOLS = [
+    'bold', 'italic', 'underline', 'strike', 'sub', 'sup', 'sep',
+    'alignLeft', 'alignCenter', 'alignRight', 'sep',
+    'indent', 'outdent', 'ul', 'ol', 'sep',
+    'link', 'image', 'quote', 'hr',
+  ];
+  const CARD_URL_HINT = 'Direct users to a specific area or page, this will make the title and image clickable.';
   function openCardModal(secId, elId, cardId) {
     const elc = findElement(secId, elId);
     if (!elc) return;
@@ -1038,15 +1135,18 @@
 
     const body = document.createElement('div');
     body.className = 'modal__body';
-    body.appendChild(buildImageField(draft, () => {}, { key: 'image', label: 'Card image', hint: 'Shown at the top of the card. Square or landscape images work best.' }));
+    body.appendChild(buildCardImageField(draft, () => {}));
     body.appendChild(buildTextField('Title', draft.title, CARD_TITLE_MAX, (v) => { draft.title = v; }));
-    body.appendChild(buildTextareaField('Description', draft.description, CARD_DESC_MAX, (v) => { draft.description = v; }));
-    const linkField = buildTextField('Link URL (optional)', draft.href, CARD_HREF_MAX, (v) => { draft.href = v; });
-    const linkHint = document.createElement('p');
-    linkHint.className = 'pgb__hint';
-    linkHint.textContent = 'An absolute https:// / mailto: link, or a path starting with /.';
-    linkField.appendChild(linkHint);
-    body.appendChild(linkField);
+    body.appendChild(buildTextField('URL', draft.href, CARD_HREF_MAX, (v) => { draft.href = v; }, CARD_URL_HINT));
+
+    const descField = document.createElement('div');
+    descField.className = 'pgb__field';
+    const descLab = document.createElement('span');
+    descLab.className = 'pgb__label';
+    descLab.textContent = 'Description';
+    const { wrap, editor } = buildWysiwyg(draft.description || '', CARD_DESC_TOOLS);
+    descField.append(descLab, wrap);
+    body.appendChild(descField);
     modal.appendChild(body);
 
     const footer = document.createElement('div');
@@ -1058,6 +1158,7 @@
 
     document.body.appendChild(overlay);
     document.body.classList.add('is-locked');
+    try { document.execCommand('defaultParagraphSeparator', false, 'p'); } catch (_) { /* not supported */ }
 
     function close() {
       document.removeEventListener('keydown', onKey, true);
@@ -1069,6 +1170,7 @@
     footer.querySelector('.modal__btn--cancel').addEventListener('click', close);
     footer.querySelector('[data-save]').addEventListener('click', () => {
       if (findElement(secId, elId)) {
+        draft.description = window.RichText.sanitize(editor.innerHTML);
         Object.assign(editing, draft);
         afterContentChange();
       }
@@ -1078,7 +1180,7 @@
     function onKey(e) {
       if (e.key === 'Escape') { e.preventDefault(); close(); return; }
       if (e.key === 'Tab') {
-        const f = Array.from(modal.querySelectorAll('button, input, textarea')).filter((el) => el.offsetParent !== null);
+        const f = Array.from(modal.querySelectorAll('button, input, [contenteditable="true"]')).filter((el) => el.offsetParent !== null);
         if (!f.length) return;
         const first = f[0];
         const last = f[f.length - 1];
@@ -1087,7 +1189,7 @@
       }
     }
     document.addEventListener('keydown', onKey, true);
-    const firstInput = modal.querySelector('.pgb__input, .pgb__imgfield button');
+    const firstInput = modal.querySelector('.cardimg button, .pgb__input');
     if (firstInput) firstInput.focus();
   }
 
@@ -1368,6 +1470,7 @@
         onSelectCard: (sid, elId, cardId) => selectCard(sid, elId, cardId),
         onEditCard: (sid, elId, cardId) => openCardModal(sid, elId, cardId),
         onDeleteCard: (sid, elId, cardId) => deleteCard(sid, elId, cardId),
+        onReorderCard: (sid, elId, draggedId, beforeId) => moveCard(sid, elId, draggedId, beforeId),
         onReorderElement: (sid, draggedId, col, beforeId) => moveElement(sid, draggedId, col, beforeId),
         onReorderSection: (draggedId, beforeId) => moveSection(draggedId, beforeId),
       },
