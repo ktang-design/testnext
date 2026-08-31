@@ -486,6 +486,7 @@
       target = el;
       ensure();
       tip.textContent = text;
+      tip.classList.toggle('app-tooltip--wide', el.hasAttribute('data-tip-wide'));
       tip.classList.remove('is-shown'); // measure while hidden, then position + show
       place();
       tip.classList.add('is-shown');

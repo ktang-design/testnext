@@ -110,6 +110,9 @@
   box-shadow: 0 4px 12px rgba(16, 24, 40, 0.18);
 }
 .app-tooltip.is-shown { visibility: visible; }
+/* Opt-in via [data-tip-wide] for sentences too long for a single line (e.g. the
+   colour picker's WCAG verdicts). 240px matches the tooltip in the designs. */
+.app-tooltip--wide { white-space: normal; max-width: 240px; }
 
 /* ===========================================================================
    Centered content + collapsible side panel

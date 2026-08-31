@@ -68,6 +68,33 @@
     return (l1 + 0.05) / (l2 + 0.05);
   }
 
+  // Badge copy, keyed by level. WCAG 2.1 sets a different bar per text size, so
+  // each level has three outcomes: clears the normal-text bar, clears only the
+  // large-text bar, or clears neither. "Large" is 18pt/24px regular, or
+  // 14pt/18.66px bold.
+  //   AA   normal 4.5:1   large 3:1
+  //   AAA  normal 7:1     large 4.5:1
+  // The badge itself is green only when the NORMAL-text bar is met — the strict
+  // reading, since these colours are mostly body and heading text. The
+  // large-text-only tooltip therefore also names what is still missing, so a
+  // grey badge never contradicts its own tooltip.
+  var VERDICTS = {
+    aa: {
+      normal: 4.5,
+      large: 3,
+      passNormal: 'Passes WCAG AA for normal text. Meets the minimum required contrast ratio of 4.5:1.',
+      passLarge: 'Passes WCAG AA for large text. Meets the minimum required contrast ratio of 3:1. Normal text requires 4.5:1.',
+      fail: 'Requires a minimum contrast ratio of 4.5:1. Increase the contrast between the text and background to meet this requirement.',
+    },
+    aaa: {
+      normal: 7,
+      large: 4.5,
+      passNormal: 'Passes WCAG AAA for normal text. Meets the minimum required contrast ratio of 7:1.',
+      passLarge: 'Passes WCAG AAA for large text. Meets the minimum required contrast ratio of 4.5:1. Normal text requires 7:1.',
+      fail: 'Requires a minimum contrast ratio of 7:1. Increase the contrast between the text and background to meet this level.',
+    },
+  };
+
   // ---- singleton popover ----
   var open = null; // { pop, anchor, teardown }
   function closeOpen() {
@@ -141,8 +168,8 @@
             '<span class="cpick__pair"><span class="cpick__pairbg"></span><span class="cpick__pairfg"></span></span>' +
             '<span class="cpick__ratio"></span>' +
             '<span class="cpick__badges">' +
-              '<span class="cpick__badge" data-badge="aa"><span class="cpick__badgeicon" aria-hidden="true"></span>AA</span>' +
-              '<span class="cpick__badge" data-badge="aaa"><span class="cpick__badgeicon" aria-hidden="true"></span>AAA</span>' +
+              '<span class="cpick__badge" data-badge="aa" tabindex="0" data-tip-wide data-tip-pos="bottom-end"><span class="cpick__badgeicon" aria-hidden="true"></span>AA</span>' +
+              '<span class="cpick__badge" data-badge="aaa" tabindex="0" data-tip-wide data-tip-pos="bottom-end"><span class="cpick__badgeicon" aria-hidden="true"></span>AAA</span>' +
             '</span>' +
           '</div>' +
         '</div>' : '');
@@ -188,14 +215,16 @@
       q('.cpick__pairfg').style.background = toHex(fg);
       var ratio = contrastRatio(fg, bg);
       q('.cpick__ratio').textContent = (Math.round(ratio * 100) / 100).toFixed(2) + ' : 1';
-      // WCAG 2.1 for normal-size text.
-      [['aa', 4.5, 'AA', '4.5:1'], ['aaa', 7, 'AAA', '7:1']].forEach(function (b) {
-        var el = pop.querySelector('[data-badge="' + b[0] + '"]');
-        var pass = ratio >= b[1];
+      // Each badge picks one of its three size-aware verdicts (see VERDICTS) and
+      // shows it through the shared [data-tooltip].
+      Object.keys(VERDICTS).forEach(function (key) {
+        var v = VERDICTS[key];
+        var el = pop.querySelector('[data-badge="' + key + '"]');
+        var pass = ratio >= v.normal;
+        var text = pass ? v.passNormal : (ratio >= v.large ? v.passLarge : v.fail);
         el.classList.toggle('is-pass', pass);
-        el.title = pass
-          ? 'Passes WCAG ' + b[2] + ' for normal text. Meets the contrast ratio of ' + b[3] + '.'
-          : 'Fails WCAG ' + b[2] + ' for normal text, which needs a contrast ratio of ' + b[3] + '.';
+        el.setAttribute('data-tooltip', text);
+        el.setAttribute('aria-label', text);
       });
     }
 
@@ -317,17 +346,16 @@
     };
 
     var getValue = function () { return { color: (input.value || '#FFFFFF').toUpperCase(), opacity: readOpacity() }; };
+    // Only dispatch when a value actually moved: the host's `input` listeners
+    // mark the page dirty, so echoing an unchanged value would fake an edit.
     var commit = function (hexStr, opacity) {
-      var changed = false;
       if ((input.value || '').toUpperCase() !== hexStr) {
         input.value = hexStr;
         input.dispatchEvent(new Event('input', { bubbles: true }));
-        changed = true;
       }
       if (opacityInput && String(readOpacity()) !== String(opacity)) {
         opacityInput.value = String(opacity);
         opacityInput.dispatchEvent(new Event('input', { bubbles: true }));
-        changed = true;
       }
       reflectSwatch();
     };
