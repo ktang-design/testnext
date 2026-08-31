@@ -376,6 +376,10 @@
 
     btn.addEventListener('click', function (e) {
       e.stopPropagation();
+      // preventDefault matters when the trigger is (or sits inside) a <label>:
+      // the browser would forward activation to the labelled control, and that
+      // second click bubbles back here and toggles the picker straight shut.
+      e.preventDefault();
       if (open && open.anchor === btn) { closeOpen(); return; }
       closeOpen();
       openFor(btn, opts, getValue, commit);
