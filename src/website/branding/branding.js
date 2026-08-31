@@ -66,6 +66,11 @@
         `<input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="${c.label} opacity percent" /><span aria-hidden="true">%</span>` +
         '</span></span>';
       colorsEl.appendChild(row);
+      if (window.ColorPicker) {
+        window.ColorPicker.upgrade(row.querySelector('[data-color-swatch]'), {
+          opacityInput: row.querySelector('[data-color-opacity]'), label: c.label,
+        });
+      }
       colorSetters[c.key] = setupColor(c.key, row);
     });
   }

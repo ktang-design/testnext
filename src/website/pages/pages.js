@@ -859,7 +859,9 @@
     return wrap;
   }
   // Reuses the shared .colorrow component (same markup branding.js builds).
-  function makeColorRow(labelText, colorObj, onChange) {
+  // `contrast` (optional) selects the picker's Accessibility variant, which adds
+  // the WCAG contrast panel — used only by the page-element Colors.
+  function makeColorRow(labelText, colorObj, onChange, contrast) {
     const row = document.createElement('div');
     row.className = 'colorrow';
     row.innerHTML =
@@ -880,7 +882,24 @@
     hex.addEventListener('blur', () => { hex.value = colorObj.color; });
     op.addEventListener('input', () => { let n = parseInt(op.value, 10); if (isNaN(n)) return; n = Math.max(0, Math.min(100, n)); colorObj.opacity = n; onChange(); });
     op.addEventListener('blur', () => { op.value = colorObj.opacity; });
+    // Swap the native picker for the shared component. It writes back through
+    // these same inputs, so the listeners above still drive the model.
+    if (window.ColorPicker) {
+      window.ColorPicker.upgrade(swatch, { opacityInput: op, label: labelText, contrast: contrast || null });
+    }
     return row;
+  }
+  // Contrast pairing for the page-element Colors (Figma 2766:50116). A text
+  // colour is judged against the element's own background; when that background
+  // is transparent — the default — the page's white shows through, so compare
+  // against white instead. The Background row flips the roles and is judged
+  // against the body text that will sit on it.
+  function elementContrast(st, key) {
+    const effectiveBg = () => (st.background && st.background.opacity > 0 ? st.background.color : '#FFFFFF');
+    if (key === 'background') {
+      return () => ({ against: (st.text && st.text.color) || '#55585D', role: 'background' });
+    }
+    return () => ({ against: effectiveBg(), role: 'foreground' });
   }
   // Background-image picker (same UX as the Search panel): choose / preview /
   // replace / remove. The image is stored on `obj.backgroundImage` as a data URL.
@@ -1420,10 +1439,10 @@
       } else {
         const st = rtStyle(elc);
         const colors = grp('pgb__colors');
-        colors.appendChild(makeColorRow('Heading', st.heading, afterFieldEdit));
-        colors.appendChild(makeColorRow('Body', st.text, afterFieldEdit));
-        colors.appendChild(makeColorRow('Link', st.link, afterFieldEdit));
-        colors.appendChild(makeColorRow('Background', st.background, afterFieldEdit));
+        colors.appendChild(makeColorRow('Heading', st.heading, afterFieldEdit, elementContrast(st, 'heading')));
+        colors.appendChild(makeColorRow('Body', st.text, afterFieldEdit, elementContrast(st, 'text')));
+        colors.appendChild(makeColorRow('Link', st.link, afterFieldEdit, elementContrast(st, 'link')));
+        colors.appendChild(makeColorRow('Background', st.background, afterFieldEdit, elementContrast(st, 'background')));
         settings.appendChild(colors);
 
         settings.appendChild(buildDivider());
@@ -1446,10 +1465,10 @@
       top.appendChild(buildCheckbox('Display element title', elc.displayTitle, (v) => { elc.displayTitle = v; afterFieldEdit(); }));
 
       const colors = grp('pgb__colors');
-      colors.appendChild(makeColorRow('Heading', st.heading, afterFieldEdit));
-      colors.appendChild(makeColorRow('Body', st.text, afterFieldEdit));
-      colors.appendChild(makeColorRow('Link', st.link, afterFieldEdit));
-      colors.appendChild(makeColorRow('Background', st.background, afterFieldEdit));
+      colors.appendChild(makeColorRow('Heading', st.heading, afterFieldEdit, elementContrast(st, 'heading')));
+      colors.appendChild(makeColorRow('Body', st.text, afterFieldEdit, elementContrast(st, 'text')));
+      colors.appendChild(makeColorRow('Link', st.link, afterFieldEdit, elementContrast(st, 'link')));
+      colors.appendChild(makeColorRow('Background', st.background, afterFieldEdit, elementContrast(st, 'background')));
 
       const border = grp('pgb__group');
       border.appendChild(buildDropdown('Border width', BORDER_WIDTHS, st.borderWidth, (v) => { st.borderWidth = v; afterFieldEdit(); }));

@@ -53,6 +53,9 @@
     const swatch = row.querySelector('[data-color-swatch]');
     const hex = row.querySelector('[data-color-hex]');
     const op = row.querySelector('[data-color-opacity]');
+    // Swap the native picker for the shared component; it writes back through
+    // this same input, so the listeners below need no changes.
+    if (window.ColorPicker) window.ColorPicker.upgrade(swatch, { opacityInput: op, label: key });
     // Choosing a colour while it's fully transparent (the default) would show
     // nothing — make it visible so the choice reflects in the preview.
     const ensureVisible = () => {

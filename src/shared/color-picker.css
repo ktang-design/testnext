@@ -1,0 +1,179 @@
+/* Custom colour-picker popover (Figma 2766:50117). Paired with
+   shared/color-picker.js, which replaces the native <input type="color">.
+   260px wide; the Accessibility variant adds the contrast panel at the bottom. */
+.cpick {
+  position: fixed;
+  z-index: 1100;
+  width: 260px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--gray-200, #d7d8da);
+  border-radius: 4px;
+  overflow: hidden;
+  /* Elevation 4 */
+  box-shadow:
+    0 8px 10px -5px rgba(0, 0, 0, 0.2),
+    0 16px 24px 2px rgba(0, 0, 0, 0.14),
+    0 6px 30px 5px rgba(0, 0, 0, 0.12);
+  font: 400 14px/21px var(--font, "Noto Sans", Arial, sans-serif);
+  color: var(--gray-600, #55585d);
+}
+.cpick__top { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+
+/* Saturation (x) / brightness (y) area. --cpick-hue is set per render. */
+.cpick__area {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 259 / 249;
+  border-radius: 4px;
+  cursor: crosshair;
+  touch-action: none;
+  background:
+    linear-gradient(to top, #000, rgba(0, 0, 0, 0)),
+    linear-gradient(to right, #fff, var(--cpick-hue, #f00));
+}
+.cpick__area:focus-visible { outline: 2px solid var(--blue-500, #3e75cf); outline-offset: 2px; }
+.cpick__areaknob,
+.cpick__knob {
+  position: absolute;
+  width: 16px; height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+.cpick__areaknob { top: 0; left: 0; }
+
+.cpick__sliders { display: flex; flex-direction: column; gap: 8px; }
+.cpick__hue,
+.cpick__alpha {
+  position: relative;
+  height: 16px;
+  border-radius: 100px;
+  cursor: pointer;
+  touch-action: none;
+}
+.cpick__hue:focus-visible,
+.cpick__alpha:focus-visible { outline: 2px solid var(--blue-500, #3e75cf); outline-offset: 2px; }
+.cpick__hue {
+  background: linear-gradient(to right,
+    #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+}
+/* Checkerboard beneath a transparent-to-colour gradient. */
+.cpick__alpha {
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, #d7d8da 25%, transparent 25%, transparent 75%, #d7d8da 75%),
+    linear-gradient(45deg, #d7d8da 25%, transparent 25%, transparent 75%, #d7d8da 75%);
+  background-size: 8px 8px;
+  background-position: 0 0, 4px 4px;
+}
+.cpick__alphafill { position: absolute; inset: 0; border-radius: inherit; }
+.cpick__hue .cpick__knob,
+.cpick__alpha .cpick__knob { top: 50%; }
+
+/* Format dropdown — matches the shared Dropdown buttons treatment. */
+.cpick__formatwrap { display: block; }
+.cpick__format {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 16px 6px 8px;
+  background: #fff url(/shared/chevron-down.svg) no-repeat right 8px center;
+  background-size: 14px;
+  border: 1px solid var(--gray-400, #8d9095);
+  border-radius: 4px;
+  font: 400 14px/21px var(--font, "Noto Sans", Arial, sans-serif);
+  color: var(--gray-600, #55585d);
+  appearance: none; -webkit-appearance: none;
+  cursor: pointer;
+}
+.cpick__format:focus-visible { outline: none; border-color: var(--blue-500, #3e75cf); box-shadow: 0 0 0 1px var(--blue-500, #3e75cf); }
+
+.cpick__fields { display: flex; align-items: flex-start; gap: 8px; }
+.cpick__hex,
+.cpick__opacity {
+  height: 36px;
+  box-sizing: border-box;
+  display: flex; align-items: center;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid var(--gray-400, #8d9095);
+  border-radius: 4px;
+  font: 400 14px/21px var(--font, "Noto Sans", Arial, sans-serif);
+  color: var(--gray-600, #55585d);
+}
+.cpick__hex { flex: 1 1 auto; min-width: 0; }
+.cpick__opacity { flex: none; gap: 2px; }
+.cpick__opacityval {
+  width: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  -moz-appearance: textfield;
+}
+.cpick__opacityval::-webkit-outer-spin-button,
+.cpick__opacityval::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.cpick__hex:focus-within,
+.cpick__hex:focus,
+.cpick__opacity:focus-within { outline: none; border-color: var(--blue-500, #3e75cf); box-shadow: 0 0 0 1px var(--blue-500, #3e75cf); }
+.cpick__opacityval:focus { outline: none; }
+
+/* ---- Accessibility variant: contrast panel ---- */
+.cpick__contrast { padding: 12px; border-top: 1px solid var(--gray-200, #d7d8da); }
+.cpick__contrastlabel { margin: 0 0 4px; font-size: 14px; line-height: 21px; color: #4b5563; }
+.cpick__contrastrow { display: flex; align-items: center; gap: 8px; }
+/* The two overlapping squares showing which pair is being compared. */
+.cpick__pair { position: relative; flex: none; width: 23px; height: 24px; }
+.cpick__pairbg,
+.cpick__pairfg {
+  position: absolute;
+  width: 16px; height: 16px;
+  border: 1px solid var(--gray-500, #6e7277);
+  box-sizing: border-box;
+}
+.cpick__pairbg { top: 0; left: 0; }
+.cpick__pairfg { top: 8px; left: 7px; }
+.cpick__ratio { flex: 1 1 auto; font-size: 16px; line-height: 24px; color: #1f2937; white-space: nowrap; }
+.cpick__badges { flex: none; display: flex; align-items: flex-start; gap: 12px; }
+/* A failing indicator dims to 40% and shows a cross; passing is full strength
+   with a checkmark. Both carry a tooltip explaining the verdict. */
+.cpick__badge {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  font-size: 16px; line-height: 24px; color: var(--gray-700, #3d3f42);
+  opacity: 0.4;
+  cursor: help;
+}
+.cpick__badge.is-pass { opacity: 1; }
+.cpick__badgeicon {
+  width: 16px; height: 16px; flex: none;
+  background: currentColor;
+  /* cross */
+  -webkit-mask: var(--cpick-x) no-repeat center / 12px 12px;
+  mask: var(--cpick-x) no-repeat center / 12px 12px;
+}
+.cpick__badge.is-pass .cpick__badgeicon {
+  -webkit-mask: var(--cpick-check) no-repeat center / 13px 13px;
+  mask: var(--cpick-check) no-repeat center / 13px 13px;
+}
+.cpick {
+  --cpick-x: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 3.5l9 9M12.5 3.5l-9 9' stroke='black' stroke-width='1.8' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
+  --cpick-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3.5 3.5L13 4.5' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+}
+
+/* ---- the swatch button that replaces the native input ---- */
+/* Inherits the host's swatch class (.colorrow__swatch, .swatch__chip, …) for
+   size and border; only the fill and the checkerboard come from here. */
+/* The fill (and its checkerboard, so a transparent colour reads as transparent)
+   is painted inline by the JS — see reflectSwatch. */
+.cpick__trigger { padding: 0; cursor: pointer; }
+.cpick__trigger:focus-visible { outline: 2px solid var(--blue-500, #3e75cf); outline-offset: 1px; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
