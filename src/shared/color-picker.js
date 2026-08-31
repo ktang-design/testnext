@@ -95,6 +95,20 @@
     },
   };
 
+  // Call `onSet` whenever this element's .value is assigned. Scoped to the one
+  // element (the accessor delegates to the prototype's), so nothing else in the
+  // page is affected.
+  var VALUE_DESC = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value');
+  function watchValue(el, onSet) {
+    if (!VALUE_DESC || !VALUE_DESC.get || !VALUE_DESC.set) return; // fall back to events
+    Object.defineProperty(el, 'value', {
+      configurable: true,
+      enumerable: true,
+      get: function () { return VALUE_DESC.get.call(this); },
+      set: function (v) { VALUE_DESC.set.call(this, v); onSet(); },
+    });
+  }
+
   // ---- singleton popover ----
   var open = null; // { pop, anchor, teardown }
   function closeOpen() {
@@ -367,8 +381,19 @@
       openFor(btn, opts, getValue, commit);
     });
     // Keep the swatch in step when the host updates the value itself.
+    //
+    // Events alone are not enough: every host writes `swatch.value = …` directly
+    // — from its hex-field handler, and again when the saved config lands — and
+    // assigning .value fires nothing. That left the swatch showing a stale colour
+    // while the hex field showed the real one. So intercept writes on these two
+    // elements and repaint, which covers every path (including the inline
+    // pre-paint scripts) without each host having to remember to tell us.
+    watchValue(input, reflectSwatch);
     input.addEventListener('input', reflectSwatch);
-    if (opacityInput) opacityInput.addEventListener('input', reflectSwatch);
+    if (opacityInput) {
+      watchValue(opacityInput, reflectSwatch);
+      opacityInput.addEventListener('input', reflectSwatch);
+    }
     reflectSwatch();
     return { refresh: reflectSwatch };
   }
