@@ -218,14 +218,14 @@
 /* Heading scale shown in the editor — matches the website preview so the WYSIWYG
    is accurate: H1 3X large 48 / H2 2X large 32 / H3 extra large 24 / H4 large 18
    / H5 medium 16. */
-.rt__editor h1 { font-size: 48px; font-weight: 700; margin: 0 0 8px; }
-/* Matches the site's H2 at the default heading size, so what you type is what
-   you get. The editor sits in a modal without the site's typography vars, so it
-   shows the DEFAULT rather than tracking a changed Typography setting. */
-.rt__editor h2 { font-size: 36px; font-weight: 600; margin: 0 0 8px; }
-.rt__editor h3 { font-size: 24px; font-weight: 600; margin: 0 0 8px; }
-.rt__editor h4 { font-size: 18px; font-weight: 600; margin: 0 0 8px; }
-.rt__editor h5 { font-size: 16px; font-weight: 600; margin: 0 0 8px; }
+/* The editor mirrors the site: headings read the same Typography scale variables,
+   which website-preview.js sets on the document (not just the preview root) so
+   this modal resolves them too. What you type is what the page renders. */
+.rt__editor h1 { font-size: var(--wsprev-h1, 48px); font-weight: var(--wsprev-heading-weight, 600); margin: 0 0 8px; }
+.rt__editor h2 { font-size: var(--wsprev-h2, 36px); font-weight: var(--wsprev-heading-weight, 600); margin: 0 0 8px; }
+.rt__editor h3 { font-size: var(--wsprev-h3, 24px); font-weight: var(--wsprev-heading-weight, 600); margin: 0 0 8px; }
+.rt__editor h4 { font-size: var(--wsprev-h4, 18px); font-weight: var(--wsprev-heading-weight, 600); margin: 0 0 8px; }
+.rt__editor h5 { font-size: var(--wsprev-h5, 16px); font-weight: var(--wsprev-heading-weight, 600); margin: 0 0 8px; }
 .rt__editor p { margin: 0 0 8px; }
 /* Paragraph sizes (matches the website preview): Paragraph 1 = large 18,
    Paragraph 2 = medium 16. */

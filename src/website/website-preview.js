@@ -36,6 +36,22 @@
   const HEADER_D = { logo: 'left', nav: 'left', background: { color: '#FFFFFF', opacity: 100 }, links: { color: '#3D3F42', opacity: 100 } };
   const FOOTER_D = { showLogo: false, showNavigation: false, background: { color: '#FFFFFF', opacity: 100 }, text: { color: '#3D3F42', opacity: 100 }, link: { color: '#255096', opacity: 100 }, links: [] };
   const TYPO_D = { fontFamily: 'Inter', headingSize: '36', headingWeight: '600', bodySize: '16', bodyWeight: '400' };
+  // The Typography "Heading font size" ladder: Medium, Large, Extra large,
+  // 2X large, 3X large. Heading levels are steps on this ladder rather than fixed
+  // sizes, so choosing a heading size moves the whole scale and H3 can never end
+  // up larger than H2.
+  const HEADING_LADDER = [16, 18, 24, 36, 48];
+  function headingScale(px) {
+    // H2 is exactly the chosen size. The other levels are ladder steps either
+    // side of it — clamped at both ends, and located by nearest rung so a legacy
+    // value that is not on the ladder (e.g. 32) still yields a sane scale.
+    let i = 0;
+    for (let n = 1; n < HEADING_LADDER.length; n++) {
+      if (Math.abs(HEADING_LADDER[n] - px) < Math.abs(HEADING_LADDER[i] - px)) i = n;
+    }
+    const step = (d) => HEADING_LADDER[Math.max(0, Math.min(HEADING_LADDER.length - 1, i + d))];
+    return { h1: step(1), h2: px, h3: step(-1), h4: step(-2), h5: step(-3) };
+  }
   const BRAND_D = { logo: null, primary: { color: '#255096', opacity: 100 }, secondary: { color: '#3D3F42', opacity: 100 }, heading: { color: '#3D3F42', opacity: 100 }, body: { color: '#55585D', opacity: 100 }, link: { color: '#255096', opacity: 100 } };
   const SEARCH_D = { background: { color: '#255096', opacity: 100 }, backgroundImage: null, searches: [] };
 
@@ -967,8 +983,22 @@
       // (see website-preview.css). Old saved values like "default" aren't numeric,
       // so fall back to the current defaults.
       const num = (v, d) => (/^\d+$/.test(String(v)) ? String(v) : d);
-      root.style.setProperty('--wsprev-heading-size', num(t.headingSize, '36') + 'px');
-      root.style.setProperty('--wsprev-heading-weight', num(t.headingWeight, '600'));
+      const headingPx = parseInt(num(t.headingSize, '36'), 10);
+      // Heading levels step down the Typography size ladder from the chosen
+      // heading size, so the whole scale moves together instead of H2 sliding
+      // past a fixed H3. At the 2X large default: H1 48, H2 36, H3 24, H4 18,
+      // H5/H6 16 — the Typography option names, in order.
+      const scale = headingScale(headingPx);
+      // Set on the document, not just the preview root, so the richtext WYSIWYG
+      // (which renders in a modal outside the preview) resolves the same scale.
+      const docEl = document.documentElement;
+      docEl.style.setProperty('--wsprev-heading-size', headingPx + 'px');
+      docEl.style.setProperty('--wsprev-heading-weight', num(t.headingWeight, '600'));
+      docEl.style.setProperty('--wsprev-h1', scale.h1 + 'px');
+      docEl.style.setProperty('--wsprev-h2', scale.h2 + 'px');
+      docEl.style.setProperty('--wsprev-h3', scale.h3 + 'px');
+      docEl.style.setProperty('--wsprev-h4', scale.h4 + 'px');
+      docEl.style.setProperty('--wsprev-h5', scale.h5 + 'px');
       root.style.setProperty('--wsprev-body-size', num(t.bodySize, '16') + 'px');
       root.style.setProperty('--wsprev-body-weight', num(t.bodyWeight, '400'));
       // Branding colours drive the default heading / body / link colours for all
