@@ -221,6 +221,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---- Wire up inputs ----
   Object.entries(colorInputs).forEach(([which, input]) => {
     input.addEventListener('input', () => { setSwatch(which, input.value); onChange(); });
+    // Swap the native picker for the shared component, driven from the existing
+    // swatch chip. paint:false because setSwatch above already renders it from
+    // the input event the picker dispatches. No opacity control on this page.
+    if (window.ColorPicker) {
+      window.ColorPicker.upgrade(input, { trigger: input.closest('.swatch'), paint: false, label: which });
+    }
   });
 
   altInput.addEventListener('input', () => { renderCounters(); onChange(); });

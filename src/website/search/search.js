@@ -78,6 +78,11 @@
       '<input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" aria-label="Background opacity percent" /><span aria-hidden="true">%</span>' +
       '</span></span>';
     bgColorEl.appendChild(row);
+    if (window.ColorPicker) {
+      window.ColorPicker.upgrade(row.querySelector('[data-color-swatch]'), {
+        opacityInput: row.querySelector('[data-color-opacity]'), label: 'Background',
+      });
+    }
     const swatch = row.querySelector('[data-color-swatch]');
     const hex = row.querySelector('[data-color-hex]');
     const op = row.querySelector('[data-color-opacity]');
