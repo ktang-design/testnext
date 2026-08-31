@@ -9,6 +9,7 @@ const { requireApiAuth } = require('../auth/authGuard');
 const { websiteBrandingRepository } = require('../website/WebsiteBrandingRepository');
 const { brandingRepository } = require('../settings/BrandingRepository');
 const { WEBSITE_BRANDING_DEFAULTS, WEBSITE_BRANDING_COLORS } = require('../website/defaults');
+const { BRANDING_DEFAULTS } = require('../settings/defaults');
 
 const router = express.Router();
 const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -61,7 +62,14 @@ router.put('/', requireApiAuth, ah(async (req, res) => {
   WEBSITE_BRANDING_COLORS.forEach((key) => {
     config[key] = cleanColor(b[key], WEBSITE_BRANDING_DEFAULTS[key]);
   });
-  res.json({ saved: await websiteBrandingRepository.save(req.session.userId, config) });
+  const saved = await websiteBrandingRepository.save(req.session.userId, config);
+  // Push primary / secondary back UP to Platform branding, mirroring the
+  // downward sync in routes/branding.js, so the two pages agree whichever one the
+  // user edited. Platform has no opacity concept, so only the colour travels.
+  await brandingRepository.syncPrimarySecondary(
+    req.session.userId, config.primary.color, config.secondary.color, BRANDING_DEFAULTS
+  );
+  res.json({ saved });
 }));
 
 module.exports = router;
