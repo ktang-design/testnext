@@ -35,7 +35,7 @@
 
   const HEADER_D = { logo: 'left', nav: 'left', background: { color: '#FFFFFF', opacity: 100 }, links: { color: '#3D3F42', opacity: 100 } };
   const FOOTER_D = { showLogo: false, showNavigation: false, background: { color: '#FFFFFF', opacity: 100 }, text: { color: '#3D3F42', opacity: 100 }, link: { color: '#255096', opacity: 100 }, links: [] };
-  const TYPO_D = { fontFamily: 'Inter', headingSize: '24', headingWeight: '600', bodySize: '16', bodyWeight: '400' };
+  const TYPO_D = { fontFamily: 'Inter', headingSize: '36', headingWeight: '600', bodySize: '16', bodyWeight: '400' };
   const BRAND_D = { logo: null, primary: { color: '#255096', opacity: 100 }, secondary: { color: '#3D3F42', opacity: 100 }, heading: { color: '#3D3F42', opacity: 100 }, body: { color: '#55585D', opacity: 100 }, link: { color: '#255096', opacity: 100 } };
   const SEARCH_D = { background: { color: '#255096', opacity: 100 }, backgroundImage: null, searches: [] };
 
@@ -677,7 +677,7 @@
           dragId = null; elt.draggable = false; elt.classList.remove('is-dragging'); clearDropMarks();
         });
         if (element.displayTitle && element.title) {
-          const t = el('h3', 'wsprev__eltitle', element.title);
+          const t = el('h2', 'wsprev__eltitle', element.title);
           const h = element.style && element.style.heading;
           if (h && h.opacity > 0) t.style.color = rgba(h); // title inherits the Heading colour
           elt.appendChild(t);
@@ -904,7 +904,7 @@
       const buildEl = (element) => {
         const elt = el('div', 'wsprev__el');
         if (element.displayTitle && element.title) {
-          const t = el('h3', 'wsprev__eltitle', element.title);
+          const t = el('h2', 'wsprev__eltitle', element.title);
           const hd = element.style && element.style.heading;
           if (hd && hd.opacity > 0 && !isDefaultColor(hd, EL_DEFAULT.heading)) t.style.color = rgba(hd);
           elt.appendChild(t);
@@ -967,7 +967,7 @@
       // (see website-preview.css). Old saved values like "default" aren't numeric,
       // so fall back to the current defaults.
       const num = (v, d) => (/^\d+$/.test(String(v)) ? String(v) : d);
-      root.style.setProperty('--wsprev-heading-size', num(t.headingSize, '24') + 'px');
+      root.style.setProperty('--wsprev-heading-size', num(t.headingSize, '36') + 'px');
       root.style.setProperty('--wsprev-heading-weight', num(t.headingWeight, '600'));
       root.style.setProperty('--wsprev-body-size', num(t.bodySize, '16') + 'px');
       root.style.setProperty('--wsprev-body-weight', num(t.bodyWeight, '400'));
