@@ -202,13 +202,12 @@
   // block (heading 20/30 over description 16/24 with a 4px gap). Deliberately no
   // frame of its own — any border/background comes from the element's Color tab.
   //
-  // Image height: the bundled placeholder always renders at a fixed 300px; an
-  // uploaded image is sized by the element's "Image size" aspect ratio, so its
-  // height follows the card's width.
+  // Image height: every image is sized by the element's "Image size" aspect
+  // ratio, so its height follows the card's width. That includes the bundled
+  // placeholder on a freshly added element — it used to be pinned to 300px,
+  // which meant a new card ignored the Image size setting until its picture was
+  // replaced.
   const CARD_RADIUS_PX = { none: 0, small: 6, medium: 12, large: 20 };
-  const CARD_PLACEHOLDER_SRC = '/website/assets/card-placeholder.jpg';
-  const CARD_PLACEHOLDER_H = 300;
-  const isPlaceholderImage = (c) => !!c && c.image === CARD_PLACEHOLDER_SRC;
   // `ctx` is present only in the builder: { selectedCardId, toolbar, onSelect,
   // onEdit, onDelete, onReorder } makes each card selectable, editable and
   // draggable. Without it the cards render as a published grid.
@@ -222,6 +221,7 @@
     // Icon mode has a single fixed layout — icon on the left with the title and
     // description stacked beside it — so "Title first" does not apply there.
     const titleFirst = !icon && element.cardLayout === 'title-first';
+    const st = element.style;
     cards.forEach((c) => {
       // Nothing in the preview navigates: a card is an edit target in the
       // builder and a hover-only tile once you're done. A card that HAS a URL is
@@ -244,13 +244,18 @@
       }
       const imgBox = el('div', 'wsprev__cardimg' + (icon ? ' wsprev__cardimg--icon' : ''));
       if (radius) imgBox.style.borderRadius = radius + 'px';
-      // Icon mode has its own fixed box. Otherwise: while EDITING, the bundled
-      // placeholder stays a compact 300px so a fresh card isn't a huge slab. Once
-      // you're done, every image — placeholder included — takes the element's
-      // Image size ratio, so all the cards match and only their widths differ.
-      if (!icon) {
-        if (ctx && isPlaceholderImage(c)) imgBox.style.height = CARD_PLACEHOLDER_H + 'px';
-        else imgBox.style.aspectRatio = ratio;
+      // Icon mode has its own fixed box; every other image — the bundled
+      // placeholder on a freshly added element included — takes the element's
+      // Image size ratio, in the builder and once published alike.
+      if (!icon) imgBox.style.aspectRatio = ratio;
+      // "Show entire image" letterboxes, so the box's own background shows around
+      // the image. That should be the element's chosen Background rather than a
+      // fixed grey; with no colour chosen it stays transparent and the page
+      // behind shows through. Skipped when there is no image, so the empty-state
+      // placeholder keeps its own hatched fill.
+      if (element.imageFit === 'contain' && c.image) {
+        const bg = st && st.background;
+        imgBox.style.background = bg && bg.opacity > 0 ? rgba(bg) : 'transparent';
       }
       if (c.image) {
         const img = document.createElement('img');
