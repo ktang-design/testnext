@@ -23,6 +23,24 @@
   // Last-saved config, cached so the swatches show the real colours instantly on
   // load (no flash of black/defaults while the network resolves).
   const CACHE_KEY = 'ws-branding-cache';
+  // The server mirrors Website primary/secondary up into the Platform branding
+  // doc on save (routes/website-branding.js); patch the Platform page's
+  // instant-load cache here too so its swatches paint the new colours on the next
+  // visit instead of flashing the stale ones. The mirror image of
+  // syncWebsiteBrandingCache in /branding/branding.js. Only the two colours
+  // change — logo, favicon, alt text and options stay as they were.
+  const PLATFORM_CACHE_KEY = 'platform-branding-config';
+  const syncPlatformBrandingCache = (primaryColor, secondaryColor) => {
+    if (!primaryColor || !secondaryColor) return;
+    try {
+      const cached = JSON.parse(localStorage.getItem(PLATFORM_CACHE_KEY) || 'null');
+      // Never visited Platform branding — the server sync already covers it.
+      if (!cached || typeof cached !== 'object' || !cached.saved) return;
+      cached.saved.primaryColor = primaryColor.toUpperCase();
+      cached.saved.secondaryColor = secondaryColor.toUpperCase();
+      localStorage.setItem(PLATFORM_CACHE_KEY, JSON.stringify(cached));
+    } catch (_) { /* ignore */ }
+  };
   const readCache = () => { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (_) { return null; } };
   const writeCache = (cfg) => {
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(cfg)); return; } catch (_) { /* quota — retry without the logo */ }
@@ -154,6 +172,7 @@
       saving = false; saveError = null;
       applyToControls();
       writeCache(config);
+      syncPlatformBrandingCache(config.primary && config.primary.color, config.secondary && config.secondary.color);
       updateSaveBar();
     } catch (err) {
       saving = false; saveError = err.message || 'Couldn’t save. Try again.';
