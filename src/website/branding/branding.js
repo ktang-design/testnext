@@ -14,8 +14,12 @@
   const logoError = $('[data-logo-error]');
 
   const COLORS = [
-    { key: 'primary', label: 'Primary', def: '#255096', tip: 'For key actions, highlights, and core interactive elements.' },
-    { key: 'secondary', label: 'Secondary', def: '#3D3F42', tip: 'For alternative actions, supporting components, and secondary emphasis.' },
+    // `solid`: shared with Platform branding, which stores a bare hex — so these
+    // two carry no opacity. Offering the control would let the same hex render
+    // differently on the two pages. Nothing renders them either: the website
+    // preview consumes heading / body / link.
+    { key: 'primary', label: 'Primary', def: '#255096', solid: true, tip: 'For key actions, highlights, and core interactive elements.' },
+    { key: 'secondary', label: 'Secondary', def: '#3D3F42', solid: true, tip: 'For alternative actions, supporting components, and secondary emphasis.' },
     { key: 'heading', label: 'Heading', def: '#3D3F42', tip: 'Applied to headings and section titles across your site.' },
     { key: 'body', label: 'Body', def: '#55585D', tip: 'Applied to body and paragraph text.' },
     { key: 'link', label: 'Link', def: '#255096', tip: 'Applied to links and other interactive text.' },
@@ -80,9 +84,11 @@
         '<span class="colorrow__controls">' +
         `<input type="color" class="colorrow__swatch" data-color-swatch value="${c.def}" aria-label="${c.label} colour" />` +
         `<input type="text" class="colorrow__hex" data-color-hex value="${c.def}" maxlength="7" spellcheck="false" aria-label="${c.label} colour hex" />` +
-        '<span class="colorrow__opacity">' +
-        `<input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="${c.label} opacity percent" /><span aria-hidden="true">%</span>` +
-        '</span></span>';
+        (c.solid ? '' :
+          '<span class="colorrow__opacity">' +
+          `<input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="${c.label} opacity percent" /><span aria-hidden="true">%</span>` +
+          '</span>') +
+        '</span>';
       colorsEl.appendChild(row);
       if (window.ColorPicker) {
         window.ColorPicker.upgrade(row.querySelector('[data-color-swatch]'), {
@@ -96,8 +102,10 @@
   function setupColor(key, row) {
     const swatch = row.querySelector('[data-color-swatch]');
     const hex = row.querySelector('[data-color-hex]');
-    const op = row.querySelector('[data-color-opacity]');
-    const ensureVisible = () => { if (config[key].opacity === 0) { config[key].opacity = 100; op.value = 100; } };
+    const op = row.querySelector('[data-color-opacity]'); // absent on solid rows
+    const ensureVisible = () => {
+      if (config[key].opacity === 0) { config[key].opacity = 100; if (op) op.value = 100; }
+    };
     swatch.addEventListener('input', () => { config[key].color = swatch.value.toUpperCase(); hex.value = config[key].color; ensureVisible(); onChange(); });
     hex.addEventListener('input', () => {
       let v = hex.value.trim();
@@ -105,14 +113,20 @@
       if (/^#[0-9a-fA-F]{6}$/.test(v)) { config[key].color = v.toUpperCase(); swatch.value = config[key].color; ensureVisible(); onChange(); }
     });
     hex.addEventListener('blur', () => { hex.value = config[key].color; });
-    op.addEventListener('input', () => {
-      let n = parseInt(op.value, 10);
-      if (Number.isNaN(n)) return;
-      n = Math.max(0, Math.min(100, n));
-      config[key].opacity = n; onChange();
-    });
-    op.addEventListener('blur', () => { op.value = config[key].opacity; });
-    return () => { swatch.value = config[key].color; hex.value = config[key].color; op.value = config[key].opacity; };
+    if (op) {
+      op.addEventListener('input', () => {
+        let n = parseInt(op.value, 10);
+        if (Number.isNaN(n)) return;
+        n = Math.max(0, Math.min(100, n));
+        config[key].opacity = n; onChange();
+      });
+      op.addEventListener('blur', () => { op.value = config[key].opacity; });
+    }
+    return () => {
+      swatch.value = config[key].color;
+      hex.value = config[key].color;
+      if (op) op.value = config[key].opacity;
+    };
   }
 
   // ---------- logo ----------
