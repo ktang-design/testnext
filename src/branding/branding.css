@@ -606,7 +606,7 @@ img { display: block; }
 /* Toast styling is now shared (top-right) in app-shell.css. */
 
 /* ---------------------------  Focus visibility  --------------------------- */
-:where(a, button, input, label.swatch):focus-visible {
+:where(a, button, input, .swatch):focus-visible {
   outline: 2px solid var(--blue-500);
   outline-offset: 2px;
 }
