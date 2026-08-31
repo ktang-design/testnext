@@ -52,11 +52,13 @@
   Array.prototype.slice.call(root.querySelectorAll('[data-error-for]')).forEach(function (el) {
     errEls[el.getAttribute('data-error-for')] = el;
   });
-  // An error only surfaces once the user has left the field or tried to save —
-  // never while they are still typing towards a valid value.
-  var revealed = {};
+  // An error can ONLY appear for a field the user has actually typed in, so
+  // simply arriving on the page (or tabbing past an untouched field) can never
+  // surface one. Per field: undefined = never typed, 'typing' = mid-edit and
+  // suppressed, 'settled' = left the field or pressed Save, so the verdict shows.
+  var editState = {};
   function paintFieldError(f) {
-    var show = revealed[f.id] && fieldInvalid(f);
+    var show = editState[f.id] === 'settled' && fieldInvalid(f);
     var el = errEls[f.id];
     if (el) el.hidden = !show;
     f.setAttribute('aria-invalid', show ? 'true' : 'false');
@@ -102,10 +104,14 @@
     };
     f.addEventListener('input', onEdit);
     f.addEventListener('change', onEdit);
-    // Typing hides the error (they may be mid-way to a valid value); leaving the
-    // field is what commits the verdict.
-    f.addEventListener('input', function () { revealed[f.id] = false; paintFieldError(f); });
-    f.addEventListener('blur', function () { revealed[f.id] = true; paintFieldError(f); });
+    // Typing marks the field as touched and hides any error (they may be mid-way
+    // to a valid value); leaving it commits the verdict. Blur on a field that was
+    // never typed in stays silent.
+    f.addEventListener('input', function () { editState[f.id] = 'typing'; paintFieldError(f); });
+    f.addEventListener('blur', function () {
+      if (editState[f.id] === 'typing') editState[f.id] = 'settled';
+      paintFieldError(f);
+    });
   });
 
   // Instant paint from cache (revalidated by the fetch).
@@ -116,7 +122,10 @@
     // Saving reveals every field's verdict; an incomplete value stops here rather
     // than making a round trip the server would reject anyway.
     if (anyInvalid()) {
-      fields.forEach(function (f) { revealed[f.id] = true; });
+      // Pressing Save is a deliberate action, so it surfaces the verdict even for
+      // a field the user never typed in — otherwise the save would be blocked
+      // with nothing on screen to explain why.
+      fields.forEach(function (f) { editState[f.id] = 'settled'; });
       paintFieldErrors();
       var bad = fields.filter(fieldInvalid)[0];
       if (bad) bad.focus();
