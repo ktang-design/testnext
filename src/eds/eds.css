@@ -1,12 +1,6 @@
 /* ===========================================================================
    EBSCO Discovery Service page — builds on site-details.css (fields, inputs,
-   counters, errors) + platform.css. Adds only the invalid-field treatment from
-   the Figma: a required field in error turns its label and input border red
-   (scoped here so the shared settings pages are unaffected).
+   counters, errors, and the invalid-field treatment) + platform.css.
+   The .field--invalid rules used to live here; they moved to site-details.css
+   once Analytics needed them too.
    =========================================================================== */
-.field--invalid .field__label { color: var(--error); }
-.field--invalid .input { border-color: var(--error); }
-.field--invalid .input:focus {
-  border-color: var(--error);
-  box-shadow: 0 0 0 1px var(--error);
-}

@@ -36,6 +36,36 @@
   }
   function applyMask(mask, v) { return mask === 'phone' ? formatPhone(v) : mask === 'ga4' ? formatGa4(v) : v; }
 
+  // ---- field validation ----
+  // A masked field can be left PARTIAL (e.g. "G-ABC"), which the mask happily
+  // accepts as you type. These patterns describe a COMPLETE value. Empty always
+  // passes — these fields are optional — so only a half-typed value is flagged.
+  var COMPLETE = {
+    ga4: /^G-[A-Z0-9]{10}$/,
+  };
+  function fieldInvalid(f) {
+    var re = COMPLETE[f.dataset.mask];
+    var v = (f.value || '').trim();
+    return !!re && v !== '' && !re.test(v);
+  }
+  var errEls = {};
+  Array.prototype.slice.call(root.querySelectorAll('[data-error-for]')).forEach(function (el) {
+    errEls[el.getAttribute('data-error-for')] = el;
+  });
+  // An error only surfaces once the user has left the field or tried to save —
+  // never while they are still typing towards a valid value.
+  var revealed = {};
+  function paintFieldError(f) {
+    var show = revealed[f.id] && fieldInvalid(f);
+    var el = errEls[f.id];
+    if (el) el.hidden = !show;
+    f.setAttribute('aria-invalid', show ? 'true' : 'false');
+    var wrap = f.closest ? f.closest('.field') : null;
+    if (wrap) wrap.classList.toggle('field--invalid', show);
+  }
+  function paintFieldErrors() { fields.forEach(paintFieldError); }
+  function anyInvalid() { return fields.some(fieldInvalid); }
+
   var cur = function () { var o = {}; fields.forEach(function (f) { o[f.dataset.field] = f.value; }); return o; };
   var eq = function (a, b) { return fields.every(function (f) { return (a[f.dataset.field] || '') === (b[f.dataset.field] || ''); }); };
   var dirty = function () { return loaded && !eq(cur(), baseline); };
@@ -57,6 +87,9 @@
         f.value = applyMask(f.dataset.mask, v[f.dataset.field]);
       }
     });
+    // Loaded / server-normalized values are complete, so this clears any error
+    // left over from an earlier attempt.
+    paintFieldErrors();
   }
 
   fields.forEach(function (f) {
@@ -69,6 +102,10 @@
     };
     f.addEventListener('input', onEdit);
     f.addEventListener('change', onEdit);
+    // Typing hides the error (they may be mid-way to a valid value); leaving the
+    // field is what commits the verdict.
+    f.addEventListener('input', function () { revealed[f.id] = false; paintFieldError(f); });
+    f.addEventListener('blur', function () { revealed[f.id] = true; paintFieldError(f); });
   });
 
   // Instant paint from cache (revalidated by the fetch).
@@ -76,6 +113,15 @@
 
   saveBtn.addEventListener('click', async function () {
     if (saveBtn.disabled || saving) return;
+    // Saving reveals every field's verdict; an incomplete value stops here rather
+    // than making a round trip the server would reject anyway.
+    if (anyInvalid()) {
+      fields.forEach(function (f) { revealed[f.id] = true; });
+      paintFieldErrors();
+      var bad = fields.filter(fieldInvalid)[0];
+      if (bad) bad.focus();
+      return;
+    }
     saving = true; justSaved = false; saveError = null; render();
     try {
       var res = await fetch(endpoint, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(cur()) });

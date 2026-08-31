@@ -181,6 +181,14 @@ img { display: block; }
   color: var(--error);
 }
 .field__error[hidden] { display: none; }
+/* A field in error turns its label and input border red. Shared by every
+   settings page that validates (EDS, Analytics); inert until JS adds the class. */
+.field--invalid .field__label { color: var(--error); }
+.field--invalid .input { border-color: var(--error); }
+.field--invalid .input:focus {
+  border-color: var(--error);
+  box-shadow: 0 0 0 1px var(--error);
+}
 .field__error-icon {
   width: 13px;
   height: 13px;

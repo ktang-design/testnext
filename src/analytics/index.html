@@ -61,7 +61,13 @@
         <form class="fields" novalidate>
               <div class="field">
                 <label class="field__label" for="ga4">Google Analytics 4 Measurement ID</label>
-                <div class="field__control"><input class="input" id="ga4" data-field="ga4MeasurementId" data-mask="ga4" type="text" maxlength="12" placeholder="G-XXXXXXXXXX" autocomplete="off" autocapitalize="off" spellcheck="false" /></div>
+                <div class="field__control"><input class="input" id="ga4" data-field="ga4MeasurementId" data-mask="ga4" type="text" maxlength="12" placeholder="G-XXXXXXXXXX" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="ga4-error" /></div>
+                <div class="field__footer">
+                  <p class="field__error" id="ga4-error" data-error-for="ga4" role="alert" hidden>
+                    <img class="field__error-icon" src="/shared/error.svg" alt="" aria-hidden="true" />
+                    <span class="field__error-text">Enter a valid Measurement ID.</span>
+                  </p>
+                </div>
               </div>
         </form>
       </main>
