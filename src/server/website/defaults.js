@@ -46,14 +46,16 @@ const FOOTER_DEFAULTS = {
 // 'default' or one of the explicit option values below.
 const TYPOGRAPHY_DEFAULTS = {
   fontFamily: 'Inter',
-  headingSize: '24',   // Extra large
+  headingSize: '36',   // 2X large — headings (section + element titles, richtext H2)
   headingWeight: '600', // Semi bold
   bodySize: '16',       // Medium
   bodyWeight: '400',    // Regular
 };
 // Sizes are px; weights are CSS font-weight values. Labels live in the panel UI.
 const TYPOGRAPHY_OPTIONS = {
-  headingSize: ['16', '18', '24', '32', '48'],
+  // '32' is no longer offered (2X large became 36px) but stays accepted so a site
+  // already saved at 32 keeps its size instead of snapping to the new default.
+  headingSize: ['16', '18', '24', '32', '36', '48'],
   headingWeight: ['400', '500', '600', '700'],
   bodySize: ['16', '18'],
   bodyWeight: ['400', '500', '600'],

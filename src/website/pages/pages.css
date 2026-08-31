@@ -219,7 +219,10 @@
    is accurate: H1 3X large 48 / H2 2X large 32 / H3 extra large 24 / H4 large 18
    / H5 medium 16. */
 .rt__editor h1 { font-size: 48px; font-weight: 700; margin: 0 0 8px; }
-.rt__editor h2 { font-size: 32px; font-weight: 600; margin: 0 0 8px; }
+/* Matches the site's H2 at the default heading size, so what you type is what
+   you get. The editor sits in a modal without the site's typography vars, so it
+   shows the DEFAULT rather than tracking a changed Typography setting. */
+.rt__editor h2 { font-size: 36px; font-weight: 600; margin: 0 0 8px; }
 .rt__editor h3 { font-size: 24px; font-weight: 600; margin: 0 0 8px; }
 .rt__editor h4 { font-size: 18px; font-weight: 600; margin: 0 0 8px; }
 .rt__editor h5 { font-size: 16px; font-weight: 600; margin: 0 0 8px; }
