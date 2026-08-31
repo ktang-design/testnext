@@ -28,14 +28,16 @@ class WebsiteBrandingRepository {
   async syncPrimarySecondary(userId, primaryColor, secondaryColor) {
     const saved = await this.get(userId);
     if (!saved) return null;
-    const withColor = (c, color) => ({
-      color,
-      opacity: c && Number.isFinite(Number(c.opacity)) ? c.opacity : 100,
-    });
+    // Primary and secondary are the shared brand colours, and Platform branding
+    // has no opacity concept — so they are always solid. Keeping a partial
+    // opacity here was the one thing making the two pages render the same hex as
+    // visibly different colours. Nothing renders these two anyway: the website
+    // preview only consumes heading / body / link.
+    const withColor = (color) => ({ color, opacity: 100 });
     const next = {
       ...saved,
-      primary: withColor(saved.primary, primaryColor),
-      secondary: withColor(saved.secondary, secondaryColor),
+      primary: withColor(primaryColor),
+      secondary: withColor(secondaryColor),
     };
     return this.save(userId, next);
   }

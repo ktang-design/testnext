@@ -11,6 +11,9 @@ const { brandingRepository } = require('../settings/BrandingRepository');
 const { WEBSITE_BRANDING_DEFAULTS, WEBSITE_BRANDING_COLORS } = require('../website/defaults');
 const { BRANDING_DEFAULTS } = require('../settings/defaults');
 
+// Kept in step with Platform branding, which stores a bare hex per colour.
+const SOLID_BRAND_COLORS = ['primary', 'secondary'];
+
 const router = express.Router();
 const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
@@ -62,6 +65,9 @@ router.put('/', requireApiAuth, ah(async (req, res) => {
   WEBSITE_BRANDING_COLORS.forEach((key) => {
     config[key] = cleanColor(b[key], WEBSITE_BRANDING_DEFAULTS[key]);
   });
+  // Shared brand colours are always solid: Platform cannot express opacity, so a
+  // partial one here would render the same hex differently on the two pages.
+  SOLID_BRAND_COLORS.forEach((key) => { config[key].opacity = 100; });
   const saved = await websiteBrandingRepository.save(req.session.userId, config);
   // Push primary / secondary back UP to Platform branding, mirroring the
   // downward sync in routes/branding.js, so the two pages agree whichever one the
