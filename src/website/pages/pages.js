@@ -1410,7 +1410,11 @@
         // Image mode decides whether the Styling tab shows "Card layout", so the
         // panel is rebuilt (not just the preview) when it changes.
         image.appendChild(buildRadio('Image mode', CARD_IMAGE_MODES, elc.imageMode, (v) => { elc.imageMode = v; afterContentChange(); }));
-        image.appendChild(buildRadio('Image size', CARD_IMAGE_SIZES, elc.imageSize, (v) => { elc.imageSize = v; afterFieldEdit(); }));
+        // An icon sits in a fixed 48px box, so the aspect-ratio choice has nothing
+        // to act on — the renderer already ignores it in icon mode.
+        if (elc.imageMode !== 'icon') {
+          image.appendChild(buildRadio('Image size', CARD_IMAGE_SIZES, elc.imageSize, (v) => { elc.imageSize = v; afterFieldEdit(); }));
+        }
         image.appendChild(buildRadio('Image fit', CARD_IMAGE_FITS, elc.imageFit, (v) => { elc.imageFit = v; afterFieldEdit(); }));
         settings.appendChild(image);
       } else {
