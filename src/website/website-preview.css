@@ -176,22 +176,22 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 .wsprev__eltext:last-child { margin-bottom: 0; }
 .wsprev__elempty { margin: 0; font-size: 14px; font-style: italic; color: #8d9095; }
 /* Rendered richtext (sanitized HTML from the editor). Body text follows the body
-   typography; in-content headings use a fixed per-level scale that matches the
-   WYSIWYG editor (H1 3X large 48 / H2 2X large 32 / H3 extra large 24 / H4 large
-   18 / H5 medium 16) — the Typography panel's heading size/weight applies to the
-   section + element titles, not these in-content headings. */
+   typography; in-content headings follow the Typography HEADING scale, which
+   website-preview.js derives from the chosen heading size (see headingScale).
+   At the 2X large default: H1 48 / H2 36 / H3 24 / H4 18 / H5-H6 16 — the
+   Typography option names in order. H2 equals the chosen heading size, which is
+   also what the section and element titles use, so every H2 on the site matches. */
 .wsprev__richtext { font-size: var(--wsprev-body-size, 15px); font-weight: var(--wsprev-body-weight, 400); line-height: 1.6; color: var(--rt-text, var(--wsprev-bodyc, #55585d)); }
 .wsprev__richtext h1, .wsprev__richtext h2, .wsprev__richtext h3,
 .wsprev__richtext h4, .wsprev__richtext h5, .wsprev__richtext h6 {
   font-weight: var(--wsprev-heading-weight, 600); color: var(--rt-heading, var(--wsprev-heading, #3d3f42));
 }
-.wsprev__richtext h1 { font-size: 48px; margin: 0 0 12px; }
-/* H2 is THE heading size, matching the section and element titles. */
-.wsprev__richtext h2 { font-size: var(--wsprev-heading-size, 36px); margin: 0 0 12px; }
-.wsprev__richtext h3 { font-size: 24px; margin: 0 0 8px; }
-.wsprev__richtext h4 { font-size: 18px; margin: 0 0 8px; }
-.wsprev__richtext h5 { font-size: 16px; margin: 0 0 8px; }
-.wsprev__richtext h6 { font-size: 16px; margin: 0 0 8px; }
+.wsprev__richtext h1 { font-size: var(--wsprev-h1, 48px); margin: 0 0 12px; }
+.wsprev__richtext h2 { font-size: var(--wsprev-h2, 36px); margin: 0 0 12px; }
+.wsprev__richtext h3 { font-size: var(--wsprev-h3, 24px); margin: 0 0 8px; }
+.wsprev__richtext h4 { font-size: var(--wsprev-h4, 18px); margin: 0 0 8px; }
+.wsprev__richtext h5 { font-size: var(--wsprev-h5, 16px); margin: 0 0 8px; }
+.wsprev__richtext h6 { font-size: var(--wsprev-h5, 16px); margin: 0 0 8px; }
 .wsprev__richtext p { margin: 0 0 12px; }
 /* Paragraph sizes chosen in the editor: Paragraph 1 = large 18, Paragraph 2 =
    medium 16 (an unclassed paragraph follows the Typography body size). */
