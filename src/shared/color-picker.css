@@ -148,7 +148,10 @@
   opacity: 0.4;
   cursor: help;
 }
-.cpick__badge.is-pass { opacity: 1; }
+/* A passing level reads green at full strength. The checkmark is a currentColor
+   mask, so it turns green with the label. */
+.cpick__badge.is-pass { opacity: 1; color: #1d6732; }
+.cpick__badge:focus-visible { outline: 2px solid var(--blue-500, #3e75cf); outline-offset: 2px; border-radius: 2px; }
 .cpick__badgeicon {
   width: 16px; height: 16px; flex: none;
   background: currentColor;
