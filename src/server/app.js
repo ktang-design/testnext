@@ -84,9 +84,20 @@ function sectionOf(reqPath) {
   return noTrailing === '' ? '/' : noTrailing;
 }
 
+// The Pages builder's URL carries state (/website/pages/<page>/<section>/
+// <element>), so sectionOf's exact match only catches the bare "/website/pages"
+// — every deeper path would otherwise sail past auth unprotected. Anything
+// nested under a protected section is protected too.
+function isProtectedPath(reqPath) {
+  const sect = sectionOf(reqPath);
+  if (PROTECTED_SECTIONS.has(sect)) return true;
+  for (const base of PROTECTED_SECTIONS) { if (sect.startsWith(base + '/')) return true; }
+  return false;
+}
+
 app.use((req, res, next) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') return next();
-  if (PROTECTED_SECTIONS.has(sectionOf(req.path))) {
+  if (isProtectedPath(req.path)) {
     return requirePageAuth(req, res, next);
   }
   return next();
@@ -106,6 +117,18 @@ app.use(express.static(SRC_DIR, {
     if (filePath.endsWith('.html')) res.setHeader('Cache-Control', 'no-store, must-revalidate');
   },
 }));
+
+// ---- Pages builder deep links ----------------------------------------------
+// /website/pages/<page>/<section>/<element> are virtual: there is no file at
+// that path, only the one app (website/pages/index.html), which reads the URL
+// itself to restore the right page/section/element. Real files under
+// /website/pages/ (pages.js, pages.css, assets) already matched express.static
+// above, so this only catches paths that did not resolve to one — reached only
+// after the auth check above has already run.
+app.get(/^\/website\/pages\/.+/, (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, must-revalidate');
+  res.sendFile(path.join(SRC_DIR, 'website', 'pages', 'index.html'));
+});
 
 // ---- Fallbacks ------------------------------------------------------------
 app.use((req, res) => res.status(404).send('Not found'));

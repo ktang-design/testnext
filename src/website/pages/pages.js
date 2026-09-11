@@ -238,6 +238,94 @@
   const findSection = (id) => getSections().find((s) => s.id === id) || null;
   const findElement = (secId, elId) => { const s = findSection(secId); return s ? (s.elements.find((e) => e.id === elId) || null) : null; };
 
+  // ---- URL sync ----
+  // The builder's address bar mirrors where you are: /website/pages/<page> for
+  // the section list, /<page>/<section> for a section's settings, and
+  // /<page>/<section>/<element> for an element's — e.g. /website/pages/homepage,
+  // then /website/pages/homepage/hero, then /website/pages/homepage/hero/richtext.
+  // Segments are slugified titles, recomputed fresh (not stored) so a rename
+  // shows up next time the URL updates; a collision (two sections both named
+  // "Hero", or an untitled one) gets a numeric suffix, same scheme the server
+  // already uses for page slugs (see slugify() in routes/pages.js).
+  const elTypeLabel = (e) => (e.type === 'code' ? 'Code' : e.type === 'cards' ? 'Cards' : 'Richtext');
+  function slugSegment(s) {
+    const base = String(s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    return base || 'untitled';
+  }
+  function segmentsFor(list, titleOf) {
+    const used = new Map();
+    const out = new Map();
+    (list || []).forEach((it) => {
+      const base = slugSegment(titleOf(it));
+      const n = (used.get(base) || 0) + 1;
+      used.set(base, n);
+      out.set(it.id, n === 1 ? base : `${base}-${n}`);
+    });
+    return out;
+  }
+  function currentPath() {
+    if (view !== 'builder' || !builderPageId) return '/website/pages/';
+    const pages = tree ? tree.getItems() : [];
+    const pageSeg = segmentsFor(pages, (p) => p.title).get(builderPageId);
+    if (!pageSeg) return '/website/pages/';
+    let path = '/website/pages/' + pageSeg;
+    if (!selectedSectionId) return path;
+    const secs = getSections();
+    const secSeg = segmentsFor(secs, (s) => s.title || 'Section').get(selectedSectionId);
+    if (!secSeg) return path;
+    path += '/' + secSeg;
+    if (!selectedElementId) return path;
+    const sec = findSection(selectedSectionId);
+    const els = (sec && sec.elements) || [];
+    const elSeg = segmentsFor(els, (e) => e.title || elTypeLabel(e)).get(selectedElementId);
+    return elSeg ? path + '/' + elSeg : path;
+  }
+  // `lastPath` is null only before the first sync (boot); that first call
+  // replaces rather than pushes, so loading the page doesn't leave a junk
+  // back-stack entry. Every real navigation after that pushes, so Back/Forward
+  // step through page -> section -> element the way they were visited; a
+  // forced sync (live-typed titles, see afterFieldEdit) always replaces so the
+  // bar stays accurate without spamming history on every keystroke.
+  let lastPath = null;
+  function syncUrl(forceReplace) {
+    const path = currentPath();
+    if (path === lastPath && !forceReplace) return;
+    const useReplace = forceReplace || lastPath == null;
+    history[useReplace ? 'replaceState' : 'pushState'](null, '', path);
+    lastPath = path;
+  }
+  // Parse the current URL into view/builderPageId/selectedSectionId/
+  // selectedElementId. Pure state — no rendering — so it can run both at boot
+  // and from the popstate handler before a single shared renderAll(). Also
+  // honours the old ?page=<id> query link (still baked into Activity-log rows
+  // saved before this shipped), translating it to the equivalent state; the next
+  // syncUrl() call then rewrites the bar to the clean path form.
+  function restoreFromPath() {
+    const pages = tree ? tree.getItems() : [];
+    const legacyId = new URLSearchParams(window.location.search).get('page');
+    if (legacyId && pages.some((p) => p.id === legacyId)) {
+      view = 'builder'; builderPageId = legacyId; selectedSectionId = null; selectedElementId = null;
+      if (!contentById[legacyId]) contentById[legacyId] = { sections: [] };
+      return;
+    }
+    const parts = window.location.pathname.replace(/^\/website\/pages\/?/, '').split('/').filter(Boolean);
+    view = 'list'; builderPageId = null; selectedSectionId = null; selectedElementId = null;
+    if (!parts.length) return;
+    const pageEntry = pages.find((p) => segmentsFor(pages, (x) => x.title).get(p.id) === parts[0]);
+    if (!pageEntry) return;
+    view = 'builder'; builderPageId = pageEntry.id;
+    if (!contentById[pageEntry.id]) contentById[pageEntry.id] = { sections: [] };
+    if (parts.length < 2) return;
+    const secs = getSections();
+    const secEntry = secs.find((sec) => segmentsFor(secs, (x) => x.title || 'Section').get(sec.id) === parts[1]);
+    if (!secEntry) return;
+    selectedSectionId = secEntry.id;
+    if (parts.length < 3) return;
+    const els = secEntry.elements || [];
+    const elEntry = els.find((e) => segmentsFor(els, (x) => x.title || elTypeLabel(x)).get(e.id) === parts[2]);
+    if (elEntry) selectedElementId = elEntry.id;
+  }
+
   function enterBuilder(pageId) {
     view = 'builder';
     builderPageId = pageId;
@@ -277,7 +365,7 @@
   function afterContentChange() { renderAll(); }
   // Lighter: a field edit (typing) updates preview + save bar without rebuilding
   // the panel (which would steal focus from the input).
-  function afterFieldEdit() { updateSaveBar(); pushPreview(); }
+  function afterFieldEdit() { updateSaveBar(); pushPreview(); syncUrl(true); }
 
   function addSection() {
     const secs = getSections();
@@ -1531,6 +1619,7 @@
   }
 
   function renderAll() {
+    syncUrl();
     const builderMode = view === 'builder';
     listView.hidden = builderMode;
     builderView.hidden = !builderMode;
@@ -1626,11 +1715,12 @@
       loaded = true;
       mountTree(data.pages || []);
       pushPreview(); // give the read-only preview the loaded pages + content
-      // Deep link: /website/pages/?page=<id> opens that page straight in the
-      // builder. Activity-log rows link here so a row takes you to the page it
-      // describes. An unknown id just leaves the list showing.
-      const wanted = new URLSearchParams(window.location.search).get('page');
-      if (wanted && (data.pages || []).some((p) => p.id === wanted)) enterBuilder(wanted);
+      // Deep link: restore whatever /website/pages/<page>/<section>/<element>
+      // (or the legacy ?page=<id>) points at, straight into the builder. Activity
+      // log rows link here, so a row takes you to the exact spot it describes.
+      // An unrecognised path just leaves the list showing.
+      restoreFromPath();
+      renderAll();
     })
     .catch(() => {
       loaded = true;
@@ -1639,4 +1729,12 @@
     });
 
   setupNavGuard();
+  // Back/Forward: re-derive state from the URL the browser just navigated to,
+  // then render once. `lastPath` is set first so renderAll()'s own syncUrl()
+  // sees no change and does not push a competing history entry.
+  window.addEventListener('popstate', () => {
+    restoreFromPath();
+    lastPath = window.location.pathname;
+    renderAll();
+  });
 })();
