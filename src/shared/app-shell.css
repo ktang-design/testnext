@@ -9,7 +9,43 @@
 :root {
   --topnav-h: 64px; /* measured & overwritten by app-shell.js */
   --sysmsg-h: 0px;  /* height of the persistent system message, measured by app-shell.js */
+  --sidenav-w: 288px; /* measured & overwritten by app-shell.js; 0 once the sidenav is hidden */
+  --pageactions-h: 0px; /* measured & overwritten by app-shell.js */
 }
+
+/* The save bar (.pageactions) must always sit flush with the true bottom of
+   the viewport — position: sticky only holds it in view once scrolling would
+   otherwise carry it off-screen, so on a page whose content barely exceeds
+   one viewport it can end up floating short of the bottom edge with the
+   system footer visible right underneath it. Fixed positioning guarantees
+   it every time, aligned to start after the sidenav so it never overlaps it.
+   The reserved margin-bottom on the content's first child gives back the
+   space the bar no longer occupies in the flow (margin, not padding, so it
+   adds to that element's own bottom padding instead of replacing it), so
+   real content is never hidden behind it. The min-height alongside it makes
+   the footer wait for a scroll even on a short page: without a floor, a
+   short form's flex-grow shrinks to its own min-content size (this is what
+   caused the original "peeping" bug) and the footer would end up sharing the
+   first viewport-ful with the form instead of waiting below the fold. A
+   second reservation, this time after the footer (padding-bottom on
+   .content itself), keeps the bar from permanently covering the footer's
+   own last pixels: without it, the browser can't scroll any further once
+   the footer's bottom reaches the viewport edge, even though that edge is
+   where the fixed bar always sits — this gives scrolling room for the
+   footer to clear the bar completely. Mobile (see the breakpoint below) is
+   exempt: the bar returns to the normal flow there instead of staying
+   pinned. */
+.pageactions {
+  position: fixed;
+  left: var(--sidenav-w);
+  right: 0;
+  bottom: 0;
+}
+.content > :first-child {
+  min-height: calc(100vh - var(--topnav-h) - var(--sysmsg-h) - var(--pageactions-h));
+  margin-bottom: var(--pageactions-h);
+}
+.content { padding-bottom: var(--pageactions-h); }
 
 /* Screen-reader-only utility (used by shared components like sortable-tree.js).
    Also declared in website.css / access.css; kept here so it applies on any
@@ -391,8 +427,13 @@ body.is-locked { overflow: hidden; }
   .access,
   .site-details,
   .platform-page { padding: 24px 20px; gap: 28px; }
-  .pageactions { padding: 16px 20px; }
+  /* Exempt from the desktop/tablet "always pinned to the viewport bottom"
+     behavior above: on mobile the bar scrolls with the page like any other
+     content instead of staying fixed. */
+  .pageactions { position: static; left: auto; right: auto; padding: 16px 20px; }
   .pageactions__inner { gap: 12px; }
+  .content > :first-child { min-height: 0; margin-bottom: 0; }
+  .content { padding-bottom: 0; }
 
   /* Branding-page bits that need to shrink on mobile. */
   .color-card { gap: 24px; }
