@@ -280,9 +280,13 @@ a.navpill, a.navpill:hover, a.navpill:visited { text-decoration: none; }
   -webkit-mask-position: center; mask-position: center;
   -webkit-mask-size: contain; mask-size: contain;
 }
-.navpill__icon--website { -webkit-mask-image: url(/shared/topnav/layers.svg); mask-image: url(/shared/topnav/layers.svg); }
-.navpill__icon--features { -webkit-mask-image: url(/shared/topnav/box-circle-check.svg); mask-image: url(/shared/topnav/box-circle-check.svg); }
-.navpill__icon--platform { -webkit-mask-image: url(/shared/topnav/screwdriver-wrench.svg); mask-image: url(/shared/topnav/screwdriver-wrench.svg); }
+/* Modifier names (--website/--features/--platform) stay as-is: they are
+   internal identifiers wired to the mobile drawer's MODEL.key in app-shell.js,
+   independent of the display labels (Page Builder / Tools & Services /
+   System Settings) they render icons for. */
+.navpill__icon--website { -webkit-mask-image: url(/shared/topnav/page-builder.svg); mask-image: url(/shared/topnav/page-builder.svg); }
+.navpill__icon--features { -webkit-mask-image: url(/shared/topnav/layers-plus.svg); mask-image: url(/shared/topnav/layers-plus.svg); }
+.navpill__icon--platform { -webkit-mask-image: url(/shared/topnav/gear.svg); mask-image: url(/shared/topnav/gear.svg); }
 
 /* User-menu chevron reflects the account dropdown's state only: up when the
    menu is open, down when closed — no hover/focus changes. The dropdown
