@@ -118,7 +118,7 @@
 
   // ---- Unified mobile navigation drawer ----
   // On small screens the product pills + the section sidenav are replaced by a
-  // single hamburger drawer: each product (Platform / Website / Features) is an
+  // single hamburger drawer: each product (System Settings / Page Builder / Tools & Services) is an
   // accordion; the current product is expanded and shows its section nav
   // (cloned from the page's .sidenav), the others link to their landing page.
   const mobilenav = buildMobileNav();
@@ -160,7 +160,7 @@
   // accordion toggle (it never navigates) — only an item link navigates — and
   // only one product can be expanded at a time. The current product is expanded
   // by default. (This model mirrors the desktop navs: platform-nav.js for
-  // Platform + the inline Website/Features sidenavs — keep them in sync.)
+  // System Settings + the inline Page Builder/Tools & Services sidenavs — keep them in sync.)
   function buildMobileNav() {
     if (!menu) return null;
     const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -189,7 +189,7 @@
       grid: '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><rect x="1.6" y="1.6" width="5.4" height="5.4" rx="1.2"/><rect x="9" y="1.6" width="5.4" height="5.4" rx="1.2"/><rect x="1.6" y="9" width="5.4" height="5.4" rx="1.2"/><rect x="9" y="9" width="5.4" height="5.4" rx="1.2"/></svg>',
     };
     const MODEL = [
-      { key: 'platform', label: 'Platform', items: [
+      { key: 'platform', label: 'System Settings', items: [
         { icon: 'site', label: 'Site details', href: '/site-details/' },
         { icon: 'branding', label: 'Branding', href: '/branding/' },
         { icon: 'globe', label: 'Language and region', href: '/language-region/' },
@@ -204,7 +204,7 @@
         ] },
         { icon: 'history', label: 'Activity log', href: '/activity-log/' },
       ] },
-      { key: 'website', label: 'Website', items: [
+      { key: 'website', label: 'Page Builder', items: [
         { icon: 'pages', label: 'Pages', href: '/website/pages/' },
         { icon: 'search', label: 'Search', href: '/website/search/' },
         { icon: 'navigation', label: 'Navigation', href: '/website/navigation/' },
@@ -213,7 +213,7 @@
         { icon: 'branding', label: 'Branding', href: '/website/branding/' },
         { icon: 'typography', label: 'Typography', href: '/website/typography/' },
       ] },
-      { key: 'features', label: 'Features', items: [
+      { key: 'features', label: 'Tools & Services', items: [
         { icon: 'grid', label: 'Bento', href: '/features/bento/' },
       ] },
     ];

@@ -83,7 +83,7 @@
   html += '</ul>';
 
   var nav = document.createElement('nav');
-  nav.setAttribute('aria-label', 'Platform settings');
+  nav.setAttribute('aria-label', 'System Settings');
   nav.innerHTML = html;
   mount.innerHTML = '';
   mount.appendChild(nav);
