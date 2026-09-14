@@ -181,8 +181,6 @@
       plug: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2.2v3.2M10 2.2v3.2M4.4 5.4h7.2v2a3.6 3.6 0 0 1-7.2 0v-2ZM8 11v2.8"/></svg>',
       history: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.7 8a5.3 5.3 0 1 1 1.7 3.9"/><path d="M2.4 12.2V9h3.2"/><path d="M8 5.2V8l1.9 1.3"/></svg>',
       pages: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.6 14.4 5 8 8.4 1.6 5 8 1.6Z"/><path d="m2 8 6 3.2L14 8"/><path d="m2 11 6 3.2L14 11"/></svg>',
-      search: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.2"/><path d="m10.2 10.2 3 3"/></svg>',
-      navigation: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="1.6" width="4" height="3.2" rx="0.6"/><rect x="1.6" y="11.2" width="4" height="3.2" rx="0.6"/><rect x="10.4" y="11.2" width="4" height="3.2" rx="0.6"/><path d="M8 4.8v2.6M3.6 11.2V7.4H12.4v3.8"/></svg>',
       header: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="2.6" width="12.4" height="10.8" rx="1.5"/><path d="M1.8 6.2h12.4"/></svg>',
       footer: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="2.6" width="12.4" height="10.8" rx="1.5"/><path d="M1.8 9.8h12.4"/></svg>',
       typography: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.2h10M8 4.2v8.6"/></svg>',
@@ -204,11 +202,18 @@
         ] },
         { icon: 'history', label: 'Activity log', href: '/activity-log/' },
       ] },
+      // Search and Navigation are no longer their own items here either — they
+      // (and Header's own settings) are grouped as children under Header,
+      // mirroring the desktop sidenav (website/website-nav.js). Auto-open only,
+      // no persistence: same convention already used for 'platform's grouped
+      // items (Users and permissions / Integrations) above, on mobile.
       { key: 'website', label: 'Page Builder', items: [
         { icon: 'pages', label: 'Pages', href: '/website/pages/' },
-        { icon: 'search', label: 'Search', href: '/website/search/' },
-        { icon: 'navigation', label: 'Navigation', href: '/website/navigation/' },
-        { icon: 'header', label: 'Header', href: '/website/header/' },
+        { icon: 'header', label: 'Header', children: [
+          { label: 'Navigation menu', href: '/website/navigation/' },
+          { label: 'Search bar', href: '/website/search/' },
+          { label: 'Settings', href: '/website/header/' },
+        ] },
         { icon: 'footer', label: 'Footer', href: '/website/footer/' },
         { icon: 'branding', label: 'Branding', href: '/website/branding/' },
         { icon: 'typography', label: 'Typography', href: '/website/typography/' },
