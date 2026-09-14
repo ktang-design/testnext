@@ -68,9 +68,15 @@
         '<span class="nav-item__chevron">' + CHEVRON + '</span></button></li>';
       item.children.forEach(function (c) {
         var a = active(c.href);
-        html += '<li><a class="nav-item nav-item--interactive nav-item--secondary sidenav__subitem' + (a ? ' is-active' : '') +
-          '" data-group="' + gid + '" href="' + c.href + '"' + (a ? ' aria-current="page"' : '') +
-          (open ? '' : ' hidden') + '><span class="nav-item__label">' + esc(c.label) + '</span></a></li>';
+        // sidenav__subitem + [hidden] live on the <li> (matching the design
+        // system's own reference markup), not the inner <a>: a hidden anchor
+        // still leaves its <li> as a zero-content flex item, and .sidenav__list's
+        // flex `gap` still reserves space around it, leaving a visible gap for
+        // every closed child even though nothing is shown there.
+        html += '<li class="sidenav__subitem" data-group="' + gid + '"' + (open ? '' : ' hidden') + '>' +
+          '<a class="nav-item nav-item--interactive nav-item--secondary' + (a ? ' is-active' : '') +
+          '" href="' + c.href + '"' + (a ? ' aria-current="page"' : '') +
+          '><span class="nav-item__label">' + esc(c.label) + '</span></a></li>';
       });
     } else {
       var a2 = active(item.href);
@@ -96,8 +102,8 @@
       // Administrators, Integrations -> EBSCO Discovery Service). When expanded,
       // fall through to the normal expand/collapse toggle below.
       if (document.documentElement.classList.contains('is-nav-collapsed')) {
-        var first = mount.querySelector('.sidenav__subitem[data-group="' + btn.getAttribute('data-nav-group') + '"]');
-        var href = first && first.getAttribute('href');
+        var firstLink = mount.querySelector('.sidenav__subitem[data-group="' + btn.getAttribute('data-nav-group') + '"] a');
+        var href = firstLink && firstLink.getAttribute('href');
         if (href) { window.location.href = href; return; }
       }
       var open = btn.classList.toggle('is-open');
