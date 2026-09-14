@@ -121,8 +121,16 @@
   // single hamburger drawer: each product (System Settings / Page Builder / Tools & Services) is an
   // accordion; the current product is expanded and shows its section nav
   // (cloned from the page's .sidenav), the others link to their landing page.
-  const mobilenav = buildMobileNav();
-  const drawerEl = mobilenav || sidenav; // fall back to the sidenav if no pills
+  // Users and permissions is hidden from the Research participant role here too,
+  // mirroring platform-nav.js — same 'sn.role' cache, same fail-open-then-correct
+  // pattern (this is UX only; authGuard.js is the real, server-side gate).
+  const ROLE_KEY = 'sn.role';
+  const RESEARCH_PARTICIPANT = 'Research participant';
+  let cachedRole = null;
+  try { cachedRole = localStorage.getItem(ROLE_KEY); } catch (_) { /* storage unavailable */ }
+
+  const mobilenav = buildMobileNav(cachedRole);
+  let drawerEl = mobilenav || sidenav; // fall back to the sidenav if no pills
 
   // ---- Hamburger → drawer ----
   let hamburger = null;
@@ -154,14 +162,34 @@
 
   scrim.addEventListener('click', closeDrawer);
   // Close the drawer when a nav *link* inside it is activated.
-  drawerEl && drawerEl.addEventListener('click', (e) => { if (e.target.closest('a')) closeDrawer(); });
+  const closeOnLinkClick = (e) => { if (e.target.closest('a')) closeDrawer(); };
+  drawerEl && drawerEl.addEventListener('click', closeOnLinkClick);
+
+  // Confirm the cached role against the server; if it was stale or absent,
+  // rebuild the drawer so "Users and permissions" corrects in either direction.
+  if (mobilenav) {
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        const role = data && data.user && data.user.role;
+        if (!role || role === cachedRole) return;
+        try { localStorage.setItem(ROLE_KEY, role); } catch (_) { /* storage unavailable */ }
+        const fresh = buildMobileNav(role); // appends the corrected nav to the body
+        if (!fresh) return;
+        fresh.addEventListener('click', closeOnLinkClick);
+        if (drawerEl.classList.contains('is-open')) fresh.classList.add('is-open');
+        drawerEl.remove();
+        drawerEl = fresh;
+      })
+      .catch(() => { /* offline / dev-without-server: keep showing the cached/default drawer */ });
+  }
 
   // Builds the mobile drawer from a shared nav model. Every product header is an
   // accordion toggle (it never navigates) — only an item link navigates — and
   // only one product can be expanded at a time. The current product is expanded
   // by default. (This model mirrors the desktop navs: platform-nav.js for
   // System Settings + the inline Page Builder/Tools & Services sidenavs — keep them in sync.)
-  function buildMobileNav() {
+  function buildMobileNav(role) {
     if (!menu) return null;
     const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const norm = (p) => (p || '').replace(/index\.html$/, '').replace(/\/+$/, '') || '/';
@@ -225,12 +253,18 @@
 
     const anyActive = (items) => items.some((it) => (it.children ? it.children.some((c) => isActive(c.href)) : isActive(it.href)));
 
+    const visibleModel = role !== RESEARCH_PARTICIPANT ? MODEL : MODEL.map((product) => (
+      product.key !== 'platform' ? product : Object.assign({}, product, {
+        items: product.items.filter((it) => it.label !== 'Users and permissions'),
+      })
+    ));
+
     let gid = 0;
     const nav = document.createElement('nav');
     nav.className = 'mobilenav';
     nav.setAttribute('aria-label', 'Menu');
     let html = '<ul class="mobilenav__list">';
-    MODEL.forEach((product) => {
+    visibleModel.forEach((product) => {
       const productActive = anyActive(product.items);
       html += '<li class="mobilenav__group">' +
         '<button type="button" class="mobilenav__product' + (productActive ? ' is-active is-open' : '') +

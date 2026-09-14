@@ -15,7 +15,7 @@ const { ready } = require('./db/database');
 const { seed } = require('./seed');
 const sessionMiddleware = require('./auth/session');
 const authRoutes = require('./routes/auth');
-const { requirePageAuth } = require('./auth/authGuard');
+const { requirePageAuth, blockResearchParticipantPage } = require('./auth/authGuard');
 
 const SRC_DIR = path.join(__dirname, '..'); // .../src
 
@@ -95,10 +95,19 @@ function isProtectedPath(reqPath) {
   return false;
 }
 
+// Hidden from, and unreachable by, the Research participant role — chained
+// after requirePageAuth, which has already confirmed there is a session.
+const ROLE_RESTRICTED_SECTIONS = new Set(['/administrators', '/users']);
+
 app.use((req, res, next) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') return next();
   if (isProtectedPath(req.path)) {
-    return requirePageAuth(req, res, next);
+    return requirePageAuth(req, res, () => {
+      if (ROLE_RESTRICTED_SECTIONS.has(sectionOf(req.path))) {
+        return blockResearchParticipantPage(req, res, next);
+      }
+      return next();
+    });
   }
   return next();
 });

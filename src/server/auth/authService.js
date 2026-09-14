@@ -18,9 +18,12 @@ class AuthError extends Error {
   }
 }
 
-// Shape sent to the client — never includes the password hash.
+// Shape sent to the client — never includes the password hash. role is
+// included so client-side nav scripts (platform-nav.js, app-shell.js) can
+// hide "Users and permissions" from the Research participant role; the actual
+// access gate is server-side (authGuard.js), this is UX only.
 function toPublicUser(user) {
-  return { id: user.id, email: user.email, name: user.name };
+  return { id: user.id, email: user.email, name: user.name, role: user.role };
 }
 
 function isLocked(user) {
