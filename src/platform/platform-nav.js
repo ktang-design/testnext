@@ -4,6 +4,17 @@
 // .nav-item / .sidenav classes from components/navigation.css (which already
 // supports collapsible groups: .nav-item__chevron, .is-open, .nav-item--secondary,
 // .sidenav__subitem[hidden]).
+//
+// Users and permissions is hidden from the Research participant role. This is
+// UX only — the real gate is server-side (authGuard.js blocks the pages and
+// APIs outright even if this script never ran) — but it should still be
+// accurate, not just absent-mindedly shown. The role isn't known synchronously
+// (no per-request templating here; every page is a static file), so render
+// renders TWICE: once immediately from the last-known cached role (instant, no
+// flash on repeat visits — and fails OPEN on a brand-new session, since a
+// half-second of an item that then disappears is cosmetic, not a security
+// hole), then again once /api/auth/me confirms the real role, correcting
+// either direction if the cache was stale or absent.
 (function () {
   var mount = document.querySelector('[data-platform-nav]');
   if (!mount) return;
@@ -51,8 +62,18 @@
   var savedGroups = {};
   try { savedGroups = JSON.parse(localStorage.getItem(GROUPS_KEY) || '{}') || {}; } catch (e) {}
 
+  var ROLE_KEY = 'sn.role';
+  var RESEARCH_PARTICIPANT = 'Research participant';
+  var cachedRole = null;
+  try { cachedRole = localStorage.getItem(ROLE_KEY); } catch (e) {}
+  var visibleNav = function (role) {
+    if (role !== RESEARCH_PARTICIPANT) return NAV;
+    return NAV.filter(function (item) { return item.label !== 'Users and permissions'; });
+  };
+
+  function render(role) {
   var html = '<ul class="sidenav__list">';
-  NAV.forEach(function (item, i) {
+  visibleNav(role).forEach(function (item, i) {
     if (item.children) {
       var gid = 'grp' + i;
       var slug = slugify(item.label);
@@ -94,7 +115,8 @@
   mount.innerHTML = '';
   mount.appendChild(nav);
 
-  // Collapsible groups.
+  // Collapsible groups. Re-wired on every render() call, since mount.innerHTML
+  // was just replaced and any previous listeners went with it.
   mount.querySelectorAll('[data-nav-group]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       // Collapsed icon rail: there's no room to expand a dropdown, so clicking a
@@ -114,4 +136,17 @@
         .forEach(function (s) { s.hidden = !open; });
     });
   });
+  }
+
+  render(cachedRole);
+
+  fetch('/api/auth/me', { credentials: 'include' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (data) {
+      var role = data && data.user && data.user.role;
+      if (!role || role === cachedRole) return; // already correct, or couldn't confirm
+      try { localStorage.setItem(ROLE_KEY, role); } catch (e) {}
+      render(role);
+    })
+    .catch(function () { /* offline / dev-without-server: keep showing the cached/default nav */ });
 })();

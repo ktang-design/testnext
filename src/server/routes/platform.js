@@ -5,7 +5,7 @@
 //   GET/PUT /api/platform/eds               -> { defaults, endpoint, saved }
 
 const express = require('express');
-const { requireApiAuth } = require('../auth/authGuard');
+const { requireApiAuth, requireNotResearchParticipant } = require('../auth/authGuard');
 const { platformSettingsRepository: repo } = require('../platform/PlatformSettingsRepository');
 const { userRepository } = require('../auth/repository');
 const { activityRepository } = require('../platform/ActivityRepository');
@@ -17,7 +17,7 @@ const router = express.Router();
 const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 
-const ROLES = ['Administrator', 'Content manager', 'Editor'];
+const ROLES = ['Administrator', 'Content manager', 'Editor', 'Research participant'];
 const STATUSES = ['active', 'pending', 'inactive'];
 // Parse ?page / ?pageSize into a bounded { limit, offset, page, pageSize }.
 function paging(q) {
@@ -106,13 +106,13 @@ router.put('/eds', requireApiAuth, ah(async (req, res) => {
 }));
 
 // ---- Users (accounts that can access the website) -------------------------
-router.get('/users', requireApiAuth, ah(async (req, res) => {
+router.get('/users', requireApiAuth, requireNotResearchParticipant, ah(async (req, res) => {
   const { limit, offset, page, pageSize } = paging(req.query);
   const { total, users } = await userRepository.list({ search: req.query.q || '', limit, offset });
   res.json({ total, page, pageSize, users });
 }));
 
-router.post('/users', requireApiAuth, ah(async (req, res) => {
+router.post('/users', requireApiAuth, requireNotResearchParticipant, ah(async (req, res) => {
   const b = req.body || {};
   const name = str(b.name, 120);
   const email = str(b.email, 254);
@@ -131,7 +131,7 @@ router.post('/users', requireApiAuth, ah(async (req, res) => {
   }
 }));
 
-router.patch('/users/:id', requireApiAuth, ah(async (req, res) => {
+router.patch('/users/:id', requireApiAuth, requireNotResearchParticipant, ah(async (req, res) => {
   const status = (req.body || {}).status;
   if (!STATUSES.includes(status)) return res.status(400).json({ error: 'INVALID_STATUS', message: 'Unknown status.' });
   const target = await userRepository.findById(req.params.id);
@@ -141,7 +141,7 @@ router.patch('/users/:id', requireApiAuth, ah(async (req, res) => {
   res.json({ user: { id: updated.id, email: updated.email, name: updated.name, role: updated.role, status: updated.status } });
 }));
 
-router.get('/users/export', requireApiAuth, ah(async (req, res) => {
+router.get('/users/export', requireApiAuth, requireNotResearchParticipant, ah(async (req, res) => {
   const { users } = await userRepository.list({ search: req.query.q || '', limit: 5000, offset: 0 });
   const esc = (v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
   const lines = [['User', 'Email', 'Role', 'Account created', 'Last accessed', 'Status'].map(esc).join(',')];
@@ -152,7 +152,7 @@ router.get('/users/export', requireApiAuth, ah(async (req, res) => {
 }));
 
 // ---- Administrators (read-only role view over the same accounts) ----------
-router.get('/administrators', requireApiAuth, ah(async (req, res) => {
+router.get('/administrators', requireApiAuth, requireNotResearchParticipant, ah(async (req, res) => {
   const { limit, offset, page, pageSize } = paging(req.query);
   const { total, users } = await userRepository.list({ search: req.query.q || '', limit, offset });
   res.json({ total, page, pageSize, administrators: users });
