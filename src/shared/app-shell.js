@@ -105,17 +105,13 @@
 
   // Keep the drawer/scrim offset correct under the (variable-height) top nav and
   // the persistent system message above it (both can wrap on narrow screens).
-  // Also keeps the fixed save bar (.pageactions, see app-shell.css) aligned
-  // with the sidenav's current width (288px / 64px collapsed / 0 when the
-  // sidenav is replaced by the mobile drawer) and sized to reserve the right
-  // amount of space above it, so it always sits flush with the viewport
-  // bottom without ever covering real content.
+  // Also measures the sticky save bar's height (.pageactions, see app-shell.css),
+  // which the content area uses as part of its viewport-tall floor so the bar
+  // always starts already stuck to the bottom instead of floating short of it.
   const sysmsg = document.querySelector('.sysmsg');
   function syncTopnavHeight() {
     document.documentElement.style.setProperty('--topnav-h', `${topnav.offsetHeight}px`);
     document.documentElement.style.setProperty('--sysmsg-h', `${sysmsg ? sysmsg.offsetHeight : 0}px`);
-    const sidenavEl = document.querySelector('.sidenav');
-    document.documentElement.style.setProperty('--sidenav-w', `${sidenavEl && sidenavEl.offsetParent ? sidenavEl.offsetWidth : 0}px`);
     const pageactions = document.querySelector('.pageactions');
     document.documentElement.style.setProperty('--pageactions-h', `${pageactions ? pageactions.offsetHeight : 0}px`);
   }
@@ -378,7 +374,6 @@
       const collapsed = root.classList.toggle('is-nav-collapsed');
       try { localStorage.setItem('sn.sidenav', collapsed ? 'collapsed' : 'expanded'); } catch (_) {}
       syncCollapse();
-      syncTopnavHeight(); // re-measure --sidenav-w now that the rail width just changed
     });
   }
 
