@@ -1078,7 +1078,10 @@
       // ---- Search section (below the navigation). Shown when a search is
       // configured. ----
       const s = state.search || SEARCH_D;
-      const hasSearch = !!(s.searches && s.searches.length);
+      // Disabled searches don't appear in the live/preview dropdown at all —
+      // only the admin panel's own list (search.js) shows them, greyed out.
+      const visibleSearches = (s.searches || []).filter((x) => x.enabled !== false);
+      const hasSearch = !!visibleSearches.length;
       if (hasSearch) {
         const sec = el('section', 'wsprev__search');
         if (state.highlight === 'search') sec.classList.add('wsprev__hl');
@@ -1091,10 +1094,10 @@
         {
           // The default (starred) search is pre-selected; the search button carries
           // its label as the accessible name (the visible control is a search icon).
-          const def = s.searches.find((x) => x.isDefault) || s.searches[0];
+          const def = visibleSearches.find((x) => x.isDefault) || visibleSearches[0];
           const bar = el('div', 'wsprev__searchbar');
           const select = el('select', 'wsprev__searchselect');
-          s.searches.forEach((se) => {
+          visibleSearches.forEach((se) => {
             const o = el('option', null, se.displayLabel || se.name);
             o.value = se.id;
             if (se.id === def.id) o.selected = true;
@@ -1111,7 +1114,7 @@
           const setBtnLabel = (lbl) => { btn.setAttribute('aria-label', lbl); btn.title = lbl; };
           setBtnLabel(def.buttonLabel || 'Search');
           select.addEventListener('change', () => {
-            const sel = s.searches.find((x) => x.id === select.value);
+            const sel = visibleSearches.find((x) => x.id === select.value);
             setBtnLabel((sel && sel.buttonLabel) || 'Search');
           });
           // Searching is the only way to reach the Bento results page (it's not
