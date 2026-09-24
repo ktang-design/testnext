@@ -50,7 +50,14 @@ function cleanSearch(raw, used) {
   let id = /^[\w-]{1,64}$/.test(str(s.id)) ? str(s.id) : '';
   if (!id || used.has(id)) { do { id = 'search-' + crypto.randomUUID(); } while (used.has(id)); }
   used.add(id);
-  return { id, type, name, displayLabel, url, urlencode: s.urlencode == null ? true : bool(s.urlencode), buttonLabel, isDefault: bool(s.isDefault) };
+  return {
+    id, type, name, displayLabel, url,
+    urlencode: s.urlencode == null ? true : bool(s.urlencode),
+    buttonLabel,
+    isDefault: bool(s.isDefault),
+    // Missing/omitted means enabled — only an explicit false disables it.
+    enabled: s.enabled === false ? false : true,
+  };
 }
 
 function normalize(raw) {
@@ -63,11 +70,15 @@ function normalize(raw) {
   if (rawList.length > MAX_SEARCHES) throw new ValidationError('Too many searches.');
   const used = new Set();
   const searches = rawList.map((s) => cleanSearch(s, used));
-  // Exactly one default search (the starred one). Default to the first when none
-  // is flagged, so the list always has a default once it is non-empty.
-  let di = searches.findIndex((s) => s.isDefault);
+  // Exactly one default search (the starred one), and it can never be disabled
+  // — it's what visitors get pre-selected, so prefer an enabled candidate.
+  // Default to the first when none is flagged, so the list always has a
+  // default once it is non-empty.
+  let di = searches.findIndex((s) => s.isDefault && s.enabled);
+  if (di === -1) di = searches.findIndex((s) => s.isDefault);
+  if (di === -1) di = searches.findIndex((s) => s.enabled);
   if (di === -1 && searches.length) di = 0;
-  searches.forEach((s, i) => { s.isDefault = i === di; });
+  searches.forEach((s, i) => { s.isDefault = i === di; if (i === di) s.enabled = true; });
   return {
     background: cleanColor(b.background, SEARCH_DEFAULTS.background),
     backgroundImage: image || null,

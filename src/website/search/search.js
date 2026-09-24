@@ -168,6 +168,26 @@
     config.searches.forEach((s) => { s.isDefault = s.id === id; });
     renderList(); onChange();
   }
+  function duplicateSearch(id) {
+    const idx = config.searches.findIndex((s) => s.id === id);
+    if (idx === -1 || config.searches.length >= MAX_SEARCHES) return;
+    const src = config.searches[idx];
+    const copy = clone(src);
+    copy.id = uid();
+    copy.name = `${src.name} (copy)`;
+    copy.isDefault = false;
+    copy.enabled = true;
+    config.searches.splice(idx + 1, 0, copy);
+    renderList(); onChange();
+  }
+  // The default search can't be disabled (it's what visitors get pre-selected),
+  // so the option only ever appears on non-default searches.
+  function toggleEnabled(id) {
+    const s = config.searches.find((x) => x.id === id);
+    if (!s || s.isDefault) return;
+    s.enabled = s.enabled === false ? true : false;
+    renderList(); onChange();
+  }
   async function deleteSearch(id) {
     const ok = await window.Modal.confirm({
       title: 'Delete search',
@@ -180,7 +200,9 @@
     const wasDefault = config.searches.find((s) => s.id === id && s.isDefault);
     config.searches = config.searches.filter((s) => s.id !== id);
     if (wasDefault && config.searches.length && !config.searches.some((s) => s.isDefault)) {
-      config.searches[0].isDefault = true;
+      // Promote an enabled search when possible — the default can't be disabled.
+      const next = config.searches.find((s) => s.enabled !== false) || config.searches[0];
+      next.isDefault = true;
     }
     renderList(); onChange();
   }
@@ -197,11 +219,23 @@
       star.appendChild(svg('<path d="M8 2.1 9.85 5.85 14 6.46 11 9.38 11.71 13.5 8 11.56 4.29 13.5 5 9.38 2 6.46 6.15 5.85Z"/>'));
       wrap.appendChild(star);
     }
-    // The Bento search is managed from Features > Bento — no Edit/Delete here.
+    // The Bento search is managed from Features > Bento — no Edit/Delete/
+    // Duplicate/Disable here, only (when it isn't already the default) the
+    // option to make it one.
     const items = [];
-    if (s.type !== 'bento') items.push({ label: 'Edit', onSelect: () => openSearchModal(s.type, s.id) });
-    if (!s.isDefault) items.push({ label: 'Make default search', onSelect: () => makeDefault(s.id) });
-    if (s.type !== 'bento') items.push({ label: 'Delete', danger: true, onSelect: () => deleteSearch(s.id) });
+    const disabled = s.enabled === false;
+    if (s.type !== 'bento') {
+      items.push({ label: 'Edit', onSelect: () => openSearchModal(s.type, s.id) });
+      // A disabled search can't be made default or duplicated until it's
+      // re-enabled — duplicating would just create another disabled search,
+      // and a disabled search can't stand in as the pre-selected default.
+      if (!s.isDefault && !disabled) items.push({ label: 'Make default search', onSelect: () => makeDefault(s.id) });
+      if (!disabled) items.push({ label: 'Duplicate', onSelect: () => duplicateSearch(s.id) });
+      if (!s.isDefault) items.push({ label: disabled ? 'Enable' : 'Disable', onSelect: () => toggleEnabled(s.id) });
+      items.push({ label: 'Delete', danger: true, onSelect: () => deleteSearch(s.id) });
+    } else if (!s.isDefault) {
+      items.push({ label: 'Make default search', onSelect: () => makeDefault(s.id) });
+    }
     wrap.appendChild(rowKebab(labelOf(s), items));
     return wrap;
   }
@@ -220,9 +254,31 @@
       renderContent: (it) => {
         const s = config.searches.find((x) => x.id === it.id);
         if (s && s.type === 'bento') { const span = document.createElement('span'); span.className = 'navtree__label'; span.textContent = labelOf(s); return span; }
-        return rowLabel(s ? labelOf(s) : 'Search', () => openSearchModal(s.type, s.id));
+        const label = rowLabel(s ? labelOf(s) : 'Search', () => openSearchModal(s.type, s.id));
+        if (!s || s.enabled !== false) return label;
+        // Disabled: grey label (via the shared .is-unavailable/.navtree__tip
+        // treatment from sortable-tree.css) + a tooltip explaining why, shown
+        // on hover/focus of the row. Deliberately not marked aria-disabled —
+        // the kebab (Edit/Enable/Delete) must stay fully usable, and
+        // aria-disabled on an ancestor tells assistive tech to treat every
+        // descendant control, kebab included, as inert.
+        const wrap = document.createElement('span');
+        const tipId = 'tip-' + s.id;
+        const tip = document.createElement('span');
+        tip.className = 'navtree__tip';
+        tip.id = tipId;
+        tip.setAttribute('role', 'tooltip');
+        tip.textContent = 'This search is disabled and won’t appear on your website.';
+        label.setAttribute('aria-describedby', tipId);
+        wrap.appendChild(label);
+        wrap.appendChild(tip);
+        return wrap;
       },
       renderTrailing: (it) => { const s = config.searches.find((x) => x.id === it.id); return s ? rowActions(s) : null; },
+      itemAttrs: (it) => {
+        const s = config.searches.find((x) => x.id === it.id);
+        return { className: s && s.enabled === false ? 'is-unavailable' : '' };
+      },
       onChange: () => { reorderSearches(tree.getItems().map((it) => it.id)); onChange(); },
     });
   }
@@ -240,7 +296,7 @@
     const draft = existing
       ? clone(existing)
       // The first search created is the default (starred).
-      : { id: uid(), type, name: '', displayLabel: '', url: '', urlencode: true, buttonLabel: 'Search', isDefault: config.searches.length === 0 };
+      : { id: uid(), type, name: '', displayLabel: '', url: '', urlencode: true, buttonLabel: 'Search', isDefault: config.searches.length === 0, enabled: true };
     const noun = 'custom search';
     const prev = document.activeElement;
 
