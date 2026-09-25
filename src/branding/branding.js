@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const colorInputs = {
     primary: $('[aria-label="Primary color"]'),
     secondary: $('[aria-label="Secondary color"]'),
+    action: $('[aria-label="Actions color"]'),
   };
   // Logo
   const logoInput = $('[data-input="logo"]');
@@ -44,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // State machine baselines.
   let systemDefault = {
-    primaryColor: '#255096', secondaryColor: '#3D3F42', logo: null,
+    primaryColor: '#255096', secondaryColor: '#3D3F42', actionColor: '#255096', logo: null,
     showSiteName: false, decorative: false, altText: '', favicon: null,
   };
   let lastSaved = null;
@@ -83,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const current = () => ({
     primaryColor: (colorInputs.primary.value || '').toUpperCase(),
     secondaryColor: (colorInputs.secondary.value || '').toUpperCase(),
+    actionColor: (colorInputs.action.value || '').toUpperCase(),
     logo: logoData,
     showSiteName: showSiteCb.checked,
     decorative: decorativeCb.checked,
@@ -91,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   const eq = (a, b) => a && b &&
     a.primaryColor === b.primaryColor && a.secondaryColor === b.secondaryColor &&
+    a.actionColor === b.actionColor &&
     a.logo === b.logo && a.showSiteName === b.showSiteName &&
     a.decorative === b.decorative && a.altText === b.altText && a.favicon === b.favicon;
   const baseline = () => lastSaved || systemDefault;
@@ -199,6 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function applyConfig(cfg) {
     setSwatch('primary', cfg.primaryColor);
     setSwatch('secondary', cfg.secondaryColor);
+    setSwatch('action', cfg.actionColor);
     logoData = cfg.logo || null;
     faviconData = cfg.favicon || null;
     showSiteCb.checked = !!cfg.showSiteName;

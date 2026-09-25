@@ -26,6 +26,7 @@ module.exports = {
   BRANDING_DEFAULTS: {
     primaryColor: '#255096',
     secondaryColor: '#3D3F42',
+    actionColor: '#255096',
     logo: null, // data URL or null
     showSiteName: false,
     decorative: false,
