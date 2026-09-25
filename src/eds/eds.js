@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hasStoredPassword = !!(data.saved && data.saved.hasApiPassword);
       setInputs(baseline);        // clears the password box (never returned)
       reflectPasswordState();
-      toast('Your integration has been published.');
+      toast('Integration published successfully. Your changes are now live!');
     } catch (err) {
       toast(err.message || 'We could not publish your changes. Try again.');
     } finally {

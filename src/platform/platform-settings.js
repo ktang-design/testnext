@@ -14,8 +14,8 @@
   var CACHE_KEY = 'platform-cache:' + endpoint;
   // Per-page toast message shown on a successful publish (keyed by endpoint tail).
   var PUBLISHED_MSG = {
-    'language-region': 'Your language and region settings have been published.',
-    analytics: 'Your analytics settings have been published.',
+    'language-region': 'Language and region settings published successfully. Your changes are now live!',
+    analytics: 'Analytics settings published successfully. Your changes are now live!',
   };
 
   var baseline = {}, saving = false, justSaved = false, loaded = false, touched = false;
@@ -133,7 +133,7 @@
       baseline = cur();
       try { localStorage.setItem(CACHE_KEY, JSON.stringify(baseline)); } catch (_) {}
       justSaved = true;
-      if (window.Toast) window.Toast.show(PUBLISHED_MSG[endpoint.split('/').pop()] || 'Your changes have been published.');
+      if (window.Toast) window.Toast.show(PUBLISHED_MSG[endpoint.split('/').pop()] || 'Published successfully. Your changes are now live!');
     } catch (err) { if (window.Toast) window.Toast.show(err.message || 'We could not publish your changes. Try again.'); }
     finally { saving = false; render(); }
   });

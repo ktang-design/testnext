@@ -22,6 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   saveBtn.addEventListener('click', () => {
     if (saveBtn.disabled) return;
-    toast('Your access settings have been published.');
+    toast('Access settings published successfully. Your changes are now live!');
   });
 });

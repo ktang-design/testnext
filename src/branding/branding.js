@@ -336,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
       writeCache({ defaults: systemDefault, saved: lastSaved });
       syncWebsiteBrandingCache(lastSaved.primaryColor, lastSaved.secondaryColor);
       justSaved = true;
-      if (window.Toast) window.Toast.show('Your branding has been published.');
+      if (window.Toast) window.Toast.show('Branding published successfully. Your changes are now live!');
     } catch (err) {
       if (window.Toast) window.Toast.show(err.message || 'We could not publish your changes. Try again.');
     } finally {

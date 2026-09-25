@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
       lastSaved = data.saved || current(); // new last-saved baseline
       writeCache({ defaults: systemDefault, saved: lastSaved });
       justSaved = true;
-      if (window.Toast) window.Toast.show('Your site details have been published.');
+      if (window.Toast) window.Toast.show('Site details published successfully. Your changes are now live!');
     } catch (err) {
       if (window.Toast) window.Toast.show(err.message || 'We could not publish your changes. Try again.');
     } finally {
