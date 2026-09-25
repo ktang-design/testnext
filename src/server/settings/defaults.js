@@ -25,8 +25,11 @@ module.exports = {
   // Factory defaults for the Branding page.
   BRANDING_DEFAULTS: {
     primaryColor: '#255096',
+    primaryOpacity: 100,
     secondaryColor: '#3D3F42',
+    secondaryOpacity: 100,
     actionColor: '#255096',
+    actionOpacity: 100,
     logo: null, // data URL or null
     showSiteName: false,
     decorative: false,

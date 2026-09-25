@@ -109,8 +109,10 @@
                     <span class="swatch__chip"></span>
                     <input type="color" value="#255096" aria-label="Primary color" />
                   </span>
-                  <span class="color-card__hex">#255096</span>
-                  <span class="color-card__opacity">100%</span>
+                  <input type="text" class="color-card__hex" data-color-hex maxlength="7" spellcheck="false" value="#255096" aria-label="Primary color hex" />
+                  <span class="color-card__opacity">
+                    <input type="number" class="color-card__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="Primary opacity percent" /><span aria-hidden="true">%</span>
+                  </span>
                 </div>
               </div>
               <div class="color-card">
@@ -123,8 +125,10 @@
                     <span class="swatch__chip"></span>
                     <input type="color" value="#3D3F42" aria-label="Secondary color" />
                   </span>
-                  <span class="color-card__hex">#3D3F42</span>
-                  <span class="color-card__opacity">100%</span>
+                  <input type="text" class="color-card__hex" data-color-hex maxlength="7" spellcheck="false" value="#3D3F42" aria-label="Secondary color hex" />
+                  <span class="color-card__opacity">
+                    <input type="number" class="color-card__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="Secondary opacity percent" /><span aria-hidden="true">%</span>
+                  </span>
                 </div>
               </div>
               <div class="color-card">
@@ -137,8 +141,10 @@
                     <span class="swatch__chip"></span>
                     <input type="color" value="#255096" aria-label="Actions color" />
                   </span>
-                  <span class="color-card__hex">#255096</span>
-                  <span class="color-card__opacity">100%</span>
+                  <input type="text" class="color-card__hex" data-color-hex maxlength="7" spellcheck="false" value="#255096" aria-label="Actions color hex" />
+                  <span class="color-card__opacity">
+                    <input type="number" class="color-card__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="Actions opacity percent" /><span aria-hidden="true">%</span>
+                  </span>
                 </div>
               </div>
             </div>
@@ -280,7 +286,7 @@
         var c = JSON.parse(localStorage.getItem('platform-branding-config') || 'null');
         var cfg = c && (c.saved || c.defaults);
         if (!cfg) return;
-        var setColor = function (sel, hex) {
+        var setColor = function (sel, hex, opacity) {
           if (!hex) return;
           var input = document.querySelector(sel);
           if (!input) return;
@@ -288,11 +294,14 @@
           var swatch = input.closest('.swatch');
           if (swatch) swatch.style.setProperty('--swatch', hex);
           var card = input.closest('.color-card__value');
-          var hexLabel = card && card.querySelector('.color-card__hex');
-          if (hexLabel) hexLabel.textContent = hex.toUpperCase();
+          var hexField = card && card.querySelector('[data-color-hex]');
+          if (hexField) hexField.value = hex.toUpperCase();
+          var opField = card && card.querySelector('[data-color-opacity]');
+          if (opField && opacity != null) opField.value = opacity;
         };
-        setColor('[aria-label="Primary color"]', cfg.primaryColor);
-        setColor('[aria-label="Secondary color"]', cfg.secondaryColor);
+        setColor('[aria-label="Primary color"]', cfg.primaryColor, cfg.primaryOpacity);
+        setColor('[aria-label="Secondary color"]', cfg.secondaryColor, cfg.secondaryOpacity);
+        setColor('[aria-label="Actions color"]', cfg.actionColor, cfg.actionOpacity);
         var ss = document.querySelector('[data-opt="showSiteName"]'); if (ss) ss.checked = !!cfg.showSiteName;
         var dec = document.querySelector('[data-opt="decorative"]'); if (dec) dec.checked = !!cfg.decorative;
         var alt = document.getElementById('logo-alt'); if (alt && cfg.altText != null) alt.value = cfg.altText;

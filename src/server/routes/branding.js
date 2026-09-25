@@ -27,6 +27,12 @@ router.get('/', requireApiAuth, ah(async (req, res) => {
   res.json({ defaults: BRANDING_DEFAULTS, saved: await brandingRepository.get(req.session.userId) });
 }));
 
+// 0-100, defaulting to fully opaque when missing/invalid.
+function cleanOpacity(v) {
+  const n = parseInt(v, 10);
+  return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 100;
+}
+
 router.put('/', requireApiAuth, ah(async (req, res) => {
   const b = req.body || {};
   const primaryColor = typeof b.primaryColor === 'string' ? b.primaryColor : '';
@@ -43,8 +49,11 @@ router.put('/', requireApiAuth, ah(async (req, res) => {
   }
   const config = {
     primaryColor: primaryColor.toUpperCase(),
+    primaryOpacity: cleanOpacity(b.primaryOpacity),
     secondaryColor: secondaryColor.toUpperCase(),
+    secondaryOpacity: cleanOpacity(b.secondaryOpacity),
     actionColor: actionColor.toUpperCase(),
+    actionOpacity: cleanOpacity(b.actionOpacity),
     logo: b.logo || null,
     showSiteName: !!b.showSiteName,
     decorative: !!b.decorative,

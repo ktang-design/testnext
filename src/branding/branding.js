@@ -8,11 +8,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const LOGO_MAX = 3 * 1024 * 1024; // 3 MB (keeps uploads under the serverless body limit)
   const FAVICON_MAX = 1 * 1024 * 1024; // 1 MB
 
-  // Color swatches
+  // Color swatches, plus their paired editable hex / opacity fields.
   const colorInputs = {
     primary: $('[aria-label="Primary color"]'),
     secondary: $('[aria-label="Secondary color"]'),
     action: $('[aria-label="Actions color"]'),
+  };
+  const hexInputs = {};
+  const opacityInputs = {};
+  Object.entries(colorInputs).forEach(([which, input]) => {
+    const card = input.closest('.color-card__value');
+    hexInputs[which] = card.querySelector('[data-color-hex]');
+    opacityInputs[which] = card.querySelector('[data-color-opacity]');
+  });
+  const clampOpacity = (v) => {
+    const n = parseInt(v, 10);
+    return Number.isNaN(n) ? 100 : Math.max(0, Math.min(100, n));
   };
   // Logo
   const logoInput = $('[data-input="logo"]');
@@ -45,8 +56,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // State machine baselines.
   let systemDefault = {
-    primaryColor: '#255096', secondaryColor: '#3D3F42', actionColor: '#255096', logo: null,
-    showSiteName: false, decorative: false, altText: '', favicon: null,
+    primaryColor: '#255096', primaryOpacity: 100,
+    secondaryColor: '#3D3F42', secondaryOpacity: 100,
+    actionColor: '#255096', actionOpacity: 100,
+    logo: null, showSiteName: false, decorative: false, altText: '', favicon: null,
   };
   let lastSaved = null;
   let saving = false, justSaved = false, saveError = null;
@@ -83,8 +96,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const current = () => ({
     primaryColor: (colorInputs.primary.value || '').toUpperCase(),
+    primaryOpacity: clampOpacity(opacityInputs.primary.value),
     secondaryColor: (colorInputs.secondary.value || '').toUpperCase(),
+    secondaryOpacity: clampOpacity(opacityInputs.secondary.value),
     actionColor: (colorInputs.action.value || '').toUpperCase(),
+    actionOpacity: clampOpacity(opacityInputs.action.value),
     logo: logoData,
     showSiteName: showSiteCb.checked,
     decorative: decorativeCb.checked,
@@ -92,8 +108,9 @@ document.addEventListener('DOMContentLoaded', () => {
     favicon: faviconData,
   });
   const eq = (a, b) => a && b &&
-    a.primaryColor === b.primaryColor && a.secondaryColor === b.secondaryColor &&
-    a.actionColor === b.actionColor &&
+    a.primaryColor === b.primaryColor && a.primaryOpacity === b.primaryOpacity &&
+    a.secondaryColor === b.secondaryColor && a.secondaryOpacity === b.secondaryOpacity &&
+    a.actionColor === b.actionColor && a.actionOpacity === b.actionOpacity &&
     a.logo === b.logo && a.showSiteName === b.showSiteName &&
     a.decorative === b.decorative && a.altText === b.altText && a.favicon === b.favicon;
   const baseline = () => lastSaved || systemDefault;
@@ -105,8 +122,12 @@ document.addEventListener('DOMContentLoaded', () => {
     input.value = hex;
     const swatch = input.closest('.swatch');
     swatch.style.setProperty('--swatch', hex);
-    const hexLabel = input.closest('.color-card__value').querySelector('.color-card__hex');
-    if (hexLabel) hexLabel.textContent = hex.toUpperCase();
+    const hexField = hexInputs[which];
+    if (hexField) hexField.value = hex.toUpperCase();
+  }
+  function setOpacityField(which, value) {
+    const opField = opacityInputs[which];
+    if (opField) opField.value = value;
   }
   // Detect whether an image is light/white (so a white logo/favicon would be
   // invisible on a white background) by averaging the luminance of its opaque
@@ -201,8 +222,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Apply a whole config object to the UI.
   function applyConfig(cfg) {
     setSwatch('primary', cfg.primaryColor);
+    setOpacityField('primary', cfg.primaryOpacity != null ? cfg.primaryOpacity : 100);
     setSwatch('secondary', cfg.secondaryColor);
+    setOpacityField('secondary', cfg.secondaryOpacity != null ? cfg.secondaryOpacity : 100);
     setSwatch('action', cfg.actionColor);
+    setOpacityField('action', cfg.actionOpacity != null ? cfg.actionOpacity : 100);
     logoData = cfg.logo || null;
     faviconData = cfg.favicon || null;
     showSiteCb.checked = !!cfg.showSiteName;
@@ -224,12 +248,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ---- Wire up inputs ----
   Object.entries(colorInputs).forEach(([which, input]) => {
+    const hexField = hexInputs[which];
+    const opField = opacityInputs[which];
     input.addEventListener('input', () => { setSwatch(which, input.value); onChange(); });
+    if (hexField) {
+      hexField.addEventListener('input', () => {
+        let v = hexField.value.trim();
+        if (v && !v.startsWith('#')) v = '#' + v;
+        if (/^#[0-9a-fA-F]{6}$/.test(v)) { setSwatch(which, v); onChange(); }
+      });
+      hexField.addEventListener('blur', () => { hexField.value = (input.value || '').toUpperCase(); });
+    }
+    if (opField) {
+      opField.addEventListener('input', () => {
+        if (Number.isNaN(parseInt(opField.value, 10))) return;
+        onChange();
+      });
+      opField.addEventListener('blur', () => { opField.value = clampOpacity(opField.value); });
+    }
     // Swap the native picker for the shared component, driven from the existing
     // swatch chip. paint:false because setSwatch above already renders it from
-    // the input event the picker dispatches. No opacity control on this page.
+    // the input event the picker dispatches; the swatch itself stays a solid
+    // colour (no alpha blend) — only the hex/opacity fields carry opacity.
     if (window.ColorPicker) {
-      window.ColorPicker.upgrade(input, { trigger: input.closest('.swatch'), paint: false, label: which });
+      window.ColorPicker.upgrade(input, {
+        trigger: input.closest('.swatch'), paint: false, label: which, opacityInput: opField || null,
+      });
     }
   });
 
