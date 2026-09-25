@@ -48,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Save bar
   const saveBtn = $('[data-action="save"]');
   const saveLabel = saveBtn.querySelector('.btn__label');
-  const statusEl = $('[data-save-status]');
 
   // In-memory image data (data URLs, or null).
   let logoData = null;
@@ -62,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     logo: null, showSiteName: false, decorative: false, altText: '', favicon: null,
   };
   let lastSaved = null;
-  let saving = false, justSaved = false, saveError = null;
+  let saving = false, justSaved = false;
   let touched = false; // set once the user edits, so revalidation won't clobber
 
   // Instant-load cache: paint the saved branding from the last-known value before
@@ -207,16 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAltValidation();
     saveBtn.disabled = saving || !dirty || !altValid();
     saveBtn.classList.toggle('is-saving', saving);
-    saveLabel.textContent = saving ? 'Saving' : 'Save';
-
-    let status = '', isError = false;
-    if (!saving) {
-      if (saveError) { status = saveError; isError = true; }
-      else if (dirty) status = 'Unsaved changes';
-    }
-    statusEl.textContent = status;
-    statusEl.hidden = status === '';
-    statusEl.classList.toggle('save-status--error', isError);
+    saveLabel.textContent = saving ? 'Publishing' : 'Publish';
   }
 
   // Apply a whole config object to the UI.
@@ -241,7 +231,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // A user change occurred → clear transient status.
   function onChange() {
     justSaved = false;
-    saveError = null;
     touched = true;
     render();
   }
@@ -329,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function doSave() {
     if (!altValid()) { renderAltValidation(); altInput.focus(); return; } // required alt text missing
-    saving = true; justSaved = false; saveError = null; render();
+    saving = true; justSaved = false; render();
     try {
       const res = await fetch('/api/branding', {
         method: 'PUT',
@@ -338,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify(current()),
       });
       if (!res.ok) {
-        let msg = 'Couldn’t save. Try again.';
+        let msg = 'We could not publish your changes. Try again.';
         try { const d = await res.json(); if (d.message) msg = d.message; } catch (_) {}
         throw new Error(msg);
       }
@@ -347,9 +336,9 @@ document.addEventListener('DOMContentLoaded', () => {
       writeCache({ defaults: systemDefault, saved: lastSaved });
       syncWebsiteBrandingCache(lastSaved.primaryColor, lastSaved.secondaryColor);
       justSaved = true;
-      if (window.Toast) window.Toast.show('Branding saved.');
+      if (window.Toast) window.Toast.show('Your branding has been published.');
     } catch (err) {
-      saveError = err.message || 'Couldn’t save. Try again.';
+      if (window.Toast) window.Toast.show(err.message || 'We could not publish your changes. Try again.');
     } finally {
       saving = false; render();
     }

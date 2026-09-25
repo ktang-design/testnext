@@ -1,5 +1,5 @@
-// Site details — Save / Unsaved-changes logic, persisted to the signed-in
-// user's account via /api/site-settings.
+// Site details — Publish / unpublished-changes logic, persisted to the
+// signed-in user's account via /api/site-settings.
 //
 // Two distinct baselines:
 //   systemDefault — the factory value, used as the dirty/Save baseline until the
@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const previewDesc = document.querySelector('[data-preview="desc"]');
   const saveBtn = document.querySelector('[data-action="save"]');
   const saveLabel = saveBtn.querySelector('.btn__label');
-  const statusEl = document.querySelector('[data-save-status]');
   const nameError = document.querySelector('[data-error-for="site-name"]');
   const descError = document.querySelector('[data-error-for="site-description"]');
   const adminEmailInput = document.getElementById('site-admin-email');
@@ -33,7 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastSaved = null; // null = never saved
   let saving = false;
   let justSaved = false;
-  let saveError = null;
   let touched = false; // set once the user edits, so revalidation won't clobber
 
   // Instant-load cache: paint the saved values from the last-known value before
@@ -88,17 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     saveBtn.disabled = saving || !dirty || !requiredFilled() || !emailOk();
     saveBtn.classList.toggle('is-saving', saving);
-    saveLabel.textContent = saving ? 'Saving' : 'Save';
-
-    let status = '';
-    let isError = false;
-    if (!saving) {
-      if (saveError) { status = saveError; isError = true; }
-      else if (dirty) status = 'Unsaved changes';
-    }
-    statusEl.textContent = status;
-    statusEl.hidden = status === '';
-    statusEl.classList.toggle('save-status--error', isError);
+    saveLabel.textContent = saving ? 'Publishing' : 'Publish';
   }
 
   function setInputs(values) {
@@ -110,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function handleInput() {
     justSaved = false;
-    saveError = null;
     touched = true;
     refreshDerived();
     render();
@@ -131,7 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     saving = true;
     justSaved = false;
-    saveError = null;
     render();
     try {
       const res = await fetch('/api/site-settings', {
@@ -141,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify(current()),
       });
       if (!res.ok) {
-        let msg = 'Couldn’t save. Try again.';
+        let msg = 'We could not publish your changes. Try again.';
         try { const d = await res.json(); if (d.message) msg = d.message; } catch (_) {}
         throw new Error(msg);
       }
@@ -149,9 +135,9 @@ document.addEventListener('DOMContentLoaded', () => {
       lastSaved = data.saved || current(); // new last-saved baseline
       writeCache({ defaults: systemDefault, saved: lastSaved });
       justSaved = true;
-      if (window.Toast) window.Toast.show('Site details saved.');
+      if (window.Toast) window.Toast.show('Your site details have been published.');
     } catch (err) {
-      saveError = err.message || 'Couldn’t save. Try again.';
+      if (window.Toast) window.Toast.show(err.message || 'We could not publish your changes. Try again.');
     } finally {
       saving = false;
       render();
@@ -185,9 +171,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })();
 
-  // ---- Unsaved-changes navigation guard --------------------------------
+  // ---- Unpublished-changes navigation guard -----------------------------
   // Trigger a confirm modal on in-app navigation (and a native prompt on
-  // browser exit) while there are unsaved changes.
+  // browser exit) while there are unpublished changes.
   const modal = document.querySelector('[data-modal="unsaved"]');
   let pendingHref = null;
   let allowLeave = false;

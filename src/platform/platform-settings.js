@@ -1,9 +1,9 @@
 // Generic controller for the simple Platform settings pages (Language & region,
 // Analytics). Declarative: a [data-settings="/api/..."]
-// container holds [data-field="key"] inputs, a [data-action="save"] button, and
-// a [data-save-status] element. Handles load → populate → dirty-tracking → save
-// (with "Unsaved changes"/"Saved!" status + inline error) and the unsaved-changes
-// navigation guard. Read-only fields simply omit data-field.
+// container holds [data-field="key"] inputs and a [data-action="save"] button.
+// Handles load → populate → dirty-tracking → publish (button state + a toast on
+// success or failure) and the unpublished-changes navigation guard. Read-only
+// fields simply omit data-field.
 (function () {
   var root = document.querySelector('[data-settings]');
   if (!root) return;
@@ -11,15 +11,14 @@
   var fields = Array.prototype.slice.call(root.querySelectorAll('[data-field]'));
   var saveBtn = root.querySelector('[data-action="save"]');
   var saveLabel = saveBtn.querySelector('.btn__label');
-  var statusEl = root.querySelector('[data-save-status]');
   var CACHE_KEY = 'platform-cache:' + endpoint;
-  // Per-page toast message shown on a successful save (keyed by endpoint tail).
-  var SAVED_MSG = {
-    'language-region': 'Language & region settings saved.',
-    analytics: 'Analytics settings saved.',
+  // Per-page toast message shown on a successful publish (keyed by endpoint tail).
+  var PUBLISHED_MSG = {
+    'language-region': 'Your language and region settings have been published.',
+    analytics: 'Your analytics settings have been published.',
   };
 
-  var baseline = {}, saving = false, justSaved = false, saveError = null, loaded = false, touched = false;
+  var baseline = {}, saving = false, justSaved = false, loaded = false, touched = false;
   // US-style phone mask: digits in -> (XXX) XXX-XXXX (progressive as you type).
   function formatPhone(v) {
     var d = String(v == null ? '' : v).replace(/\D/g, '').slice(0, 10);
@@ -75,13 +74,7 @@
   function render() {
     saveBtn.disabled = saving || !dirty();
     saveBtn.classList.toggle('is-saving', saving);
-    if (saveLabel) saveLabel.textContent = saving ? 'Saving' : 'Save';
-    var s = '', err = false;
-    if (!saving) {
-      if (saveError) { s = saveError; err = true; }
-      else if (dirty()) s = 'Unsaved changes';
-    }
-    if (statusEl) { statusEl.textContent = s; statusEl.hidden = s === ''; statusEl.classList.toggle('save-status--error', err); }
+    if (saveLabel) saveLabel.textContent = saving ? 'Publishing' : 'Publish';
   }
   function setValues(v) {
     fields.forEach(function (f) {
@@ -100,7 +93,7 @@
         var p = applyMask(f.dataset.mask, f.value);
         if (p !== f.value) { f.value = p; try { f.setSelectionRange(p.length, p.length); } catch (_) {} }
       }
-      justSaved = false; saveError = null; touched = true; render();
+      justSaved = false; touched = true; render();
     };
     f.addEventListener('input', onEdit);
     f.addEventListener('change', onEdit);
@@ -131,17 +124,17 @@
       if (bad) bad.focus();
       return;
     }
-    saving = true; justSaved = false; saveError = null; render();
+    saving = true; justSaved = false; render();
     try {
       var res = await fetch(endpoint, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(cur()) });
-      if (!res.ok) { var m = 'Couldn’t save. Try again.'; try { var d = await res.json(); if (d.message) m = d.message; } catch (_) {} throw new Error(m); }
+      if (!res.ok) { var m = 'We could not publish your changes. Try again.'; try { var d = await res.json(); if (d.message) m = d.message; } catch (_) {} throw new Error(m); }
       var data = await res.json();
       if (data && data.saved) setValues(data.saved); // reflect server-normalized values
       baseline = cur();
       try { localStorage.setItem(CACHE_KEY, JSON.stringify(baseline)); } catch (_) {}
       justSaved = true;
-      if (window.Toast) window.Toast.show(SAVED_MSG[endpoint.split('/').pop()] || 'Changes saved.');
-    } catch (err) { saveError = err.message || 'Couldn’t save. Try again.'; }
+      if (window.Toast) window.Toast.show(PUBLISHED_MSG[endpoint.split('/').pop()] || 'Your changes have been published.');
+    } catch (err) { if (window.Toast) window.Toast.show(err.message || 'We could not publish your changes. Try again.'); }
     finally { saving = false; render(); }
   });
 
@@ -156,7 +149,7 @@
     .catch(function () { baseline = cur(); loaded = true; render(); });
   render();
 
-  // ---- Unsaved-changes navigation guard ----
+  // ---- Unpublished-changes navigation guard ----
   var modal = document.querySelector('[data-modal="unsaved"]');
   if (modal) {
     var pending = null, allow = false;
