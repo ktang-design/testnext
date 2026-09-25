@@ -31,7 +31,8 @@ router.put('/', requireApiAuth, ah(async (req, res) => {
   const b = req.body || {};
   const primaryColor = typeof b.primaryColor === 'string' ? b.primaryColor : '';
   const secondaryColor = typeof b.secondaryColor === 'string' ? b.secondaryColor : '';
-  if (!HEX.test(primaryColor) || !HEX.test(secondaryColor)) {
+  const actionColor = typeof b.actionColor === 'string' ? b.actionColor : '';
+  if (!HEX.test(primaryColor) || !HEX.test(secondaryColor) || !HEX.test(actionColor)) {
     return res.status(400).json({ error: 'INVALID_COLOR', message: 'Colors must be hex values.' });
   }
   if (!validImage(b.logo, LOGO_MAX)) {
@@ -43,6 +44,7 @@ router.put('/', requireApiAuth, ah(async (req, res) => {
   const config = {
     primaryColor: primaryColor.toUpperCase(),
     secondaryColor: secondaryColor.toUpperCase(),
+    actionColor: actionColor.toUpperCase(),
     logo: b.logo || null,
     showSiteName: !!b.showSiteName,
     decorative: !!b.decorative,

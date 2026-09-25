@@ -9,6 +9,14 @@ module.exports = {
     description: 'The world’s most powerful and accessible library website builder.',
     adminEmail: '',
   },
+  // Research participant accounts see a stand-in "real library" name/description
+  // instead of the generic product copy above, so usability-test participants
+  // aren't confronted with marketing copy about the builder itself.
+  RESEARCH_PARTICIPANT_DEFAULTS: {
+    name: 'Stratum Library',
+    description: 'Stratum Library is your local public library for books, learning, community programs, quiet spaces, and discovering something new.',
+    adminEmail: '',
+  },
   NAME_MAX: 100,
   DESCRIPTION_MAX: 300,
   ADMIN_EMAIL_MAX: 254,
@@ -18,6 +26,7 @@ module.exports = {
   BRANDING_DEFAULTS: {
     primaryColor: '#255096',
     secondaryColor: '#3D3F42',
+    actionColor: '#255096',
     logo: null, // data URL or null
     showSiteName: false,
     decorative: false,

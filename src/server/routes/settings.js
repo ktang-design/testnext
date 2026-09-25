@@ -4,10 +4,13 @@
 //   PUT  /api/site-settings  -> { saved }              (persists name + description)
 
 const express = require('express');
-const { requireApiAuth } = require('../auth/authGuard');
+const { requireApiAuth, RESEARCH_PARTICIPANT } = require('../auth/authGuard');
+const { userRepository } = require('../auth/repository');
 const { settingsRepository } = require('../settings/SiteSettingsRepository');
 const { logActivity } = require('../platform/activity');
-const { FACTORY_DEFAULTS, NAME_MAX, DESCRIPTION_MAX, ADMIN_EMAIL_MAX, EMAIL_RE } = require('../settings/defaults');
+const {
+  FACTORY_DEFAULTS, RESEARCH_PARTICIPANT_DEFAULTS, NAME_MAX, DESCRIPTION_MAX, ADMIN_EMAIL_MAX, EMAIL_RE,
+} = require('../settings/defaults');
 
 const router = express.Router();
 
@@ -16,7 +19,11 @@ const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch
 
 router.get('/', requireApiAuth, ah(async (req, res) => {
   const saved = await settingsRepository.get(req.session.userId);
-  res.json({ defaults: FACTORY_DEFAULTS, saved });
+  // Research participant accounts get a stand-in library name/description
+  // instead of the generic product copy, until they save their own.
+  const user = await userRepository.findById(req.session.userId);
+  const defaults = user && user.role === RESEARCH_PARTICIPANT ? RESEARCH_PARTICIPANT_DEFAULTS : FACTORY_DEFAULTS;
+  res.json({ defaults, saved });
 }));
 
 router.put('/', requireApiAuth, ah(async (req, res) => {
