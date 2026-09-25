@@ -18,11 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const saveBtn = document.querySelector('[data-action="save"]');
   const saveLabel = saveBtn.querySelector('.btn__label');
-  const statusEl = document.querySelector('[data-save-status]');
 
   let baseline = null;   // saved || defaults
   let saving = false;
-  let saveError = null;
   let touched = false;    // set once the user edits (guards load hydration)
   let validated = false;  // errors only surface after a Save attempt
   let hasStoredPassword = false; // a password is already saved server-side
@@ -80,17 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // button staying disabled).
     saveBtn.disabled = saving || !dirty;
     saveBtn.classList.toggle('is-saving', saving);
-    saveLabel.textContent = saving ? 'Saving' : 'Save';
-
-    let status = '';
-    let isError = false;
-    if (!saving) {
-      if (saveError) { status = saveError; isError = true; }
-      else if (dirty) status = 'Unsaved changes';
-    }
-    statusEl.textContent = status;
-    statusEl.hidden = status === '';
-    statusEl.classList.toggle('save-status--error', isError);
+    saveLabel.textContent = saving ? 'Publishing' : 'Publish';
   }
 
   function setInputs(cfg) {
@@ -105,7 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
       inputs.opid.value = inputs.opid.value.replace(/[^A-Za-z0-9]/g, '').slice(0, 6);
     }
     touched = true;
-    saveError = null;
     refreshCounts();
     updateValidation();
     render();
@@ -123,7 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     saving = true;
-    saveError = null;
     render();
     try {
       const res = await fetch(ENDPOINT, {
@@ -133,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify(current()),
       });
       if (!res.ok) {
-        let msg = 'Couldn’t save. Try again.';
+        let msg = 'We could not publish your changes. Try again.';
         try { const d = await res.json(); if (d.message) msg = d.message; } catch (_) {}
         throw new Error(msg);
       }
@@ -142,9 +128,9 @@ document.addEventListener('DOMContentLoaded', () => {
       hasStoredPassword = !!(data.saved && data.saved.hasApiPassword);
       setInputs(baseline);        // clears the password box (never returned)
       reflectPasswordState();
-      toast('Integration saved!');
+      toast('Your integration has been published.');
     } catch (err) {
-      saveError = err.message || 'Couldn’t save. Try again.';
+      toast(err.message || 'We could not publish your changes. Try again.');
     } finally {
       saving = false;
       render();
