@@ -74,7 +74,12 @@
 .popover__item--danger:hover, .popover__item--danger:focus-visible { background: #fdecec; }
 
 /* ----- Publish bar: status text + "Discard changes" text-link + Publish --- */
-.pageactions__inner { justify-content: space-between; }
+/* flex-end (not space-between) so the button group stays pinned to the right
+   edge even when the status text is hidden (e.g. no integration configured
+   yet, nothing ever auto-saved) — space-between would left-align it when
+   it's the only visible child. */
+.pageactions__inner { justify-content: flex-end; }
+.pageactions [data-save-status] { margin-right: auto; }
 .pageactions__buttons { display: flex; align-items: center; gap: 8px; }
 .btn--link {
   padding: 7px 16px 8px;
