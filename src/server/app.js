@@ -76,6 +76,13 @@ const PROTECTED_SECTIONS = new Set([
   '/website/pages', '/website/navigation', '/website/header', '/website/header-menu', '/website/footer', '/website/typography', '/website/branding', '/website/search',
   '/features/bento',
 ]);
+// The bare Page Builder landing page ("/website/") — an exact match only, not
+// a prefix base. Shared assets live right alongside it at that same level
+// (website-nav.js, website.css, website-preview.js/css, assets/…) and must
+// stay public, same as every other section's CSS/JS — so this can't join
+// PROTECTED_SECTIONS above, whose entries are also used as startsWith("base/")
+// prefixes to cover state carried deeper in a URL (see isProtectedPath).
+const PROTECTED_EXACT = new Set(['/website']);
 
 function sectionOf(reqPath) {
   // Normalize "/branding", "/branding/", "/branding/index.html" -> "/branding"
@@ -90,7 +97,7 @@ function sectionOf(reqPath) {
 // nested under a protected section is protected too.
 function isProtectedPath(reqPath) {
   const sect = sectionOf(reqPath);
-  if (PROTECTED_SECTIONS.has(sect)) return true;
+  if (PROTECTED_SECTIONS.has(sect) || PROTECTED_EXACT.has(sect)) return true;
   for (const base of PROTECTED_SECTIONS) { if (sect.startsWith(base + '/')) return true; }
   return false;
 }
