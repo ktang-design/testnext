@@ -35,6 +35,16 @@
 
   var uid = function () { return 'b_' + Math.random().toString(36).slice(2, 10); };
   var labelOf = function (b) { return (b && b.name && b.name.trim()) || 'Bento block'; };
+  // "Item" -> "Item Copy" -> "Item Copy 2" -> ... — strips any existing
+  // "Copy"/"Copy N" suffix first, so duplicating a copy doesn't double up.
+  var nextCopyName = function (title, existingNames) {
+    var m = /^(.*) Copy(?: (\d+))?$/.exec(title);
+    var base = m ? m[1] : title;
+    if (existingNames.indexOf(base + ' Copy') === -1) return base + ' Copy';
+    var n = 2;
+    while (existingNames.indexOf(base + ' Copy ' + n) !== -1) n++;
+    return base + ' Copy ' + n;
+  };
   var serializeBlocks = function (list) {
     return JSON.stringify((list || []).map(function (b) {
       return { id: b.id, name: b.name || '', sourceType: b.sourceType || '', contentProvider: b.contentProvider || '', subjects: b.subjects || '' };
@@ -160,7 +170,9 @@
   function duplicateBlock(id) {
     var src = state.blocks.filter(function (b) { return b.id === id; })[0];
     if (!src) return;
-    state.blocks.push({ id: uid(), name: src.name, contentProvider: src.contentProvider });
+    var existingNames = state.blocks.map(function (b) { return labelOf(b); });
+    var name = nextCopyName(labelOf(src), existingNames);
+    state.blocks.push({ id: uid(), name: name, contentProvider: src.contentProvider });
     syncTree();
   }
 
