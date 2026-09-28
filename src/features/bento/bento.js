@@ -26,10 +26,10 @@
   var state = { integrationConfigured: false, blocks: [] };
   var publishedBlocks = []; // last-known published snapshot — what the live site shows
   var options = { sourceType: [], contentProvider: [], subjects: [] };
-  var draftBaseline = '';   // serialized form of the last SERVER-CONFIRMED draft
-  var saving = false;       // an auto-save PUT is in flight
+  var saving = false;        // an auto-save PUT is in flight (blocks overlapping calls)
   var publishing = false;   // a publish POST is in flight
-  var showSavedMsg = false; // true once an auto-save has completed this session
+  // 'idle' | 'pending' (edited, not yet confirmed saved) | 'saved'
+  var saveState = 'idle';
   var autoSaveTimer = null;
   var tree = null;
 
@@ -40,27 +40,26 @@
       return { id: b.id, name: b.name || '', sourceType: b.sourceType || '', contentProvider: b.contentProvider || '', subjects: b.subjects || '' };
     }));
   };
-  // Live-edit dirty check: compares the in-memory draft against what's
-  // published, so Publish can respond immediately without waiting on the
-  // debounce. Discard/status text instead key off draftBaseline (see render).
+  // Compares the in-memory draft against what's published. Drives Publish and
+  // Discard immediately on every edit — neither waits for the debounced
+  // auto-save to actually round-trip to the server.
   var isDraftDirty = function () { return serializeBlocks(state.blocks) !== serializeBlocks(publishedBlocks); };
 
   function toast(message) { if (window.Toast) window.Toast.show(message); }
 
   // ---- publish bar ----
   function render() {
-    var draftMatchesPublished = draftBaseline === serializeBlocks(publishedBlocks);
-    publishBtn.disabled = publishing || !isDraftDirty();
+    var dirty = isDraftDirty();
+    publishBtn.disabled = publishing || !dirty;
     publishBtn.classList.toggle('is-saving', publishing);
     publishLabel.textContent = publishing ? 'Publishing' : 'Publish';
-    // Discard changes appears once there's a server-confirmed draft that
-    // differs from published, and stays until the draft catches back up —
-    // independent of the live in-memory edit, so it doesn't flicker mid-type.
-    discardBtn.hidden = draftMatchesPublished;
-    if (saving) {
+    // Discard changes shows the instant there's anything to discard — no
+    // waiting on the auto-save to confirm first.
+    discardBtn.hidden = !dirty;
+    if (saveState === 'pending') {
       statusEl.hidden = false;
-      statusEl.textContent = 'Saving…';
-    } else if (showSavedMsg) {
+      statusEl.textContent = 'Saving changes…';
+    } else if (saveState === 'saved') {
       statusEl.hidden = false;
       statusEl.textContent = 'Changes saved!';
     } else {
@@ -122,6 +121,7 @@
   }
   function afterModelChange() {
     renderStates();
+    saveState = 'pending'; // shows "Saving changes…" + Discard immediately, before the debounce even fires
     render();
     scheduleAutoSave();
   }
@@ -135,28 +135,22 @@
       title: editing ? 'Edit EDS bento block' : 'Create EDS bento block',
       submitLabel: editing ? 'Save block' : 'Create block',
       values: editing
-        ? { name: editing.name, sourceType: editing.sourceType, contentProvider: editing.contentProvider, subjects: editing.subjects }
+        ? { name: editing.name, contentProvider: editing.contentProvider }
         : {},
       fields: [
         { name: 'name', label: 'Block name', type: 'text', maxLength: 120 },
-        { name: 'sourceType', label: 'Source type (optional)', type: 'select', placeholder: 'All options', options: selectOptions(options.sourceType) },
         { name: 'contentProvider', label: 'Content provider (optional)', type: 'select', placeholder: 'All options', options: selectOptions(options.contentProvider) },
-        { name: 'subjects', label: 'Subjects (optional)', type: 'select', placeholder: 'All options', options: selectOptions(options.subjects) },
       ],
     }).then(function (values) {
       if (!values) return;
       if (editing) {
         editing.name = values.name || '';
-        editing.sourceType = values.sourceType || '';
         editing.contentProvider = values.contentProvider || '';
-        editing.subjects = values.subjects || '';
       } else {
         state.blocks.push({
           id: uid(),
           name: values.name || '',
-          sourceType: values.sourceType || '',
           contentProvider: values.contentProvider || '',
-          subjects: values.subjects || '',
         });
       }
       syncTree();
@@ -166,7 +160,7 @@
   function duplicateBlock(id) {
     var src = state.blocks.filter(function (b) { return b.id === id; })[0];
     if (!src) return;
-    state.blocks.push({ id: uid(), name: src.name, sourceType: src.sourceType, contentProvider: src.contentProvider, subjects: src.subjects });
+    state.blocks.push({ id: uid(), name: src.name, contentProvider: src.contentProvider });
     syncTree();
   }
 
@@ -198,7 +192,6 @@
   function autoSave() {
     if (saving) return Promise.resolve();
     saving = true;
-    render();
     return fetch(ENDPOINT, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -210,15 +203,15 @@
     }).then(function (data) {
       var draft = (data && data.draft) || { blocks: [] };
       state.blocks = Array.isArray(draft.blocks) ? draft.blocks : [];
-      draftBaseline = serializeBlocks(state.blocks);
       saving = false;
-      showSavedMsg = true;
+      saveState = 'saved';
       if (state.blocks.length && !tree) mountTree();
       else if (tree) tree.setItems(state.blocks);
       renderStates();
       render();
     }).catch(function (err) {
       saving = false;
+      saveState = 'idle';
       render();
       toast(err.message || 'We could not save your changes. Try again.');
     });
@@ -249,6 +242,9 @@
 
   function discardChanges() {
     if (discardBtn.hidden || publishing || saving) return;
+    // Cancel any pending debounced save — otherwise it could fire after the
+    // discard and silently re-write the very edits just discarded.
+    if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
     fetch(ENDPOINT + '/discard', { method: 'POST', credentials: 'include' })
       .then(function (res) {
         if (!res.ok) return res.json().catch(function () { return {}; }).then(function (d) { throw new Error(d.message || 'We could not discard your changes. Try again.'); });
@@ -257,8 +253,7 @@
       .then(function (data) {
         var draft = (data && data.draft) || { blocks: [] };
         state.blocks = Array.isArray(draft.blocks) ? draft.blocks : [];
-        draftBaseline = serializeBlocks(state.blocks);
-        showSavedMsg = false;
+        saveState = 'idle';
         if (state.blocks.length && !tree) mountTree();
         else if (tree) tree.setItems(state.blocks);
         renderStates();
@@ -300,7 +295,6 @@
       var published = d.published || { blocks: [] };
       state.blocks = Array.isArray(draft.blocks) ? draft.blocks : [];
       publishedBlocks = Array.isArray(published.blocks) ? published.blocks : [];
-      draftBaseline = serializeBlocks(state.blocks);
       if (state.integrationConfigured && state.blocks.length) mountTree();
       renderStates();
       render();
