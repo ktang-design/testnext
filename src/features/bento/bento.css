@@ -72,3 +72,20 @@
 .popover__item[aria-disabled="true"] { color: var(--gray-400); cursor: default; }
 .popover__item--danger { color: var(--error); }
 .popover__item--danger:hover, .popover__item--danger:focus-visible { background: #fdecec; }
+
+/* ----- Publish bar: status text + "Discard changes" text-link + Publish --- */
+.pageactions__inner { justify-content: space-between; }
+.pageactions__buttons { display: flex; align-items: center; gap: 8px; }
+.btn--link {
+  padding: 7px 16px 8px;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm, 4px);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 21px;
+  color: #2d62b7;
+  cursor: pointer;
+}
+.btn--link:hover { background: var(--blue-50, #e9effa); }
+.btn--link:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500, #3e75cf); }
