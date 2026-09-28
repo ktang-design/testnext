@@ -1278,7 +1278,7 @@
       // instant-load cache may have pre-populated state.pages, but the fetch is
       // authoritative, so a cache alone must not block it.)
       if (pages && Array.isArray(pages.pages) && !hostProvidedPages) state.pages = pages.pages;
-      state.bentoBlocks = (bento && bento.saved && Array.isArray(bento.saved.blocks)) ? bento.saved.blocks : [];
+      state.bentoBlocks = (bento && bento.published && Array.isArray(bento.published.blocks)) ? bento.published.blocks : [];
       ensureBentoSearch(!!(bento && bento.integrationConfigured && state.bentoBlocks.length));
       render();
       writeCache(cacheSnapshot());

@@ -123,12 +123,15 @@ const SCHEMA = [
     updated_at TEXT NOT NULL,
     PRIMARY KEY (user_id, kind)
   )`,
-  // Features > Bento: one JSON doc per user holding the search-integration flag
-  // and the ordered list of bento blocks.
+  // Features > Bento: one JSON doc per user holding the ordered list of bento
+  // blocks. `data` is the auto-saved draft (edited live); `published_data` is
+  // the last-published snapshot the live site actually reflects — kept apart
+  // so in-progress edits never leak onto the site before Publish is clicked.
   `CREATE TABLE IF NOT EXISTS bento_settings (
-    user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    data       TEXT NOT NULL,
-    updated_at TEXT NOT NULL
+    user_id       TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    data          TEXT NOT NULL,
+    published_data TEXT,
+    updated_at    TEXT NOT NULL
   )`,
   // Activity log entries (one row per tracked action). Scoped per account.
   `CREATE TABLE IF NOT EXISTS activity_events (
@@ -155,6 +158,7 @@ const COLUMN_PATCHES = [
   { table: 'users', column: 'status', ddl: "ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT 'active'" },
   { table: 'users', column: 'last_accessed_at', ddl: 'ALTER TABLE users ADD COLUMN last_accessed_at TEXT' },
   { table: 'site_settings', column: 'admin_email', ddl: "ALTER TABLE site_settings ADD COLUMN admin_email TEXT NOT NULL DEFAULT ''" },
+  { table: 'bento_settings', column: 'published_data', ddl: 'ALTER TABLE bento_settings ADD COLUMN published_data TEXT' },
 ];
 async function ensureColumns() {
   for (const p of COLUMN_PATCHES) {

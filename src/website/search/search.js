@@ -50,7 +50,7 @@
   // or deleted here (managed from Features > Bento); it drops out if Bento is
   // unconfigured. bentoConfigured() reads the /api/features/bento response.
   function bentoConfigured(bento) {
-    return !!(bento && bento.integrationConfigured && bento.saved && Array.isArray(bento.saved.blocks) && bento.saved.blocks.length);
+    return !!(bento && bento.integrationConfigured && bento.published && Array.isArray(bento.published.blocks) && bento.published.blocks.length);
   }
   function ensureBentoSearch(configured) {
     const list = config.searches || (config.searches = []);
