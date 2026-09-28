@@ -12,6 +12,15 @@
   --pageactions-h: 0px; /* measured & overwritten by app-shell.js */
 }
 
+/* Always reserve the scrollbar's width, whether or not it's currently needed.
+   Without this, centered page content (e.g. Bento's block list) visibly
+   shifts sideways the moment content grows past one viewport and a
+   scrollbar appears — or when a modal's body.is-locked (overflow:hidden,
+   below) removes the scrollbar entirely while it's open, then it reappears
+   on close if the page is now taller than the viewport. Reserving the gutter
+   up front means the content column's width never changes either way. */
+html { scrollbar-gutter: stable; }
+
 /* The save bar (.pageactions) is sticky, but sticky only holds an element in
    view once scrolling would otherwise carry it off-screen — it can't pull an
    element down to the viewport edge that's already fully visible. On a page
