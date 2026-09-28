@@ -140,7 +140,7 @@
   async function deleteLink(id) {
     const ok = await window.Modal.confirm({
       title: 'Delete custom link',
-      message: 'This link will be removed from your footer. This can’t be undone.',
+      message: 'This link will be removed from your footer. This cannot be undone.',
       confirmLabel: 'Delete link',
       cancelLabel: 'Keep link',
       danger: true,

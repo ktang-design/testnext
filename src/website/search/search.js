@@ -203,7 +203,7 @@
   async function deleteSearch(id) {
     const ok = await window.Modal.confirm({
       title: 'Delete search',
-      message: 'This search will be removed from your website. This can’t be undone.',
+      message: 'This search will be removed from your website. This cannot be undone.',
       confirmLabel: 'Delete search',
       cancelLabel: 'Keep search',
       danger: true,
@@ -280,7 +280,7 @@
         tip.className = 'navtree__tip';
         tip.id = tipId;
         tip.setAttribute('role', 'tooltip');
-        tip.textContent = 'This search is disabled and won’t appear on your website.';
+        tip.textContent = 'This search is disabled and will not appear on your website.';
         label.setAttribute('aria-describedby', tipId);
         wrap.appendChild(label);
         wrap.appendChild(tip);
