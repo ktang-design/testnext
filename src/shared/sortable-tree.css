@@ -56,7 +56,29 @@
   background: var(--blue-50);
   box-shadow: 0 0 0 1px var(--blue-500) inset;
 }
-.navtree__item.is-dragging > .navtree__row { opacity: 0.45; }
+/* The original slot while pointer-dragging: an empty placeholder left behind
+   at the picked-up position (not just a faded copy) — the real row is a
+   separate floating clone (.navtree__row--floating below) that follows the
+   pointer instead. */
+.navtree__item.is-dragging > .navtree__row {
+  background: var(--blue-50, #e9effa);
+}
+.navtree__item.is-dragging > .navtree__row > * { visibility: hidden; }
+/* The floating clone: lifted off the list, following the pointer. */
+.navtree__row--floating {
+  position: fixed;
+  z-index: 2000;
+  pointer-events: none;
+  background: var(--white, #fff);
+  box-shadow: 0 0 0 1px var(--blue-500, #3e75cf), 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+.navtree__row--floating .navtree__kebab { opacity: 0; }
+.navtree__movecue {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; flex-shrink: 0; margin-right: -2px;
+  color: var(--gray-600, #55585d);
+}
+.navtree__movecue svg { fill: none; stroke: currentColor; }
 .navtree__drop {
   position: absolute; left: 4px; right: 4px; height: 2px;
   background: var(--blue-500); border-radius: 2px; pointer-events: none;

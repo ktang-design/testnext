@@ -23,6 +23,11 @@
     '<circle cx="5.5" cy="3" r="1.3"/><circle cx="10.5" cy="3" r="1.3"/>' +
     '<circle cx="5.5" cy="8" r="1.3"/><circle cx="10.5" cy="8" r="1.3"/>' +
     '<circle cx="5.5" cy="13" r="1.3"/><circle cx="10.5" cy="13" r="1.3"/></svg>';
+  // Shown alongside the grip only on the floating clone while pointer-dragging.
+  const MOVE_ICON =
+    '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" ' +
+    'stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
+    '<path d="M8 1.5v13M1.5 8h13"/><path d="M5 4l3-2.5L11 4M5 12l3 2.5L11 12M4 5 1.5 8 4 11M12 5l2.5 3-2.5 3"/></svg>';
 
   const clone = (x) => JSON.parse(JSON.stringify(x));
 
@@ -198,7 +203,10 @@
       e.preventDefault();
       const handle = e.currentTarget;
       handle.setPointerCapture && handle.setPointerCapture(e.pointerId);
-      drag = { id, startX: e.clientX, startY: e.clientY, pointerId: e.pointerId, projection: null, moved: false };
+      drag = {
+        id, startX: e.clientX, startY: e.clientY, pointerId: e.pointerId, projection: null, moved: false,
+        offsetY: 0, floatEl: null,
+      };
       listEl.classList.add('navtree--dragging');
       const row = listEl.querySelector(`.navtree__item[data-id="${cssEsc(id)}"]`);
       if (row) row.classList.add('is-dragging');
@@ -208,9 +216,47 @@
 
     function indentWidth() { return 28; }
 
+    // A floating clone of the row that follows the pointer, so the item
+    // visibly lifts off the list — the original slot underneath is left as an
+    // empty placeholder (see the .is-dragging CSS) instead of just fading.
+    function startFloating(clientY) {
+      const row = listEl.querySelector(`.navtree__item[data-id="${cssEsc(drag.id)}"] > .navtree__row`);
+      if (!row) return;
+      const rect = row.getBoundingClientRect();
+      drag.offsetY = clientY - rect.top;
+      const floatEl = row.cloneNode(true);
+      floatEl.className = row.className + ' navtree__row--floating';
+      const cue = document.createElement('span');
+      cue.className = 'navtree__movecue';
+      cue.setAttribute('aria-hidden', 'true');
+      cue.innerHTML = MOVE_ICON;
+      floatEl.insertBefore(cue, floatEl.firstChild);
+      floatEl.style.position = 'fixed';
+      floatEl.style.left = rect.left + 'px';
+      floatEl.style.width = rect.width + 'px';
+      floatEl.style.top = rect.top + 'px';
+      // Appended inside `container` (not document.body) so host-page descendant
+      // selectors (e.g. Bento's card-style ".bento-list .navtree__row") still
+      // match — position:fixed still renders it anywhere on screen regardless.
+      container.appendChild(floatEl);
+      document.body.style.cursor = 'move';
+      drag.floatEl = floatEl;
+    }
+    function updateFloating(clientY) {
+      if (drag.floatEl) drag.floatEl.style.top = (clientY - drag.offsetY) + 'px';
+    }
+    function stopFloating() {
+      if (drag && drag.floatEl) drag.floatEl.remove();
+      document.body.style.cursor = '';
+    }
+
     function onPointerMove(e) {
       if (!drag) return;
-      if (Math.abs(e.clientY - drag.startY) > 3 || Math.abs(e.clientX - drag.startX) > 3) drag.moved = true;
+      if (!drag.moved && (Math.abs(e.clientY - drag.startY) > 3 || Math.abs(e.clientX - drag.startX) > 3)) {
+        drag.moved = true;
+        startFloating(e.clientY);
+      }
+      if (drag.moved) updateFloating(e.clientY);
       const proj = project(e.clientX, e.clientY);
       drag.projection = proj;
       showIndicator(proj);
@@ -224,6 +270,7 @@
       const id = drag && drag.id;
       hideIndicator();
       const moved = drag && drag.moved;
+      stopFloating();
       drag = null;
       if (moved && proj && id) {
         applyProjection(id, proj);
