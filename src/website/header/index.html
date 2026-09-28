@@ -111,17 +111,54 @@
             </div>
           </div>
 
-          <span class="hdr-field__label hdr-colors__heading">Colors</span>
-          <div class="colorrow" data-color="background">
-            <span class="colorrow__label">Background</span>
+          <span class="hdr-field__label hdr-colors__heading">Color</span>
+          <div class="colorrow" data-color="siteName">
+            <span class="colorrow__label">Site name</span>
             <span class="colorrow__controls">
-              <input type="color" class="colorrow__swatch" data-color-swatch value="#FFFFFF" aria-label="Background colour" />
-              <input type="text" class="colorrow__hex" data-color-hex value="#FFFFFF" maxlength="7" spellcheck="false" aria-label="Background colour hex" />
+              <input type="color" class="colorrow__swatch" data-color-swatch value="#FFFFFF" aria-label="Site name colour" />
+              <input type="text" class="colorrow__hex" data-color-hex value="#FFFFFF" maxlength="7" spellcheck="false" aria-label="Site name colour hex" />
               <span class="colorrow__opacity">
-                <input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="Background opacity percent" /><span aria-hidden="true">%</span>
+                <input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="Site name opacity percent" /><span aria-hidden="true">%</span>
               </span>
             </span>
           </div>
+          <div class="colorrow" data-color="background">
+            <span class="colorrow__label">Branding background</span>
+            <span class="colorrow__controls">
+              <input type="color" class="colorrow__swatch" data-color-swatch value="#FFFFFF" aria-label="Branding background colour" />
+              <input type="text" class="colorrow__hex" data-color-hex value="#FFFFFF" maxlength="7" spellcheck="false" aria-label="Branding background colour hex" />
+              <span class="colorrow__opacity">
+                <input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="Branding background opacity percent" /><span aria-hidden="true">%</span>
+              </span>
+            </span>
+          </div>
+          <div class="colorrow" data-color="searchBackground">
+            <span class="colorrow__label">Search background</span>
+            <span class="colorrow__controls">
+              <input type="color" class="colorrow__swatch" data-color-swatch value="#FFFFFF" aria-label="Search background colour" />
+              <input type="text" class="colorrow__hex" data-color-hex value="#FFFFFF" maxlength="7" spellcheck="false" aria-label="Search background colour hex" />
+              <span class="colorrow__opacity">
+                <input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="Search background opacity percent" /><span aria-hidden="true">%</span>
+              </span>
+            </span>
+          </div>
+
+          <!-- Header image: sits behind the branding + search bands. -->
+          <div class="hdr-field">
+            <span class="hdr-field__label">Header image</span>
+            <p class="hdr-help">The image will automatically adjust to fit the available space across different screen sizes.</p>
+            <button type="button" class="btn btn--secondary" data-img-choose>Choose an image</button>
+            <div class="hdr-img" data-img-preview hidden>
+              <div class="hdr-img__box"><img data-img-el alt="Header image preview" /></div>
+              <div class="hdr-img__actions">
+                <button type="button" class="btn btn--secondary" data-img-replace>Replace image</button>
+                <button type="button" class="btn--link" data-img-remove>Remove</button>
+              </div>
+            </div>
+            <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif" data-img-input hidden />
+            <p class="hdr-error" data-img-error role="alert" hidden></p>
+          </div>
+
           <div class="colorrow" data-color="links">
             <span class="colorrow__label">Links</span>
             <span class="colorrow__controls">
@@ -195,7 +232,9 @@
         };
         seg('logo', h.logo);
         seg('nav', h.nav);
+        color('siteName', h.siteName);
         color('background', h.background);
+        color('searchBackground', h.searchBackground);
         color('links', h.links);
       } catch (e) { /* no cache / disabled — fall back to JS hydration */ }
     })();

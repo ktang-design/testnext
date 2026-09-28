@@ -24,11 +24,18 @@ const MAX_DEPTH = 2; // parent + one level of subpages
 
 // Header configuration. `nav: 'aligned'` renders as "Inline" when the logo is
 // left, or "Center" when the logo is centered (the second toggle option tracks
-// the logo). Colours carry a 0–100 opacity.
+// the logo). Colours carry a 0–100 opacity. `background` ("Branding
+// background" in the UI) covers the logo/nav band; `searchBackground` covers
+// the search bar band directly below it. `headerImage`, when set, sits behind
+// both bands (spanning the search band too only while a search is enabled) —
+// the two background colours paint on top of it per their own opacity.
 const HEADER_DEFAULTS = {
   logo: 'left',
   nav: 'left',
+  siteName: { color: '#FFFFFF', opacity: 100 },
   background: { color: '#FFFFFF', opacity: 100 },
+  searchBackground: { color: '#FFFFFF', opacity: 100 },
+  headerImage: null, // data URL or null
   links: { color: '#3D3F42', opacity: 100 },
 };
 
@@ -82,9 +89,10 @@ const SEARCH_NAME_MAX = 120;
 const SEARCH_LABEL_MAX = 120;
 const SEARCH_BUTTON_MAX = 60;
 const MAX_SEARCHES = 20;
+// The search bar's own background/image used to live here, but that's now
+// controlled from Header Settings (searchBackground/headerImage) since the
+// search bar renders as part of the header composite — see HEADER_DEFAULTS.
 const SEARCH_DEFAULTS = {
-  background: { color: '#255096', opacity: 100 },
-  backgroundImage: null,
   searches: [],
 };
 

@@ -5,7 +5,22 @@
   const saveBtn = $('[data-action="save"]');
   const statusEl = $('[data-save-status]');
   const navSecond = $('[data-nav-second]');
-  const DEFAULTS = { logo: 'left', nav: 'left', background: { color: '#FFFFFF', opacity: 100 }, links: { color: '#3D3F42', opacity: 100 } };
+  const imgChoose = $('[data-img-choose]');
+  const imgPreview = $('[data-img-preview]');
+  const imgEl = $('[data-img-el]');
+  const imgReplace = $('[data-img-replace]');
+  const imgRemove = $('[data-img-remove]');
+  const imgInput = $('[data-img-input]');
+  const imgError = $('[data-img-error]');
+  const IMAGE_MAX = 3 * 1024 * 1024; // 3 MB
+  const DEFAULTS = {
+    logo: 'left', nav: 'left',
+    siteName: { color: '#FFFFFF', opacity: 100 },
+    background: { color: '#FFFFFF', opacity: 100 },
+    searchBackground: { color: '#FFFFFF', opacity: 100 },
+    headerImage: null,
+    links: { color: '#3D3F42', opacity: 100 },
+  };
   // Shared website preview in the main area (header + body + footer).
   const preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'), { highlight: 'header' });
 
@@ -22,6 +37,8 @@
   const readCache = () => { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (_) { return null; } };
   const writeCache = (data) => { try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (_) { /* ignore */ } };
 
+  const show = (el) => { el.hidden = false; };
+  const hide = (el) => { el.hidden = true; };
   const clone = (x) => JSON.parse(JSON.stringify(x));
   const isDirty = () => loaded && JSON.stringify(config) !== baseline;
 
@@ -92,15 +109,41 @@
     op.addEventListener('blur', () => { op.value = config[key].opacity; });
     return { set: () => { swatch.value = config[key].color; hex.value = config[key].color; op.value = config[key].opacity; } };
   }
+  const siteNameColor = setupColor('siteName');
   const bgColor = setupColor('background');
+  const searchBgColor = setupColor('searchBackground');
   const linksColor = setupColor('links');
+
+  // ---------- header image ----------
+  function renderImage() {
+    if (config.headerImage) { imgEl.src = config.headerImage; show(imgPreview); hide(imgChoose); }
+    else { hide(imgPreview); show(imgChoose); }
+  }
+  function pickImage() { imgInput.click(); }
+  imgInput.addEventListener('change', () => {
+    const file = imgInput.files && imgInput.files[0];
+    imgInput.value = '';
+    if (!file) return;
+    hide(imgError);
+    if (file.size > IMAGE_MAX) { imgError.textContent = 'Image must be 3 MB or smaller.'; show(imgError); return; }
+    const reader = new FileReader();
+    reader.onload = () => { touched = true; config.headerImage = reader.result; renderImage(); refresh(); };
+    reader.onerror = () => { imgError.textContent = 'Couldn’t read that file. Try another.'; show(imgError); };
+    reader.readAsDataURL(file);
+  });
+  imgChoose.addEventListener('click', pickImage);
+  imgReplace.addEventListener('click', pickImage);
+  imgRemove.addEventListener('click', () => { touched = true; config.headerImage = null; hide(imgError); renderImage(); refresh(); });
 
   // ---------- render ----------
   function applyToControls() {
     logoSeg.paint(config.logo);
     navSeg.paint(config.nav);
+    siteNameColor.set();
     bgColor.set();
+    searchBgColor.set();
     linksColor.set();
+    renderImage();
     refresh();
   }
 

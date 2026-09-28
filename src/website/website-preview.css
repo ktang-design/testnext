@@ -27,6 +27,12 @@
   box-shadow: 0 6px 28px rgba(16, 24, 40, 0.14);
 }
 
+/* Wraps the header + search bands so an optional header image can sit behind
+   both, spanning their combined height — each band's own background colour
+   still paints on top of it independently (a plain child-over-parent
+   overlay). No box model of its own; it's a transparent passthrough. */
+.wsprev__headerwrap { display: flex; flex-direction: column; background-repeat: no-repeat; }
+
 /* Header / navigation bar (Figma 1775:26668: padding 48×24, logo 180×54,
    nav 16/400, all gaps 32). */
 .wsprev__header { display: flex; align-items: center; gap: 32px; padding: 24px 48px; }

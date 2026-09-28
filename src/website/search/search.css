@@ -1,9 +1,7 @@
-/* Website layer — Search panel. Reuses the shared .navpanel / .colorrow / .btn
-   components from website.css; this file adds the search-list, the background-
-   image field, and the add/edit-search modal. */
-
-/* "Colors" group heading: 24px above the label, 8px below to the swatches. */
-.ws-colors__heading { display: block; margin: 24px 0 8px; }
+/* Website layer — Search panel. Reuses the shared .navpanel / .btn
+   components from website.css; this file adds the search-list and the
+   add/edit-search modal. (The background colour/image field moved to Header
+   Settings — see ../header/header.css.) */
 
 /* Configured searches use the shared SortableTree (.navtree__* from
    sortable-tree.css), exactly like the sections / pages / navigation lists.
@@ -22,22 +20,6 @@
 .pageitem__actions { display: inline-flex; align-items: center; gap: 2px; }
 .pageitem__star { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; color: #f9a814; }
 .pageitem__star svg { fill: currentColor; stroke: currentColor; stroke-width: 1.3; stroke-linejoin: round; }
-
-/* Bold the Background colour label so it matches the other field labels. */
-[data-bg-color] .colorrow__label { font-weight: 600; }
-
-/* Background image field. */
-.ws-field { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 20px; }
-.ws-label { font-size: 14px; font-weight: 600; color: var(--gray-700); }
-.ws-help { margin: 0; font-size: 13px; line-height: 19px; color: var(--gray-500); }
-.ws-img { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-.ws-img__box {
-  width: 100%; max-width: 280px; aspect-ratio: 16 / 9; overflow: hidden;
-  border: 1px solid var(--gray-200); border-radius: 6px; background: var(--gray-50);
-}
-.ws-img__box img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.ws-img__actions { display: inline-flex; align-items: center; gap: 12px; }
-.ws-error { margin: 0; font-size: 13px; color: #c0392b; }
 
 /* Add / edit search modal. */
 .modal.modal--search { width: min(560px, 94vw); }
