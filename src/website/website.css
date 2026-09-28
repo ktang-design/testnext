@@ -155,7 +155,7 @@ img { display: block; }
 .checkbox input:checked + .checkbox__box::after {
   content: "";
   position: absolute;
-  left: 4.5px; top: 1px;
+  left: 3.5px; top: 0.7px;
   width: 4px; height: 8px;
   border: solid #fff;
   border-width: 0 2px 2px 0;
@@ -305,6 +305,15 @@ img { display: block; }
   background: #3e75cf; border-radius: 4px 4px 0 0;
 }
 .pgb__tab:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); border-radius: 2px; }
+
+/* Breadcrumb (e.g. Pages › Page › Section, or Header › Settings). Shared by
+   the Pages builder and the Header/Search/Navigation panels' back-link. */
+.pgb__crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 16px; }
+.pgb__crumb { font-size: 13px; color: var(--gray-600); }
+.pgb__crumb--link { background: none; border: 0; padding: 0; cursor: pointer; color: var(--blue-700, #255096); text-decoration: none; }
+.pgb__crumb--link:hover { text-decoration: underline; }
+.pgb__crumb--link:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); border-radius: 2px; }
+.pgb__crumbsep { color: var(--gray-400); font-size: 18px; line-height: 1; }
 
 /* ===========================  Responsive  =========================== */
 @media (max-width: 1023px) {

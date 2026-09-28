@@ -45,13 +45,9 @@
 .pageitem__open:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); border-radius: 2px; }
 
 /* ===========================  Content builder  =========================== */
-/* Breadcrumb (Pages › Page › Section …). */
-.pgb__crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 16px; }
-.pgb__crumb { font-size: 13px; color: var(--gray-600); }
-.pgb__crumb--link { background: none; border: 0; padding: 0; cursor: pointer; color: var(--blue-700, #255096); }
-.pgb__crumb--link:hover { text-decoration: underline; }
-.pgb__crumb--link:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); border-radius: 2px; }
-.pgb__crumbsep { color: var(--gray-400); font-size: 18px; line-height: 1; }
+/* Breadcrumb (Pages › Page › Section …) now lives in ../website.css
+   (.pgb__crumbs/.pgb__crumb) — shared with the Header/Search/Navigation
+   panels' "Header › X" back-link. */
 
 /* The section/element add (+) — circular, with the shared .navpanel__add
    transparent-default / grey-on-hover background (no grey unless hovered) and

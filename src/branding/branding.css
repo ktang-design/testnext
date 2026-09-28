@@ -638,7 +638,7 @@ img { display: block; }
 .checkbox input:checked + .checkbox__box::after {
   content: "";
   position: absolute;
-  left: 4.5px; top: 1px;
+  left: 3.5px; top: 0.7px;
   width: 4px; height: 8px;
   border: solid #fff;
   border-width: 0 2px 2px 0;

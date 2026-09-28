@@ -73,7 +73,7 @@ app.use('/api/features', jsonSmall, require('./routes/features'));
 const PROTECTED_SECTIONS = new Set([
   '/site-details', '/branding', '/access',
   '/language-region', '/analytics', '/eds', '/administrators', '/users', '/activity-log',
-  '/website/pages', '/website/navigation', '/website/header', '/website/footer', '/website/typography', '/website/branding', '/website/search',
+  '/website/pages', '/website/navigation', '/website/header', '/website/header-menu', '/website/footer', '/website/typography', '/website/branding', '/website/search',
   '/features/bento',
 ]);
 

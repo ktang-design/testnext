@@ -1,0 +1,16 @@
+/* ===========================================================================
+   Website layer — Header menu (landing panel) specifics. Shared chrome is in
+   ../website.css.
+   =========================================================================== */
+
+.hdrmenu { display: flex; flex-direction: column; margin-top: 8px; }
+.hdrmenu__item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 8px; margin: 0 -8px;
+  border-radius: var(--radius-sm, 4px);
+  color: var(--gray-700); text-decoration: none;
+  font-size: 14px; line-height: 21px;
+}
+.hdrmenu__item:hover { background: var(--gray-100); }
+.hdrmenu__item:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); }
+.hdrmenu__icon { display: flex; flex-shrink: 0; color: var(--gray-600); }
