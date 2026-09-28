@@ -12,6 +12,7 @@
   const listView = document.querySelector('[data-list-view]');
   const builderView = document.querySelector('[data-builder-view]');
   const treeMount = document.querySelector('[data-tree]');
+  const treeSkeleton = document.querySelector('[data-tree-skeleton]');
   const emptyEl = document.querySelector('[data-empty]');
   const addBtn = document.querySelector('[data-add]');
   const saveBtn = document.querySelector('[data-action="save"]');
@@ -164,6 +165,7 @@
   }
 
   function refreshList() {
+    if (treeSkeleton) treeSkeleton.hidden = true;
     const count = tree ? tree.getItems().length : 0;
     emptyEl.hidden = count > 0;
     updateSaveBar();
@@ -1735,6 +1737,7 @@
     })
     .catch(() => {
       loaded = true;
+      if (treeSkeleton) treeSkeleton.hidden = true;
       emptyEl.hidden = false;
       emptyEl.textContent = 'Couldn’t load pages. Refresh to try again.';
     });

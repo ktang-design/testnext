@@ -14,6 +14,13 @@
   let loaded = false; // true once the saved config has loaded — no "dirty" before then
   let saving = false;
   let saveError = null;
+  let touched = false; // set once the user edits, so the revalidation fetch won't clobber it
+
+  // Instant-load cache: paint the last-known config before the network
+  // resolves, then revalidate. Avoids the flash of DEFAULTS on load.
+  const CACHE_KEY = 'ws-header-cache';
+  const readCache = () => { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (_) { return null; } };
+  const writeCache = (data) => { try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (_) { /* ignore */ } };
 
   const clone = (x) => JSON.parse(JSON.stringify(x));
   const isDirty = () => loaded && JSON.stringify(config) !== baseline;
@@ -44,8 +51,8 @@
     return { paint };
   }
 
-  const logoSeg = setupSeg('logo', (v) => { config.logo = v; refresh(); });
-  const navSeg = setupSeg('nav', (v) => { config.nav = v; refresh(); });
+  const logoSeg = setupSeg('logo', (v) => { touched = true; config.logo = v; refresh(); });
+  const navSeg = setupSeg('nav', (v) => { touched = true; config.nav = v; refresh(); });
 
   // ---------- colour rows ----------
   function setupColor(key) {
@@ -62,6 +69,7 @@
       if (config[key].opacity === 0) { config[key].opacity = 100; op.value = 100; }
     };
     swatch.addEventListener('input', () => {
+      touched = true;
       config[key].color = swatch.value.toUpperCase();
       hex.value = config[key].color;
       ensureVisible();
@@ -70,13 +78,14 @@
     hex.addEventListener('input', () => {
       let v = hex.value.trim();
       if (v && !v.startsWith('#')) v = '#' + v;
-      if (/^#[0-9a-fA-F]{6}$/.test(v)) { config[key].color = v.toUpperCase(); swatch.value = config[key].color; ensureVisible(); refresh(); }
+      if (/^#[0-9a-fA-F]{6}$/.test(v)) { touched = true; config[key].color = v.toUpperCase(); swatch.value = config[key].color; ensureVisible(); refresh(); }
     });
     hex.addEventListener('blur', () => { hex.value = config[key].color; });
     op.addEventListener('input', () => {
       let n = parseInt(op.value, 10);
       if (Number.isNaN(n)) return;
       n = Math.max(0, Math.min(100, n));
+      touched = true;
       config[key].opacity = n;
       refresh();
     });
@@ -134,7 +143,8 @@
       const data = await res.json();
       config = data.saved;
       baseline = JSON.stringify(config);
-      saving = false; saveError = null;
+      writeCache(config);
+      saving = false; saveError = null; touched = false;
       applyToControls();
     } catch (err) {
       saving = false; saveError = err.message || 'Couldn’t save. Try again.';
@@ -172,13 +182,25 @@
   saveBtn.addEventListener('click', save);
   setupNavGuard();
 
+  // Initial paint from the local cache (instant), then hydrate/revalidate.
+  const cached = readCache();
+  if (cached) {
+    config = clone(cached);
+    baseline = JSON.stringify(config);
+    loaded = true;
+    applyToControls();
+  }
+
   fetch('/api/website/header', { credentials: 'include' })
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null)
     .then((hdr) => {
-      config = clone((hdr && (hdr.saved || hdr.defaults)) || DEFAULTS);
-      baseline = JSON.stringify(config);
+      const serverConfig = clone((hdr && (hdr.saved || hdr.defaults)) || DEFAULTS);
+      baseline = JSON.stringify(serverConfig);
       loaded = true;
+      writeCache(serverConfig);
+      if (touched) { updateSaveBar(); return; } // the user already started editing — keep their work
+      config = serverConfig;
       applyToControls();
     });
 })();

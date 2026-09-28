@@ -107,6 +107,14 @@
           </div>
         </div>
 
+        <!-- Loading: shown until the integration/blocks fetch resolves, then
+             swapped for whichever of the two states below actually applies. -->
+        <div class="bento-skeleton" data-state="loading">
+          <span class="skeleton bento-skeleton__bar" style="max-width: 320px; height: 36px; border-radius: 6px;"></span>
+          <span class="skeleton bento-skeleton__bar" style="max-width: 100%; height: 88px; border-radius: 6px;"></span>
+          <span class="skeleton bento-skeleton__bar" style="max-width: 100%; height: 88px; border-radius: 6px;"></span>
+        </div>
+
         <!-- No search integration configured -->
         <div class="bento-notice" data-state="no-integration" hidden>
           <span class="bento-notice__icon" aria-hidden="true">

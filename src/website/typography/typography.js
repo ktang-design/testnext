@@ -11,6 +11,13 @@
   let loaded = false; // true once the saved config has loaded — no "dirty" before then
   let saving = false;
   let saveError = null;
+  let touched = false; // set once the user edits, so the revalidation fetch won't clobber it
+
+  // Instant-load cache: paint the last-known config before the network
+  // resolves, then revalidate. Avoids the flash of default sizes/weights.
+  const CACHE_KEY = 'ws-typography-cache';
+  const readCache = () => { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (_) { return null; } };
+  const writeCache = (data) => { try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (_) { /* ignore */ } };
 
   const clone = (x) => JSON.parse(JSON.stringify(x));
   const serialize = () => JSON.stringify(config);
@@ -26,7 +33,7 @@
 
   fields.forEach((el) => {
     const evt = el.tagName === 'SELECT' ? 'change' : 'input';
-    el.addEventListener(evt, () => { config[el.dataset.field] = el.value; saveError = null; pushPreview(); updateSaveBar(); });
+    el.addEventListener(evt, () => { touched = true; config[el.dataset.field] = el.value; saveError = null; pushPreview(); updateSaveBar(); });
   });
 
   function updateSaveBar() {
@@ -56,7 +63,8 @@
       const data = await res.json();
       config = data.saved;
       baseline = serialize();
-      saving = false; saveError = null;
+      writeCache(config);
+      saving = false; saveError = null; touched = false;
       applyToControls();
       updateSaveBar();
     } catch (err) {
@@ -94,16 +102,30 @@
   saveBtn.addEventListener('click', save);
   setupNavGuard();
 
+  // Initial paint from the local cache (instant), then hydrate/revalidate.
+  const cached = readCache();
+  if (cached) {
+    config = clone(cached);
+    baseline = serialize();
+    loaded = true;
+    applyToControls();
+    updateSaveBar();
+  }
+
   fetch('/api/website/typography', { credentials: 'include' })
     .then((r) => (r.ok ? r.json() : Promise.reject()))
     .then((data) => {
-      config = clone(data.saved || data.defaults);
-      baseline = serialize();
+      const serverConfig = clone(data.saved || data.defaults);
+      writeCache(serverConfig);
       loaded = true;
+      if (touched) { baseline = JSON.stringify(serverConfig); updateSaveBar(); return; } // keep the user's in-progress edits
+      config = serverConfig;
+      baseline = serialize();
       applyToControls();
       updateSaveBar();
     })
     .catch(() => {
+      if (config) return; // cache already painted something usable
       config = { fontFamily: 'Inter', headingSize: '24', headingWeight: '600', bodySize: '16', bodyWeight: '400' };
       baseline = serialize();
       loaded = true;

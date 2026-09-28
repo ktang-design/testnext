@@ -8,6 +8,7 @@
   const colorsEl = $('[data-colors]');
   const logoChoose = $('[data-logo-choose]');
   const logoPreview = $('[data-logo-preview]');
+  const logoBox = logoPreview.querySelector('.wb-logo__box');
   const logoImg = $('[data-logo-img]');
   const logoReplace = $('[data-logo-replace]');
   const logoRemove = $('[data-logo-remove]');
@@ -144,9 +145,42 @@
   }
 
   // ---------- logo ----------
+  // Detect whether an image is light/white (so a white logo would be invisible
+  // on a white background) by averaging the luminance of its opaque pixels on
+  // a small canvas. Calls cb(true) when light. Mirrors /branding/branding.js.
+  function detectLight(dataUrl, cb) {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const c = document.createElement('canvas');
+        const w = (c.width = 40), h = (c.height = 40);
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const data = ctx.getImageData(0, 0, w, h).data;
+        let lum = 0, alpha = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          const a = data[i + 3] / 255;
+          if (a < 0.1) continue;
+          lum += (0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]) * a;
+          alpha += a;
+        }
+        cb(alpha > 0 && lum / alpha > 150); // light if the average opaque pixel is brighter than mid-gray
+      } catch (_) { cb(false); }
+    };
+    img.onerror = () => cb(false);
+    img.src = dataUrl;
+  }
   function renderLogo() {
-    if (config.logo) { logoImg.src = config.logo; show(logoPreview); hide(logoChoose); }
-    else { hide(logoPreview); show(logoChoose); }
+    if (config.logo) {
+      logoImg.src = config.logo;
+      show(logoPreview);
+      hide(logoChoose);
+      detectLight(config.logo, (light) => logoBox.classList.toggle('wb-logo__box--dark', light));
+    } else {
+      hide(logoPreview);
+      show(logoChoose);
+      logoBox.classList.remove('wb-logo__box--dark');
+    }
   }
   function pickLogo() { logoInput.click(); }
   logoInput.addEventListener('change', () => {

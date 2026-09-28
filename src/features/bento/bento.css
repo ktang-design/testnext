@@ -18,6 +18,11 @@
 }
 .platform-page.bento > * { width: 100%; max-width: 960px; }
 
+/* ----- Loading skeleton (shown until the initial fetch resolves) ----------- */
+.bento-skeleton { display: flex; flex-direction: column; gap: 12px; }
+.bento-skeleton[hidden] { display: none; }
+.bento-skeleton__bar { width: 100%; }
+
 /* ----- No-integration notice ------------------------------------------------ */
 .bento-notice {
   display: flex;
