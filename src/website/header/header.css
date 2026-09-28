@@ -28,5 +28,17 @@
 }
 .seg__opt:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); }
 
-/* Colour rows use the shared .colorrow component in ../website.css.
-   The main-area preview is the shared website preview (../website-preview.*). */
+/* Colour rows use the shared .colorrow component in ../website.css. */
+
+/* ---------------------------  Header image field  --------------------------- */
+.hdr-help { margin: 0 0 8px; font-size: 13px; line-height: 19px; color: var(--gray-500); }
+.hdr-img { display: flex; flex-direction: column; gap: 10px; width: 100%; margin-top: 8px; }
+.hdr-img__box {
+  width: 100%; max-width: 280px; aspect-ratio: 16 / 9; overflow: hidden;
+  border: 1px solid var(--gray-200); border-radius: 6px; background: var(--gray-50);
+}
+.hdr-img__box img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hdr-img__actions { display: inline-flex; align-items: center; gap: 12px; }
+.hdr-error { margin: 8px 0 0; font-size: 13px; color: #c0392b; }
+
+/* The main-area preview is the shared website preview (../website-preview.*). */

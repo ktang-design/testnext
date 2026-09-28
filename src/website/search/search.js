@@ -1,8 +1,9 @@
 // Website layer — Search configuration.
-// A search bar shown below the site navigation: its background colour + optional
-// background image, plus a list of configured searches. Each search becomes an
-// option in the bar's dropdown. Searches are added from the "+" menu (EBSCO
-// Discovery Service / Custom search) via a focused "Add … search" modal.
+// The list of configured searches shown in the search bar's dropdown. Each
+// search becomes an option in the bar's dropdown. Searches are added from
+// the "+" menu (EBSCO Discovery Service / Custom search) via a focused
+// "Add … search" modal. The search bar's own background colour/image is
+// configured from Header Settings (see src/website/header/header.js).
 (function () {
   const $ = (s) => document.querySelector(s);
   const saveBtn = $('[data-action="save"]');
@@ -10,21 +11,12 @@
   const addBtn = $('[data-add-search]');
   const listEl = $('[data-search-list]');
   const listSkeleton = $('[data-search-skeleton]');
-  const bgColorEl = $('[data-bg-color]');
-  const imgChoose = $('[data-img-choose]');
-  const imgPreview = $('[data-img-preview]');
-  const imgEl = $('[data-img-el]');
-  const imgReplace = $('[data-img-replace]');
-  const imgRemove = $('[data-img-remove]');
-  const imgInput = $('[data-img-input]');
-  const imgError = $('[data-img-error]');
 
   const NAME_MAX = 120;
   const LABEL_MAX = 120;
   const MAX_SEARCHES = 20;
-  const IMAGE_MAX = 3 * 1024 * 1024; // 3 MB
 
-  const DEFAULTS = { background: { color: '#255096', opacity: 100 }, backgroundImage: null, searches: [] };
+  const DEFAULTS = { searches: [] };
   const CACHE_KEY = 'ws-search-config'; // last-known config, for instant load
   // Separate from CACHE_KEY: that one only ever holds data.saved, which stays
   // null forever for an account that has never clicked Save — so it can't
@@ -39,7 +31,6 @@
   let saving = false;
   let saveError = null;
   let preview = null;
-  let bgSetter = null;
   // True once we know the REAL list (from a cache or the first server
   // response) — until then, an empty config.searches doesn't mean "no
   // searches," it means "haven't loaded yet," so the skeleton stays up
@@ -77,66 +68,9 @@
   }
   const pushPreview = () => { if (config && preview) preview.update({ search: config }); };
 
-  // ---------- background colour (shared .colorrow component) ----------
-  function buildBgColor() {
-    const row = document.createElement('div');
-    row.className = 'colorrow';
-    row.innerHTML =
-      '<span class="colorrow__label">Background</span>' +
-      '<span class="colorrow__controls">' +
-      '<input type="color" class="colorrow__swatch" data-color-swatch aria-label="Background colour" />' +
-      '<input type="text" class="colorrow__hex" data-color-hex maxlength="7" spellcheck="false" aria-label="Background colour hex" />' +
-      '<span class="colorrow__opacity">' +
-      '<input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" aria-label="Background opacity percent" /><span aria-hidden="true">%</span>' +
-      '</span></span>';
-    bgColorEl.appendChild(row);
-    if (window.ColorPicker) {
-      window.ColorPicker.upgrade(row.querySelector('[data-color-swatch]'), {
-        opacityInput: row.querySelector('[data-color-opacity]'), label: 'Background',
-      });
-    }
-    const swatch = row.querySelector('[data-color-swatch]');
-    const hex = row.querySelector('[data-color-hex]');
-    const op = row.querySelector('[data-color-opacity]');
-    const bg = () => config.background;
-    const ensureVisible = () => { if (bg().opacity === 0) { bg().opacity = 100; op.value = 100; } };
-    swatch.addEventListener('input', () => { bg().color = swatch.value.toUpperCase(); hex.value = bg().color; ensureVisible(); onChange(); });
-    hex.addEventListener('input', () => {
-      let v = hex.value.trim();
-      if (v && !v.startsWith('#')) v = '#' + v;
-      if (/^#[0-9a-fA-F]{6}$/.test(v)) { bg().color = v.toUpperCase(); swatch.value = bg().color; ensureVisible(); onChange(); }
-    });
-    hex.addEventListener('blur', () => { hex.value = bg().color; });
-    op.addEventListener('input', () => {
-      let n = parseInt(op.value, 10);
-      if (Number.isNaN(n)) return;
-      n = Math.max(0, Math.min(100, n));
-      bg().opacity = n; onChange();
-    });
-    op.addEventListener('blur', () => { op.value = bg().opacity; });
-    bgSetter = () => { swatch.value = bg().color; hex.value = bg().color; op.value = bg().opacity; };
-  }
-
-  // ---------- background image ----------
-  function renderImage() {
-    if (config.backgroundImage) { imgEl.src = config.backgroundImage; show(imgPreview); hide(imgChoose); }
-    else { hide(imgPreview); show(imgChoose); }
-  }
-  function pickImage() { imgInput.click(); }
-  imgInput.addEventListener('change', () => {
-    const file = imgInput.files && imgInput.files[0];
-    imgInput.value = '';
-    if (!file) return;
-    hide(imgError);
-    if (file.size > IMAGE_MAX) { imgError.textContent = 'Image must be 3 MB or smaller.'; show(imgError); return; }
-    const reader = new FileReader();
-    reader.onload = () => { config.backgroundImage = reader.result; renderImage(); onChange(); };
-    reader.onerror = () => { imgError.textContent = 'Couldn’t read that file. Try another.'; show(imgError); };
-    reader.readAsDataURL(file);
-  });
-  imgChoose.addEventListener('click', pickImage);
-  imgReplace.addEventListener('click', pickImage);
-  imgRemove.addEventListener('click', () => { config.backgroundImage = null; hide(imgError); renderImage(); onChange(); });
+  // The search bar's own background colour/image moved to Header Settings
+  // (searchBackground/headerImage) since it renders as part of the header
+  // composite — see src/website/header/header.js.
 
   // ---------- searches list (shared SortableTree, like sections / pages / nav) ----------
   let tree = null;
@@ -433,8 +367,6 @@
   // ---------- render / save bar ----------
   function applyToControls() {
     renderList();
-    if (bgSetter) bgSetter();
-    renderImage();
     pushPreview();
   }
   function updateSaveBar() {
@@ -503,7 +435,6 @@
   // ---------- boot ----------
   preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'), { highlight: 'search' });
   saveBtn.addEventListener('click', save);
-  buildBgColor();
   setupNavGuard();
 
   // Paint the saved configuration instantly from a local cache (panel + preview)

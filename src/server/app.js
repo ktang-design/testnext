@@ -64,7 +64,8 @@ app.use('/api/website/search', jsonLarge, require('./routes/search'));
 // Pages store rich content — richtext/code bodies and section background images
 // (data URLs) — so they need the large parser too. Mount before /api/website.
 app.use('/api/website/pages', jsonLarge, require('./routes/pages'));
-app.use('/api/website', jsonSmall, require('./routes/website'));
+// Header now carries a header-image data URL too → large parser.
+app.use('/api/website', jsonLarge, require('./routes/website'));
 app.use('/api/features', jsonSmall, require('./routes/features'));
 
 // ---- Page protection ------------------------------------------------------

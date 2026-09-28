@@ -142,17 +142,29 @@ async function primaryColor(userId) {
   return HEX.test(str(p.primaryColor)) ? p.primaryColor.toUpperCase() : BRANDING_DEFAULTS.primaryColor;
 }
 
+// ~3 MB raw → ~4.1 MB data URL, under the serverless request body limit.
+const HEADER_IMAGE_MAX = Math.ceil(3 * 1024 * 1024 * 1.4);
+
 router.get('/header', requireApiAuth, ah(async (req, res) => {
   const defaults = { ...HEADER_DEFAULTS, background: { color: await primaryColor(req.session.userId), opacity: 100 } };
-  res.json({ defaults, saved: await headerRepository.get(req.session.userId) });
+  const saved = await headerRepository.get(req.session.userId);
+  // Merge over the defaults so a doc saved before a field (e.g. siteName,
+  // searchBackground, headerImage) existed still comes back fully populated.
+  res.json({ defaults, saved: saved ? { ...defaults, ...saved } : null });
 }));
 
 router.put('/header', requireApiAuth, ah(async (req, res) => {
   const b = req.body || {};
+  if (b.headerImage != null && !(typeof b.headerImage === 'string' && b.headerImage.startsWith('data:image/') && b.headerImage.length <= HEADER_IMAGE_MAX)) {
+    return res.status(400).json({ error: 'INVALID_IMAGE', message: 'Header image must be an image within 3 MB.' });
+  }
   const config = {
     logo: b.logo === 'center' ? 'center' : 'left',
     nav: b.nav === 'aligned' ? 'aligned' : 'left',
+    siteName: cleanColor(b.siteName, HEADER_DEFAULTS.siteName),
     background: cleanColor(b.background, HEADER_DEFAULTS.background),
+    searchBackground: cleanColor(b.searchBackground, HEADER_DEFAULTS.searchBackground),
+    headerImage: b.headerImage || null,
     links: cleanColor(b.links, HEADER_DEFAULTS.links),
   };
   res.json({ saved: await headerRepository.save(req.session.userId, config) });

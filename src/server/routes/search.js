@@ -1,7 +1,8 @@
 'use strict';
-// Website search API (the search bar shown below the navigation): its background
-// colour + optional background image, plus the list of configured searches.
-// Mounted under the large body parser because the background image is a data URL.
+// Website search API: the list of configured searches shown in the search
+// bar's dropdown. The search bar's own background/image moved to Header
+// Settings (searchBackground/headerImage) since it renders as part of the
+// header composite — see src/server/routes/website.js.
 //   GET  /api/website/search -> { defaults, saved }
 //   PUT  /api/website/search -> { saved }
 
@@ -16,20 +17,8 @@ const {
 const router = express.Router();
 const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
-const HEX = /^#[0-9a-fA-F]{6}$/;
-// ~3 MB raw → ~4.1 MB data URL, under the serverless request body limit.
-const IMAGE_MAX = Math.ceil(3 * 1024 * 1024 * 1.4);
 const str = (v) => (typeof v === 'string' ? v : '');
 const bool = (v) => v === true || v === 'true';
-
-function cleanColor(raw, fallback) {
-  const src = raw && typeof raw === 'object' ? raw : {};
-  const color = HEX.test(str(src.color)) ? str(src.color).toUpperCase() : fallback.color;
-  let opacity = Number(src.opacity);
-  if (!Number.isFinite(opacity)) opacity = fallback.opacity;
-  opacity = Math.max(0, Math.min(100, Math.round(opacity)));
-  return { color, opacity };
-}
 
 class ValidationError extends Error {
   constructor(message) { super(message); this.code = 'INVALID_SEARCH'; }
@@ -62,10 +51,6 @@ function cleanSearch(raw, used) {
 
 function normalize(raw) {
   const b = raw && typeof raw === 'object' ? raw : {};
-  const image = b.backgroundImage;
-  if (image != null && !(typeof image === 'string' && image.startsWith('data:image/') && image.length <= IMAGE_MAX)) {
-    throw new ValidationError('Background image must be an image within 3 MB.');
-  }
   const rawList = Array.isArray(b.searches) ? b.searches : [];
   if (rawList.length > MAX_SEARCHES) throw new ValidationError('Too many searches.');
   const used = new Set();
@@ -79,11 +64,7 @@ function normalize(raw) {
   if (di === -1) di = searches.findIndex((s) => s.enabled);
   if (di === -1 && searches.length) di = 0;
   searches.forEach((s, i) => { s.isDefault = i === di; if (i === di) s.enabled = true; });
-  return {
-    background: cleanColor(b.background, SEARCH_DEFAULTS.background),
-    backgroundImage: image || null,
-    searches,
-  };
+  return { searches };
 }
 
 router.get('/', requireApiAuth, ah(async (req, res) => {

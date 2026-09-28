@@ -33,7 +33,14 @@
     } catch (_) { /* head not ready / blocked — falls back to Noto Sans */ }
   })();
 
-  const HEADER_D = { logo: 'left', nav: 'left', background: { color: '#FFFFFF', opacity: 100 }, links: { color: '#3D3F42', opacity: 100 } };
+  const HEADER_D = {
+    logo: 'left', nav: 'left',
+    siteName: { color: '#FFFFFF', opacity: 100 },
+    background: { color: '#FFFFFF', opacity: 100 },
+    searchBackground: { color: '#FFFFFF', opacity: 100 },
+    headerImage: null,
+    links: { color: '#3D3F42', opacity: 100 },
+  };
   const FOOTER_D = { showLogo: false, showNavigation: false, background: { color: '#FFFFFF', opacity: 100 }, text: { color: '#3D3F42', opacity: 100 }, link: { color: '#255096', opacity: 100 }, links: [] };
   const TYPO_D = { fontFamily: 'Inter', headingSize: '36', headingWeight: '600', bodySize: '16', bodyWeight: '400' };
   // The Typography "Heading font size" ladder: Medium, Large, Extra large,
@@ -53,7 +60,7 @@
     return { h1: step(1), h2: px, h3: step(-1), h4: step(-2), h5: step(-3) };
   }
   const BRAND_D = { logo: null, primary: { color: '#255096', opacity: 100 }, secondary: { color: '#3D3F42', opacity: 100 }, action: { color: '#255096', opacity: 100 }, heading: { color: '#3D3F42', opacity: 100 }, body: { color: '#55585D', opacity: 100 } };
-  const SEARCH_D = { background: { color: '#255096', opacity: 100 }, backgroundImage: null, searches: [] };
+  const SEARCH_D = { searches: [] };
 
   // The preview paints from this cache on first frame so saved configuration
   // shows immediately instead of flashing the defaults and popping in after the
@@ -69,7 +76,7 @@
     try {
       const lite = JSON.parse(JSON.stringify(data));
       if (lite.branding) lite.branding.logo = null;
-      if (lite.search) lite.search.backgroundImage = null;
+      if (lite.header) lite.header.headerImage = null;
       lite.platformLogo = null;
       lite.pages = null; // page content can be large (code/richtext) — drop it first
       localStorage.setItem(CACHE_KEY, JSON.stringify(lite));
@@ -1054,7 +1061,7 @@
       // Branding "Show site name beside logo" → the site name sits beside the logo.
       if (state.showSiteName && state.siteName) {
         const name = el('span', 'wsprev__sitename', state.siteName);
-        name.style.color = textColor(h.links, '#3D3F42');
+        name.style.color = textColor(h.siteName, rgba(HEADER_D.siteName));
         hLogo.appendChild(name);
       }
       const hNav = el('nav', 'wsprev__nav');
@@ -1076,7 +1083,6 @@
       }
       header.appendChild(hLogo);
       header.appendChild(hNav);
-      root.appendChild(header);
 
       // ---- Search section (below the navigation). Shown when a search is
       // configured. ----
@@ -1085,15 +1091,11 @@
       // only the admin panel's own list (search.js) shows them, greyed out.
       const visibleSearches = (s.searches || []).filter((x) => x.enabled !== false);
       const hasSearch = !!visibleSearches.length;
+      let sec = null;
       if (hasSearch) {
-        const sec = el('section', 'wsprev__search');
+        sec = el('section', 'wsprev__search');
         if (state.highlight === 'search') sec.classList.add('wsprev__hl');
-        sec.style.background = rgba(s.background);
-        if (s.backgroundImage) {
-          sec.style.backgroundImage = `url("${s.backgroundImage}")`;
-          sec.style.backgroundSize = 'cover';
-          sec.style.backgroundPosition = 'center';
-        }
+        sec.style.background = rgba(h.searchBackground);
         {
           // The default (starred) search is pre-selected; the search button carries
           // its label as the accessible name (the visible control is a search icon).
@@ -1133,8 +1135,22 @@
           bar.appendChild(box);
           sec.appendChild(bar);
         }
-        root.appendChild(sec);
       }
+
+      // The header image (when set) sits behind both the branding band and
+      // the search band, spanning their combined height — only extending
+      // into the search band while a search is actually enabled. Each band's
+      // own background colour paints on top of it as a normal child-over-
+      // parent overlay, per its own opacity.
+      const headerWrap = el('div', 'wsprev__headerwrap');
+      if (h.headerImage) {
+        headerWrap.style.backgroundImage = `url("${h.headerImage}")`;
+        headerWrap.style.backgroundSize = 'cover';
+        headerWrap.style.backgroundPosition = 'center';
+      }
+      headerWrap.appendChild(header);
+      if (sec) headerWrap.appendChild(sec);
+      root.appendChild(headerWrap);
 
       // ---- Page body: the content builder while editing; otherwise the
       // read-only published content of the page being viewed (default homepage).
