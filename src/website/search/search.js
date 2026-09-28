@@ -129,6 +129,16 @@
   // ---------- searches list (shared SortableTree, like sections / pages / nav) ----------
   let tree = null;
   const labelOf = (s) => s.displayLabel || s.name || 'Untitled search';
+  // "Item" -> "Item Copy" -> "Item Copy 2" -> ... — strips any existing
+  // "Copy"/"Copy N" suffix first, so duplicating a copy doesn't double up.
+  const nextCopyName = (title, existingNames) => {
+    const m = /^(.*) Copy(?: (\d+))?$/.exec(title);
+    const base = m ? m[1] : title;
+    if (!existingNames.includes(`${base} Copy`)) return `${base} Copy`;
+    let n = 2;
+    while (existingNames.includes(`${base} Copy ${n}`)) n++;
+    return `${base} Copy ${n}`;
+  };
 
   function svg(paths) {
     const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -174,7 +184,9 @@
     const src = config.searches[idx];
     const copy = clone(src);
     copy.id = uid();
-    copy.name = `${src.name} (copy)`;
+    const newLabel = nextCopyName(labelOf(src), config.searches.map(labelOf));
+    // The visible "title" is whichever of these labelOf() actually reads.
+    if (copy.displayLabel) copy.displayLabel = newLabel; else copy.name = newLabel;
     copy.isDefault = false;
     copy.enabled = true;
     config.searches.splice(idx + 1, 0, copy);

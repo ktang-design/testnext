@@ -43,6 +43,16 @@
   const uid = (prefix) =>
     `${prefix}-${window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.floor(performance.now())}`;
   const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // "Item" -> "Item Copy" -> "Item Copy 2" -> ... — strips any existing
+  // "Copy"/"Copy N" suffix first, so duplicating a copy doesn't double up.
+  const nextCopyName = (title, existingNames) => {
+    const m = /^(.*) Copy(?: (\d+))?$/.exec(title);
+    const base = m ? m[1] : title;
+    if (!existingNames.includes(`${base} Copy`)) return `${base} Copy`;
+    let n = 2;
+    while (existingNames.includes(`${base} Copy ${n}`)) n++;
+    return `${base} Copy ${n}`;
+  };
 
   // ---- canonical persisted shape (content rides along per page) ----
   function strip(items) {
@@ -175,8 +185,9 @@
     if (idx === -1) return;
     const src = items[idx];
     const newId = uid('page');
+    const newTitle = nextCopyName(src.title, items.map((p) => p.title));
     contentById[newId] = JSON.parse(JSON.stringify(contentById[id] || { sections: [] }));
-    items.splice(idx + 1, 0, { ...src, id: newId, title: `${src.title} (copy)`, isHomepage: false });
+    items.splice(idx + 1, 0, { ...src, id: newId, title: newTitle, isHomepage: false });
     commit(items);
   }
   async function deletePage(id) {
