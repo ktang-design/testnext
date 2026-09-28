@@ -34,18 +34,15 @@
   <meta name="robots" content="noindex, nofollow" />
   <link rel="icon" type="image/png" href="/favicon.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Search bar — StacksNext</title>
+  <title>Header — StacksNext</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/components/navigation/navigation.css" />
   <link rel="stylesheet" href="../website.css" />
   <link rel="stylesheet" href="../website-preview.css" />
-  <link rel="stylesheet" href="/shared/popover.css" />
-  <link rel="stylesheet" href="/shared/sortable-tree.css" />
-  <link rel="stylesheet" href="search.css" />
+  <link rel="stylesheet" href="header-menu.css" />
   <link rel="stylesheet" href="/shared/app-shell.css" />
-  <link rel="stylesheet" href="/shared/color-picker.css" />
   <!-- Pre-paint: apply the collapsed sidenav state before first paint so navigating between pages doesn’t flash the expanded rail (see app-shell.js). -->
   <script>try{if(localStorage.getItem('sn.sidenav')==='collapsed')document.documentElement.classList.add('is-nav-collapsed');}catch(e){}</script>
 </head>
@@ -86,88 +83,37 @@
 
     <div class="content">
       <div class="navworkspace">
-        <section class="navpanel" aria-labelledby="ws-title">
-          <nav class="pgb__crumbs" aria-label="Breadcrumb">
-            <a class="pgb__crumb pgb__crumb--link" href="/website/header-menu/">Header</a>
-            <span class="pgb__crumbsep" aria-hidden="true">›</span>
-            <span class="pgb__crumb">Search bar</span>
+        <section class="navpanel" aria-labelledby="hdrmenu-title">
+          <h1 class="navpanel__title" id="hdrmenu-title">Header</h1>
+          <p class="navpanel__desc">Configure how elements are arranged and positioned in the header.</p>
+
+          <nav class="hdrmenu" aria-label="Header settings">
+            <a class="hdrmenu__item" href="/website/navigation/">
+              <span class="hdrmenu__icon" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/></svg></span>
+              <span class="hdrmenu__label">Navigation menu</span>
+            </a>
+            <a class="hdrmenu__item" href="/website/search/">
+              <span class="hdrmenu__icon" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="6.8" cy="6.8" r="4.3"/><path d="M10.2 10.2 14 14"/></svg></span>
+              <span class="hdrmenu__label">Search bar</span>
+            </a>
+            <a class="hdrmenu__item" href="/website/header/">
+              <span class="hdrmenu__icon" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.6v1.7M8 12.7v1.7M14.4 8h-1.7M3.3 8H1.6M12.4 3.6l-1.2 1.2M4.8 11.2l-1.2 1.2M12.4 12.4l-1.2-1.2M4.8 4.8 3.6 3.6"/></svg></span>
+              <span class="hdrmenu__label">Settings</span>
+            </a>
           </nav>
-          <div class="navpanel__head">
-            <h1 class="navpanel__title" id="ws-title">Search bar</h1>
-            <button type="button" class="navpanel__add" data-add-search aria-label="Add search" data-tooltip="Add search" data-tip-pos="bottom-end">
-              <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
-            </button>
-          </div>
-          <p class="navpanel__desc">Configure the search bar that appears below your site navigation. It allows patrons to search your library catalog and 3rd party resources.</p>
-
-          <div class="ws-tree" data-search-list></div>
-
-          <span class="ws-label ws-colors__heading">Colors</span>
-          <!-- Background colour (built by search.js into this row) -->
-          <div data-bg-color></div>
-
-          <!-- Background image -->
-          <div class="ws-field">
-            <span class="ws-label">Background image</span>
-            <p class="ws-help">The image will automatically adjust to fit the available space across different screen sizes.</p>
-            <button type="button" class="btn btn--secondary" data-img-choose>Choose an image</button>
-            <div class="ws-img" data-img-preview hidden>
-              <div class="ws-img__box"><img data-img-el alt="Background image preview" /></div>
-              <div class="ws-img__actions">
-                <button type="button" class="btn btn--secondary" data-img-replace>Replace image</button>
-                <button type="button" class="btn--link" data-img-remove>Remove</button>
-              </div>
-            </div>
-            <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif" data-img-input hidden />
-            <p class="ws-error" data-img-error role="alert" hidden></p>
-          </div>
         </section>
 
         <div class="navpreview" role="img" aria-label="Live website preview">
           <div data-website-preview></div>
         </div>
       </div>
-
-      <footer class="pageactions">
-        <div class="pageactions__inner">
-          <span class="save-status" data-save-status role="status" aria-live="polite" hidden>Unsaved changes</span>
-          <button type="button" class="btn btn--primary" data-action="save" disabled>
-            <span class="btn__spinner" aria-hidden="true"></span>
-            <span class="btn__label">Save</span>
-          </button>
-        </div>
-      </footer>
-    </div>
-  </div>
-
-  <div class="modal-overlay" data-modal="unsaved" role="dialog" aria-modal="true" aria-labelledby="unsaved-title" hidden>
-    <div class="modal">
-      <div class="modal__header">
-        <h2 class="modal__title" id="unsaved-title">Unsaved changes</h2>
-        <button type="button" class="modal__close" data-modal-close aria-label="Close dialog">
-          <img src="/shared/close.svg" alt="" />
-        </button>
-      </div>
-      <div class="modal__body">
-        <p class="modal__text">You have unsaved changes that will be lost if you leave this page. Do you want to continue?</p>
-      </div>
-      <div class="modal__footer">
-        <button type="button" class="modal__btn modal__btn--discard" data-modal-discard>Discard changes</button>
-        <button type="button" class="modal__btn modal__btn--keep" data-modal-keep>Keep editing</button>
-      </div>
     </div>
   </div>
 
   <script src="/website/website-nav.js"></script>
-
-  <script src="/shared/color-picker.js"></script>
   <script src="/shared/app-shell.js"></script>
   <script src="/shared/auth-client.js"></script>
-  <script src="/shared/popover.js"></script>
-  <script src="/shared/modal.js"></script>
-  <script src="/shared/sortable-tree.js"></script>
-  <script src="/shared/richtext.js"></script>
   <script src="../website-preview.js"></script>
-  <script src="search.js"></script>
+  <script src="header-menu.js"></script>
 </body>
 </html>
