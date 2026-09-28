@@ -13,6 +13,8 @@ const { navigationRepository } = require('../website/NavigationRepository');
 const { headerRepository } = require('../website/HeaderRepository');
 const { footerRepository } = require('../website/FooterRepository');
 const { typographyRepository } = require('../website/TypographyRepository');
+const { brandingRepository } = require('../settings/BrandingRepository');
+const { BRANDING_DEFAULTS } = require('../settings/defaults');
 const {
   LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH,
   HEADER_DEFAULTS,
@@ -133,8 +135,16 @@ function cleanColor(raw, fallback) {
   return { color, opacity };
 }
 
+// Header/footer background defaults to the brand Primary colour (Branding's
+// colour-mapping rule #1) until the user picks their own background.
+async function primaryColor(userId) {
+  const p = (await brandingRepository.get(userId)) || {};
+  return HEX.test(str(p.primaryColor)) ? p.primaryColor.toUpperCase() : BRANDING_DEFAULTS.primaryColor;
+}
+
 router.get('/header', requireApiAuth, ah(async (req, res) => {
-  res.json({ defaults: HEADER_DEFAULTS, saved: await headerRepository.get(req.session.userId) });
+  const defaults = { ...HEADER_DEFAULTS, background: { color: await primaryColor(req.session.userId), opacity: 100 } };
+  res.json({ defaults, saved: await headerRepository.get(req.session.userId) });
 }));
 
 router.put('/header', requireApiAuth, ah(async (req, res) => {
@@ -152,7 +162,8 @@ router.put('/header', requireApiAuth, ah(async (req, res) => {
 // Footer configuration
 // ---------------------------------------------------------------------------
 router.get('/footer', requireApiAuth, ah(async (req, res) => {
-  res.json({ defaults: FOOTER_DEFAULTS, saved: await footerRepository.get(req.session.userId) });
+  const defaults = { ...FOOTER_DEFAULTS, background: { color: await primaryColor(req.session.userId), opacity: 100 } };
+  res.json({ defaults, saved: await footerRepository.get(req.session.userId) });
 }));
 
 router.put('/footer', requireApiAuth, ah(async (req, res) => {
