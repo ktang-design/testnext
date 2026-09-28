@@ -243,7 +243,11 @@
       cancelBtn.textContent = config.cancelLabel || 'Cancel';
       const okBtn = document.createElement('button');
       okBtn.type = 'button';
-      okBtn.className = 'modal__btn ' + (config.danger ? 'modal__btn--danger' : 'modal__btn--primary');
+      // outline: a blue-outlined confirm button (reuses .modal__btn--keep's
+      // look) for confirmations that aren't actually destructive right away —
+      // e.g. deleting a Bento block only takes effect once published, and can
+      // still be undone via Discard changes until then.
+      okBtn.className = 'modal__btn ' + (config.danger ? 'modal__btn--danger' : config.outline ? 'modal__btn--keep' : 'modal__btn--primary');
       okBtn.textContent = config.confirmLabel || 'Confirm';
       footer.appendChild(cancelBtn);
       footer.appendChild(okBtn);
