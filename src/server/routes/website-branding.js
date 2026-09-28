@@ -12,7 +12,7 @@ const { WEBSITE_BRANDING_DEFAULTS, WEBSITE_BRANDING_COLORS } = require('../websi
 const { BRANDING_DEFAULTS } = require('../settings/defaults');
 
 // Kept in step with Platform branding, which stores a bare hex per colour.
-const SOLID_BRAND_COLORS = ['primary', 'secondary'];
+const SOLID_BRAND_COLORS = ['primary', 'secondary', 'action'];
 
 const router = express.Router();
 const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -24,16 +24,18 @@ const LOGO_MAX = Math.ceil(3 * 1024 * 1024 * 1.4);
 const str = (v) => (typeof v === 'string' ? v : '');
 
 // Website branding inherits from Platform branding: the Platform primary /
-// secondary colours seed the Website palette, so configuring Platform flows
-// down as the Website defaults.
+// secondary / action colours seed the Website palette, so configuring
+// Platform flows down as the Website defaults.
 async function brandingDefaults(userId) {
   const p = (await brandingRepository.get(userId)) || {};
   const primary = HEX.test(str(p.primaryColor)) ? p.primaryColor.toUpperCase() : WEBSITE_BRANDING_DEFAULTS.primary.color;
   const secondary = HEX.test(str(p.secondaryColor)) ? p.secondaryColor.toUpperCase() : WEBSITE_BRANDING_DEFAULTS.secondary.color;
+  const action = HEX.test(str(p.actionColor)) ? p.actionColor.toUpperCase() : WEBSITE_BRANDING_DEFAULTS.action.color;
   return {
     logo: null,
     primary: { color: primary, opacity: 100 },
     secondary: { color: secondary, opacity: 100 },
+    action: { color: action, opacity: 100 },
     heading: { color: secondary, opacity: 100 },
     body: { color: WEBSITE_BRANDING_DEFAULTS.body.color, opacity: 100 },
     link: { color: primary, opacity: 100 },
@@ -50,10 +52,12 @@ function cleanColor(raw, fallback) {
 }
 
 router.get('/', requireApiAuth, ah(async (req, res) => {
-  res.json({
-    defaults: await brandingDefaults(req.session.userId),
-    saved: await websiteBrandingRepository.get(req.session.userId),
-  });
+  const defaults = await brandingDefaults(req.session.userId);
+  const saved = await websiteBrandingRepository.get(req.session.userId);
+  // Merge over the defaults so a doc saved before a colour (e.g. action)
+  // existed still comes back with every field populated — a missing colour
+  // would otherwise paint the swatch with an invalid CSS value (transparent).
+  res.json({ defaults, saved: saved ? { ...defaults, ...saved } : null });
 }));
 
 router.put('/', requireApiAuth, ah(async (req, res) => {
@@ -69,11 +73,12 @@ router.put('/', requireApiAuth, ah(async (req, res) => {
   // partial one here would render the same hex differently on the two pages.
   SOLID_BRAND_COLORS.forEach((key) => { config[key].opacity = 100; });
   const saved = await websiteBrandingRepository.save(req.session.userId, config);
-  // Push primary / secondary back UP to Platform branding, mirroring the
-  // downward sync in routes/branding.js, so the two pages agree whichever one the
-  // user edited. Platform has no opacity concept, so only the colour travels.
-  await brandingRepository.syncPrimarySecondary(
-    req.session.userId, config.primary.color, config.secondary.color, BRANDING_DEFAULTS
+  // Push primary / secondary / action back UP to Platform branding, mirroring
+  // the downward sync in routes/branding.js, so the two pages agree whichever
+  // one the user edited. Platform has no opacity concept, so only the colour
+  // travels.
+  await brandingRepository.syncBrandColors(
+    req.session.userId, config.primary.color, config.secondary.color, config.action.color, BRANDING_DEFAULTS
   );
   res.json({ saved });
 }));

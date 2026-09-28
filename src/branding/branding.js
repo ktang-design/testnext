@@ -82,13 +82,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // its swatches paint the new colours immediately (no fetch flash) on the next
   // visit. Only primary/secondary colours change; opacity and other keys stay.
   const WS_CACHE_KEY = 'ws-branding-cache';
-  const syncWebsiteBrandingCache = (primaryColor, secondaryColor) => {
+  const syncWebsiteBrandingCache = (primaryColor, secondaryColor, actionColor) => {
     try {
       const cfg = JSON.parse(localStorage.getItem(WS_CACHE_KEY) || 'null');
       if (!cfg || typeof cfg !== 'object') return; // never visited Website branding — server sync covers it
       const withColor = (c, color) => ({ color, opacity: c && c.opacity != null ? c.opacity : 100 });
       cfg.primary = withColor(cfg.primary, primaryColor);
       cfg.secondary = withColor(cfg.secondary, secondaryColor);
+      cfg.action = withColor(cfg.action, actionColor);
       localStorage.setItem(WS_CACHE_KEY, JSON.stringify(cfg));
     } catch (_) { /* ignore */ }
   };
@@ -211,11 +212,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Apply a whole config object to the UI.
   function applyConfig(cfg) {
-    setSwatch('primary', cfg.primaryColor);
+    // Fall back to the factory default for any colour missing from an older
+    // saved config (e.g. actionColor, added after some accounts already had a
+    // saved doc) — an empty/undefined value would paint the swatch with an
+    // invalid CSS custom property, rendering it transparent.
+    setSwatch('primary', cfg.primaryColor || systemDefault.primaryColor);
     setOpacityField('primary', cfg.primaryOpacity != null ? cfg.primaryOpacity : 100);
-    setSwatch('secondary', cfg.secondaryColor);
+    setSwatch('secondary', cfg.secondaryColor || systemDefault.secondaryColor);
     setOpacityField('secondary', cfg.secondaryOpacity != null ? cfg.secondaryOpacity : 100);
-    setSwatch('action', cfg.actionColor);
+    setSwatch('action', cfg.actionColor || systemDefault.actionColor);
     setOpacityField('action', cfg.actionOpacity != null ? cfg.actionOpacity : 100);
     logoData = cfg.logo || null;
     faviconData = cfg.favicon || null;
@@ -334,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       lastSaved = data.saved || current();
       writeCache({ defaults: systemDefault, saved: lastSaved });
-      syncWebsiteBrandingCache(lastSaved.primaryColor, lastSaved.secondaryColor);
+      syncWebsiteBrandingCache(lastSaved.primaryColor, lastSaved.secondaryColor, lastSaved.actionColor);
       justSaved = true;
       if (window.Toast) window.Toast.show('Branding published successfully. Your changes are now live!');
     } catch (err) {
