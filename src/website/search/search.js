@@ -9,6 +9,7 @@
   const statusEl = $('[data-save-status]');
   const addBtn = $('[data-add-search]');
   const listEl = $('[data-search-list]');
+  const listSkeleton = $('[data-search-skeleton]');
   const bgColorEl = $('[data-bg-color]');
   const imgChoose = $('[data-img-choose]');
   const imgPreview = $('[data-img-preview]');
@@ -25,6 +26,12 @@
 
   const DEFAULTS = { background: { color: '#255096', opacity: 100 }, backgroundImage: null, searches: [] };
   const CACHE_KEY = 'ws-search-config'; // last-known config, for instant load
+  // Separate from CACHE_KEY: that one only ever holds data.saved, which stays
+  // null forever for an account that has never clicked Save — so it can't
+  // tell "never loaded" apart from "loaded, and there's genuinely nothing
+  // saved yet." This flag just means "we've successfully talked to the
+  // server at least once," which is what the skeleton actually needs to know.
+  const VISITED_KEY = 'ws-search-visited';
   const cacheConfig = (saved) => { try { localStorage.setItem(CACHE_KEY, JSON.stringify(saved || null)); } catch (_) { /* ignore */ } };
 
   let config = null;
@@ -33,6 +40,11 @@
   let saveError = null;
   let preview = null;
   let bgSetter = null;
+  // True once we know the REAL list (from a cache or the first server
+  // response) — until then, an empty config.searches doesn't mean "no
+  // searches," it means "haven't loaded yet," so the skeleton stays up
+  // instead of flashing an empty list.
+  let searchesLoaded = false;
 
   const clone = (x) => JSON.parse(JSON.stringify(x));
   const serialize = () => JSON.stringify(config);
@@ -256,6 +268,14 @@
     if (tree) { tree.destroy(); tree = null; }
     listEl.innerHTML = '';
     const items = config.searches || [];
+    if (!searchesLoaded && items.length === 0) {
+      // Still waiting on the first real fetch — keep the skeleton up rather
+      // than flashing "no searches" prematurely.
+      if (listSkeleton) listSkeleton.hidden = false;
+      listEl.hidden = true;
+      return;
+    }
+    if (listSkeleton) listSkeleton.hidden = true;
     listEl.hidden = items.length === 0;
     if (!items.length) return;
     tree = window.SortableTree.create(listEl, {
@@ -492,6 +512,7 @@
   // "pop-in" of saved changes on load.
   let cached = null;
   try { cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (_) { /* ignore */ }
+  try { searchesLoaded = localStorage.getItem(VISITED_KEY) === '1'; } catch (_) { /* ignore */ }
   config = clone(cached || DEFAULTS);
   baseline = serialize();
   applyToControls();
@@ -500,9 +521,11 @@
   const getJSON = (url) => fetch(url, { credentials: 'include' }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
   Promise.all([getJSON('/api/website/search'), getJSON('/api/features/bento')])
     .then(([data, bento]) => {
-      if (!data) return; // search fetch failed — keep the cached/default view
+      searchesLoaded = true;
+      if (data) { try { localStorage.setItem(VISITED_KEY, '1'); } catch (_) { /* ignore */ } }
+      if (!data) { renderList(); return; } // search fetch failed — keep the cached/default view
       cacheConfig(data.saved);
-      if (isDirty()) return; // the user already started editing — keep their work
+      if (isDirty()) { renderList(); return; } // the user already started editing — keep their work
       config = clone(data.saved || data.defaults || DEFAULTS);
       ensureBentoSearch(bentoConfigured(bento)); // pre-create the Bento search when configured
       baseline = serialize();

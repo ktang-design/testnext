@@ -3,6 +3,7 @@
 // tree, and wires the add (+) menu, per-item Edit/Delete, and Save.
 (function () {
   const treeMount = document.querySelector('[data-tree]');
+  const treeSkeleton = document.querySelector('[data-tree-skeleton]');
   const emptyEl = document.querySelector('[data-empty]');
   const addBtn = document.querySelector('[data-add]');
   const saveBtn = document.querySelector('[data-action="save"]');
@@ -123,6 +124,7 @@
   }
 
   function refresh() {
+    if (treeSkeleton) treeSkeleton.hidden = true;
     const count = tree ? tree.getItems().length : 0;
     emptyEl.hidden = count > 0;
     if (preview) preview.update({ navigation: tree ? tree.getItems() : [] });
@@ -373,6 +375,7 @@
       loaded = true;
       wireAddMenu(); // still let the user add items from the (cached) tree
       if (!tree) {
+        if (treeSkeleton) treeSkeleton.hidden = true;
         emptyEl.hidden = false;
         emptyEl.textContent = 'Couldn’t load navigation. Refresh to try again.';
       }

@@ -48,4 +48,15 @@
   nav.innerHTML = html;
   mount.innerHTML = '';
   mount.appendChild(nav);
+
+  // Picking a section collapses the rail down to icons-only, so the panel for
+  // that section gets the space back — the user can still re-expand it (the
+  // toggle lives in app-shell.js) for as long as they stay on that page; the
+  // next section click collapses it again.
+  nav.querySelectorAll('.nav-item').forEach(function (a) {
+    a.addEventListener('click', function () {
+      try { localStorage.setItem('sn.sidenav', 'collapsed'); } catch (e) {}
+      document.documentElement.classList.add('is-nav-collapsed');
+    });
+  });
 })();
