@@ -20,26 +20,20 @@ class WebsiteBrandingRepository {
     return this.get(userId);
   }
 
-  // Keep the Website palette's primary / secondary / action in sync when
-  // Platform branding changes them (the Website section inherits these brand
-  // colours). Only rewrites an existing saved doc — a never-saved Website
-  // branding already derives primary / secondary / action from Platform on
-  // read (see brandingDefaults). Opacity and the other colours (heading / body
-  // / link / logo) are preserved.
-  async syncBrandColors(userId, primaryColor, secondaryColor, actionColor) {
+  // Keep the Website palette's primary / secondary / action (colour AND
+  // opacity) in sync when Platform branding changes them (the Website section
+  // inherits these brand colours). Only rewrites an existing saved doc — a
+  // never-saved Website branding already derives primary / secondary / action
+  // from Platform on read (see brandingDefaults). The other colours (heading /
+  // body / logo) are preserved.
+  async syncBrandColors(userId, primary, secondary, action) {
     const saved = await this.get(userId);
     if (!saved) return null;
-    // Primary, secondary, and action are the shared brand colours, and Platform
-    // branding has no opacity concept — so they are always solid. Keeping a
-    // partial opacity here was the one thing making the two pages render the
-    // same hex as visibly different colours. Nothing renders these three
-    // anyway: the website preview only consumes heading / body / link.
-    const withColor = (color) => ({ color, opacity: 100 });
     const next = {
       ...saved,
-      primary: withColor(primaryColor),
-      secondary: withColor(secondaryColor),
-      action: withColor(actionColor),
+      primary: { color: primary.color, opacity: primary.opacity },
+      secondary: { color: secondary.color, opacity: secondary.opacity },
+      action: { color: action.color, opacity: action.opacity },
     };
     return this.save(userId, next);
   }

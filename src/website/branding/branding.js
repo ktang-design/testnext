@@ -14,34 +14,34 @@
   const logoError = $('[data-logo-error]');
 
   const COLORS = [
-    // `solid`: shared with Platform branding, which stores a bare hex — so these
-    // three carry no opacity. Offering the control would let the same hex render
-    // differently on the two pages.
-    { key: 'primary', label: 'Primary', def: '#255096', solid: true, tip: 'For key actions, highlights, and core interactive elements.' },
-    { key: 'secondary', label: 'Secondary', def: '#3D3F42', solid: true, tip: 'For alternative actions, supporting components, and secondary emphasis.' },
-    { key: 'action', label: 'Actions', def: '#255096', solid: true, tip: 'For buttons, links, and other interactive elements.' },
+    { key: 'primary', label: 'Primary', def: '#255096', tip: 'For key actions, highlights, and core interactive elements.' },
+    { key: 'secondary', label: 'Secondary', def: '#3D3F42', tip: 'For alternative actions, supporting components, and secondary emphasis.' },
+    { key: 'action', label: 'Actions', def: '#255096', tip: 'For buttons, links, and other interactive elements.' },
     { key: 'heading', label: 'Heading', def: '#3D3F42', tip: 'Applied to headings and section titles across your site.' },
     { key: 'body', label: 'Body', def: '#55585D', tip: 'Applied to body and paragraph text.' },
   ];
   // Last-saved config, cached so the swatches show the real colours instantly on
   // load (no flash of black/defaults while the network resolves).
   const CACHE_KEY = 'ws-branding-cache';
-  // The server mirrors Website primary/secondary up into the Platform branding
-  // doc on save (routes/website-branding.js); patch the Platform page's
-  // instant-load cache here too so its swatches paint the new colours on the next
-  // visit instead of flashing the stale ones. The mirror image of
-  // syncWebsiteBrandingCache in /branding/branding.js. Only the two colours
-  // change — logo, favicon, alt text and options stay as they were.
+  // The server mirrors Website primary/secondary/action up into the Platform
+  // branding doc on save (routes/website-branding.js); patch the Platform
+  // page's instant-load cache here too so its swatches paint the new colours
+  // (and opacity) on the next visit instead of flashing the stale ones. The
+  // mirror image of syncWebsiteBrandingCache in /branding/branding.js. Logo,
+  // favicon, alt text and options stay as they were.
   const PLATFORM_CACHE_KEY = 'platform-branding-config';
-  const syncPlatformBrandingCache = (primaryColor, secondaryColor, actionColor) => {
-    if (!primaryColor || !secondaryColor || !actionColor) return;
+  const syncPlatformBrandingCache = (primary, secondary, action) => {
+    if (!primary || !secondary || !action) return;
     try {
       const cached = JSON.parse(localStorage.getItem(PLATFORM_CACHE_KEY) || 'null');
       // Never visited Platform branding — the server sync already covers it.
       if (!cached || typeof cached !== 'object' || !cached.saved) return;
-      cached.saved.primaryColor = primaryColor.toUpperCase();
-      cached.saved.secondaryColor = secondaryColor.toUpperCase();
-      cached.saved.actionColor = actionColor.toUpperCase();
+      cached.saved.primaryColor = primary.color.toUpperCase();
+      cached.saved.primaryOpacity = primary.opacity;
+      cached.saved.secondaryColor = secondary.color.toUpperCase();
+      cached.saved.secondaryOpacity = secondary.opacity;
+      cached.saved.actionColor = action.color.toUpperCase();
+      cached.saved.actionOpacity = action.opacity;
       localStorage.setItem(PLATFORM_CACHE_KEY, JSON.stringify(cached));
     } catch (_) { /* ignore */ }
   };
@@ -84,10 +84,9 @@
         '<span class="colorrow__controls">' +
         `<input type="color" class="colorrow__swatch" data-color-swatch value="${c.def}" aria-label="${c.label} colour" />` +
         `<input type="text" class="colorrow__hex" data-color-hex value="${c.def}" maxlength="7" spellcheck="false" aria-label="${c.label} colour hex" />` +
-        (c.solid ? '' :
-          '<span class="colorrow__opacity">' +
-          `<input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="${c.label} opacity percent" /><span aria-hidden="true">%</span>` +
-          '</span>') +
+        '<span class="colorrow__opacity">' +
+        `<input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="${c.label} opacity percent" /><span aria-hidden="true">%</span>` +
+        '</span>' +
         '</span>';
       colorsEl.appendChild(row);
       if (window.ColorPicker) {
@@ -102,7 +101,7 @@
   function setupColor(key, row) {
     const swatch = row.querySelector('[data-color-swatch]');
     const hex = row.querySelector('[data-color-hex]');
-    const op = row.querySelector('[data-color-opacity]'); // absent on solid rows
+    const op = row.querySelector('[data-color-opacity]');
     const ensureVisible = () => {
       if (config[key].opacity === 0) { config[key].opacity = 100; if (op) op.value = 100; }
     };
@@ -186,7 +185,7 @@
       saving = false; saveError = null;
       applyToControls();
       writeCache(config);
-      syncPlatformBrandingCache(config.primary && config.primary.color, config.secondary && config.secondary.color, config.action && config.action.color);
+      syncPlatformBrandingCache(config.primary, config.secondary, config.action);
       updateSaveBar();
     } catch (err) {
       saving = false; saveError = err.message || 'Couldn’t save. Try again.';

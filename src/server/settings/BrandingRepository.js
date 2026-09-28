@@ -6,6 +6,7 @@
 //   get(userId)            -> Promise<config object | null>
 //   save(userId, config)   -> Promise<config object>
   //   syncBrandColors(userId, primary, secondary, action, defaults) -> Promise<config>
+  //     (primary/secondary/action are { color, opacity } objects)
 
 const { get, run } = require('../db/database');
 
@@ -34,13 +35,16 @@ class BrandingRepository {
   // never opened Platform branding has still now chosen a brand colour, and
   // Platform would otherwise keep serving the factory default. Everything else in
   // the config (logo, favicon, alt text, options) is preserved.
-  async syncBrandColors(userId, primaryColor, secondaryColor, actionColor, defaults) {
+  async syncBrandColors(userId, primary, secondary, action, defaults) {
     const saved = (await this.get(userId)) || defaults || {};
     return this.save(userId, {
       ...saved,
-      primaryColor: primaryColor,
-      secondaryColor: secondaryColor,
-      actionColor: actionColor,
+      primaryColor: primary.color,
+      primaryOpacity: primary.opacity,
+      secondaryColor: secondary.color,
+      secondaryOpacity: secondary.opacity,
+      actionColor: action.color,
+      actionOpacity: action.opacity,
     });
   }
 }

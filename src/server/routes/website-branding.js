@@ -11,9 +11,6 @@ const { brandingRepository } = require('../settings/BrandingRepository');
 const { WEBSITE_BRANDING_DEFAULTS, WEBSITE_BRANDING_COLORS } = require('../website/defaults');
 const { BRANDING_DEFAULTS } = require('../settings/defaults');
 
-// Kept in step with Platform branding, which stores a bare hex per colour.
-const SOLID_BRAND_COLORS = ['primary', 'secondary', 'action'];
-
 const router = express.Router();
 const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
@@ -22,10 +19,14 @@ const HEX = /^#[0-9a-fA-F]{6}$/;
 const LOGO_MAX = Math.ceil(3 * 1024 * 1024 * 1.4);
 
 const str = (v) => (typeof v === 'string' ? v : '');
+const cleanOpacity = (v, fallback) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.max(0, Math.min(100, Math.round(n))) : fallback;
+};
 
 // Website branding inherits from Platform branding: the Platform primary /
-// secondary / action colours seed the Website palette, so configuring
-// Platform flows down as the Website defaults.
+// secondary / action colours (and their opacity) seed the Website palette, so
+// configuring Platform flows down as the Website defaults.
 async function brandingDefaults(userId) {
   const p = (await brandingRepository.get(userId)) || {};
   const primary = HEX.test(str(p.primaryColor)) ? p.primaryColor.toUpperCase() : WEBSITE_BRANDING_DEFAULTS.primary.color;
@@ -33,9 +34,9 @@ async function brandingDefaults(userId) {
   const action = HEX.test(str(p.actionColor)) ? p.actionColor.toUpperCase() : WEBSITE_BRANDING_DEFAULTS.action.color;
   return {
     logo: null,
-    primary: { color: primary, opacity: 100 },
-    secondary: { color: secondary, opacity: 100 },
-    action: { color: action, opacity: 100 },
+    primary: { color: primary, opacity: cleanOpacity(p.primaryOpacity, WEBSITE_BRANDING_DEFAULTS.primary.opacity) },
+    secondary: { color: secondary, opacity: cleanOpacity(p.secondaryOpacity, WEBSITE_BRANDING_DEFAULTS.secondary.opacity) },
+    action: { color: action, opacity: cleanOpacity(p.actionOpacity, WEBSITE_BRANDING_DEFAULTS.action.opacity) },
     heading: { color: secondary, opacity: 100 },
     body: { color: WEBSITE_BRANDING_DEFAULTS.body.color, opacity: 100 },
   };
@@ -68,16 +69,12 @@ router.put('/', requireApiAuth, ah(async (req, res) => {
   WEBSITE_BRANDING_COLORS.forEach((key) => {
     config[key] = cleanColor(b[key], WEBSITE_BRANDING_DEFAULTS[key]);
   });
-  // Shared brand colours are always solid: Platform cannot express opacity, so a
-  // partial one here would render the same hex differently on the two pages.
-  SOLID_BRAND_COLORS.forEach((key) => { config[key].opacity = 100; });
   const saved = await websiteBrandingRepository.save(req.session.userId, config);
-  // Push primary / secondary / action back UP to Platform branding, mirroring
-  // the downward sync in routes/branding.js, so the two pages agree whichever
-  // one the user edited. Platform has no opacity concept, so only the colour
-  // travels.
+  // Push primary / secondary / action (colour AND opacity) back UP to Platform
+  // branding, mirroring the downward sync in routes/branding.js, so the two
+  // pages agree whichever one the user edited.
   await brandingRepository.syncBrandColors(
-    req.session.userId, config.primary.color, config.secondary.color, config.action.color, BRANDING_DEFAULTS
+    req.session.userId, config.primary, config.secondary, config.action, BRANDING_DEFAULTS
   );
   res.json({ saved });
 }));
