@@ -67,11 +67,12 @@ const WEBSITE_BRANDING_DEFAULTS = {
   logo: null,
   primary: { color: '#255096', opacity: 100 },
   secondary: { color: '#3D3F42', opacity: 100 },
+  action: { color: '#255096', opacity: 100 },
   heading: { color: '#3D3F42', opacity: 100 },
   body: { color: '#55585D', opacity: 100 },
   link: { color: '#255096', opacity: 100 },
 };
-const WEBSITE_BRANDING_COLORS = ['primary', 'secondary', 'heading', 'body', 'link'];
+const WEBSITE_BRANDING_COLORS = ['primary', 'secondary', 'action', 'heading', 'body', 'link'];
 
 // Search: the search bar that appears below the navigation. Each configured
 // search becomes an option in the bar's dropdown. A search has a name (the

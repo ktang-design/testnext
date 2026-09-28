@@ -5,7 +5,7 @@
 //
 //   get(userId)            -> Promise<config object | null>
 //   save(userId, config)   -> Promise<config object>
-//   syncPrimarySecondary(userId, primary, secondary, defaults) -> Promise<config>
+  //   syncBrandColors(userId, primary, secondary, action, defaults) -> Promise<config>
 
 const { get, run } = require('../db/database');
 
@@ -26,20 +26,21 @@ class BrandingRepository {
     return this.get(userId);
   }
 
-  // Mirror of WebsiteBrandingRepository.syncPrimarySecondary, for the other
-  // direction: Website branding pushing its primary/secondary back up to
+  // Mirror of WebsiteBrandingRepository.syncBrandColors, for the other
+  // direction: Website branding pushing its primary/secondary/action back up to
   // Platform, so the two stay in step whichever page the user edits.
   //
   // Unlike the downward sync this creates the record when absent: a user who has
   // never opened Platform branding has still now chosen a brand colour, and
   // Platform would otherwise keep serving the factory default. Everything else in
   // the config (logo, favicon, alt text, options) is preserved.
-  async syncPrimarySecondary(userId, primaryColor, secondaryColor, defaults) {
+  async syncBrandColors(userId, primaryColor, secondaryColor, actionColor, defaults) {
     const saved = (await this.get(userId)) || defaults || {};
     return this.save(userId, {
       ...saved,
       primaryColor: primaryColor,
       secondaryColor: secondaryColor,
+      actionColor: actionColor,
     });
   }
 }

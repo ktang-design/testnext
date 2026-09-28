@@ -20,6 +20,7 @@
     // preview consumes heading / body / link.
     { key: 'primary', label: 'Primary', def: '#255096', solid: true, tip: 'For key actions, highlights, and core interactive elements.' },
     { key: 'secondary', label: 'Secondary', def: '#3D3F42', solid: true, tip: 'For alternative actions, supporting components, and secondary emphasis.' },
+    { key: 'action', label: 'Actions', def: '#255096', solid: true, tip: 'For buttons and other actionable elements.' },
     { key: 'heading', label: 'Heading', def: '#3D3F42', tip: 'Applied to headings and section titles across your site.' },
     { key: 'body', label: 'Body', def: '#55585D', tip: 'Applied to body and paragraph text.' },
     { key: 'link', label: 'Link', def: '#255096', tip: 'Applied to links and other interactive text.' },
@@ -34,14 +35,15 @@
   // syncWebsiteBrandingCache in /branding/branding.js. Only the two colours
   // change — logo, favicon, alt text and options stay as they were.
   const PLATFORM_CACHE_KEY = 'platform-branding-config';
-  const syncPlatformBrandingCache = (primaryColor, secondaryColor) => {
-    if (!primaryColor || !secondaryColor) return;
+  const syncPlatformBrandingCache = (primaryColor, secondaryColor, actionColor) => {
+    if (!primaryColor || !secondaryColor || !actionColor) return;
     try {
       const cached = JSON.parse(localStorage.getItem(PLATFORM_CACHE_KEY) || 'null');
       // Never visited Platform branding — the server sync already covers it.
       if (!cached || typeof cached !== 'object' || !cached.saved) return;
       cached.saved.primaryColor = primaryColor.toUpperCase();
       cached.saved.secondaryColor = secondaryColor.toUpperCase();
+      cached.saved.actionColor = actionColor.toUpperCase();
       localStorage.setItem(PLATFORM_CACHE_KEY, JSON.stringify(cached));
     } catch (_) { /* ignore */ }
   };
@@ -186,7 +188,7 @@
       saving = false; saveError = null;
       applyToControls();
       writeCache(config);
-      syncPlatformBrandingCache(config.primary && config.primary.color, config.secondary && config.secondary.color);
+      syncPlatformBrandingCache(config.primary && config.primary.color, config.secondary && config.secondary.color, config.action && config.action.color);
       updateSaveBar();
     } catch (err) {
       saving = false; saveError = err.message || 'Couldn’t save. Try again.';
@@ -241,7 +243,7 @@
       updateSaveBar();
     })
     .catch(() => {
-      config = clone({ logo: null, primary: { color: '#255096', opacity: 100 }, secondary: { color: '#3D3F42', opacity: 100 }, heading: { color: '#3D3F42', opacity: 100 }, body: { color: '#55585D', opacity: 100 }, link: { color: '#255096', opacity: 100 } });
+      config = clone({ logo: null, primary: { color: '#255096', opacity: 100 }, secondary: { color: '#3D3F42', opacity: 100 }, action: { color: '#255096', opacity: 100 }, heading: { color: '#3D3F42', opacity: 100 }, body: { color: '#55585D', opacity: 100 }, link: { color: '#255096', opacity: 100 } });
       baseline = serialize();
       loaded = true;
       applyToControls();

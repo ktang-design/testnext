@@ -24,7 +24,11 @@ function validImage(v, max) {
 }
 
 router.get('/', requireApiAuth, ah(async (req, res) => {
-  res.json({ defaults: BRANDING_DEFAULTS, saved: await brandingRepository.get(req.session.userId) });
+  const saved = await brandingRepository.get(req.session.userId);
+  // Merge over the defaults so a doc saved before a colour (e.g. actionColor)
+  // existed still comes back with every field populated — a missing colour
+  // would otherwise paint the swatch with an invalid CSS value (transparent).
+  res.json({ defaults: BRANDING_DEFAULTS, saved: saved ? { ...BRANDING_DEFAULTS, ...saved } : null });
 }));
 
 // 0-100, defaulting to fully opaque when missing/invalid.
@@ -62,10 +66,10 @@ router.put('/', requireApiAuth, ah(async (req, res) => {
   };
   const prev = await brandingRepository.get(req.session.userId);
   const saved = await brandingRepository.save(req.session.userId, config);
-  // Propagate the brand primary / secondary down to the Website branding palette
-  // so the Website section stays in sync with Platform.
-  await websiteBrandingRepository.syncPrimarySecondary(
-    req.session.userId, config.primaryColor, config.secondaryColor
+  // Propagate the brand primary / secondary / action down to the Website
+  // branding palette so the Website section stays in sync with Platform.
+  await websiteBrandingRepository.syncBrandColors(
+    req.session.userId, config.primaryColor, config.secondaryColor, config.actionColor
   );
   const { logActivity } = require('../platform/activity');
   if (!prev || prev.primaryColor !== config.primaryColor) {
