@@ -66,9 +66,10 @@ router.put('/', requireApiAuth, ah(async (req, res) => {
   };
   const prev = await brandingRepository.get(req.session.userId);
   const saved = await brandingRepository.save(req.session.userId, config);
-  // Propagate the brand primary / secondary / action (colour AND opacity)
-  // down to the Website branding palette so the Website section stays in
-  // sync with Platform.
+  // Propagate the logo and brand primary / secondary / action (colour AND
+  // opacity) down to the Website branding palette so the Website section
+  // stays in sync with Platform — the two pages manage the same site logo.
+  await websiteBrandingRepository.syncLogo(req.session.userId, config.logo);
   await websiteBrandingRepository.syncBrandColors(
     req.session.userId,
     { color: config.primaryColor, opacity: config.primaryOpacity },
