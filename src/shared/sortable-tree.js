@@ -231,9 +231,14 @@
       cue.setAttribute('aria-hidden', 'true');
       cue.innerHTML = MOVE_ICON;
       floatEl.insertBefore(cue, floatEl.firstChild);
+      // Offset 32px to the right so the floating card doesn't sit directly on
+      // top of the blue drop-line indicator underneath it — the reserved
+      // strip on the left keeps the indicator (and its circle handle) visible
+      // the whole time it's being dragged.
+      const INDENT = 32;
       floatEl.style.position = 'fixed';
-      floatEl.style.left = rect.left + 'px';
-      floatEl.style.width = rect.width + 'px';
+      floatEl.style.left = (rect.left + INDENT) + 'px';
+      floatEl.style.width = (rect.width - INDENT) + 'px';
       floatEl.style.top = rect.top + 'px';
       // Appended inside `container` (not document.body) so host-page descendant
       // selectors (e.g. Bento's card-style ".bento-list .navtree__row") still
