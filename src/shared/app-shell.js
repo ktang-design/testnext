@@ -358,9 +358,16 @@
     // The collapsed flag lives on <html> (.is-nav-collapsed) so a tiny inline
     // <head> script can apply it before first paint — otherwise the sidenav
     // renders expanded, then jumps to the rail on each navigation (flicker).
+    // Page Builder (data-website-nav) keeps its own preference, separate from
+    // Tools & Services / System Settings — expanding/collapsing in one must
+    // not affect the other. Each page's own inline pre-paint script already
+    // used the matching key before this ran; read the same one here so a
+    // manual toggle-click writes back to it correctly.
     const root = document.documentElement;
+    const COLLAPSE_KEY = sidenav.hasAttribute('data-website-nav') ? 'pb.sidenav' : 'sn.sidenav';
     try {
-      if (localStorage.getItem('sn.sidenav') === 'collapsed') root.classList.add('is-nav-collapsed');
+      if (localStorage.getItem(COLLAPSE_KEY) === 'collapsed') root.classList.add('is-nav-collapsed');
+      else root.classList.remove('is-nav-collapsed');
     } catch (_) { /* storage unavailable */ }
 
     const syncCollapse = () => {
@@ -372,7 +379,7 @@
 
     collapseBtn.addEventListener('click', () => {
       const collapsed = root.classList.toggle('is-nav-collapsed');
-      try { localStorage.setItem('sn.sidenav', collapsed ? 'collapsed' : 'expanded'); } catch (_) {}
+      try { localStorage.setItem(COLLAPSE_KEY, collapsed ? 'collapsed' : 'expanded'); } catch (_) {}
       syncCollapse();
     });
   }

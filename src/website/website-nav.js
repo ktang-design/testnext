@@ -55,7 +55,7 @@
   // next section click collapses it again.
   nav.querySelectorAll('.nav-item').forEach(function (a) {
     a.addEventListener('click', function () {
-      try { localStorage.setItem('sn.sidenav', 'collapsed'); } catch (e) {}
+      try { localStorage.setItem('pb.sidenav', 'collapsed'); } catch (e) {}
       document.documentElement.classList.add('is-nav-collapsed');
     });
   });
