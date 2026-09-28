@@ -3,17 +3,12 @@
    the custom-links list reuses /shared/sortable-tree.css.
    =========================================================================== */
 
-.ftr-elements { margin-top: 18px; }
-.ftr-elements__label {
-  display: block; margin-bottom: 8px;
-  font-size: 14px; font-weight: 600; color: var(--gray-700);
-}
+/* Each tab's content sits a little below the tab strip's 2px rule. */
+[data-tab-panel] { margin-top: 16px; }
+
 /* Stack the shared checkboxes with a little breathing room. */
 .ftr-elements .checkbox { padding: 6px 0; }
 
 /* Colour customization (background / text / link) — colorrow is shared. */
-.ftr-colors { margin-top: 24px; }
-
-.ftr-divider { border: 0; border-top: 1px solid var(--gray-200); margin: 14px 0 4px; }
 
 /* The main-area preview is the shared website preview (../website-preview.*). */

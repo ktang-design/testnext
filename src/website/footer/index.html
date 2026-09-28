@@ -94,56 +94,75 @@
           </div>
           <p class="navpanel__desc">Manage footer content displayed across your website.</p>
 
-          <div class="ftr-elements" role="group" aria-label="Elements">
-            <span class="ftr-elements__label" aria-hidden="true">Elements</span>
-            <label class="checkbox">
-              <input type="checkbox" data-el="logo" />
-              <span class="checkbox__box" aria-hidden="true"></span>
-              <span class="checkbox__label">Logo</span>
-            </label>
-            <label class="checkbox">
-              <input type="checkbox" data-el="navigation" />
-              <span class="checkbox__box" aria-hidden="true"></span>
-              <span class="checkbox__label">Navigation</span>
-            </label>
+          <div class="pgb__tabs" data-tabs role="tablist">
+            <button type="button" class="pgb__tab is-active" data-tab="links" role="tab" aria-selected="true">Links</button>
+            <button type="button" class="pgb__tab" data-tab="settings" role="tab" aria-selected="false">Settings</button>
+            <button type="button" class="pgb__tab" data-tab="color" role="tab" aria-selected="false">Color</button>
           </div>
 
-          <div class="ftr-colors" role="group" aria-label="Colors">
-            <span class="ftr-elements__label" aria-hidden="true">Colors</span>
-            <div class="colorrow" data-color="background">
-              <span class="colorrow__label">Background</span>
-              <span class="colorrow__controls">
-                <input type="color" class="colorrow__swatch" data-color-swatch value="#FFFFFF" aria-label="Background colour" />
-                <input type="text" class="colorrow__hex" data-color-hex value="#FFFFFF" maxlength="7" spellcheck="false" aria-label="Background colour hex" />
-                <span class="colorrow__opacity">
-                  <input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="Background opacity percent" /><span aria-hidden="true">%</span>
-                </span>
-              </span>
+          <div data-tab-panel="links" role="tabpanel">
+            <!-- Shown until the initial footer fetch resolves, then hidden by
+                 mountTree()'s first real call (success or empty). -->
+            <div class="navtree__skeleton" data-tree-skeleton aria-hidden="true">
+              <span class="skeleton" style="max-width: 100%; height: 32px; border-radius: 6px;"></span>
+              <span class="skeleton" style="max-width: 100%; height: 32px; border-radius: 6px;"></span>
             </div>
-            <div class="colorrow" data-color="text">
-              <span class="colorrow__label">Text</span>
-              <span class="colorrow__controls">
-                <input type="color" class="colorrow__swatch" data-color-swatch value="#3D3F42" aria-label="Text colour" />
-                <input type="text" class="colorrow__hex" data-color-hex value="#3D3F42" maxlength="7" spellcheck="false" aria-label="Text colour hex" />
-                <span class="colorrow__opacity">
-                  <input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="Text opacity percent" /><span aria-hidden="true">%</span>
-                </span>
-              </span>
-            </div>
-            <div class="colorrow" data-color="link">
-              <span class="colorrow__label">Link</span>
-              <span class="colorrow__controls">
-                <input type="color" class="colorrow__swatch" data-color-swatch value="#255096" aria-label="Link colour" />
-                <input type="text" class="colorrow__hex" data-color-hex value="#255096" maxlength="7" spellcheck="false" aria-label="Link colour hex" />
-                <span class="colorrow__opacity">
-                  <input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="Link opacity percent" /><span aria-hidden="true">%</span>
-                </span>
-              </span>
+            <p class="navpanel__empty" data-links-empty hidden>
+              No footer links yet. Use the <span aria-hidden="true">+</span><span class="sr-only">add</span>
+              button above to add your first link.
+            </p>
+            <div class="ftr-links" data-tree></div>
+          </div>
+
+          <div data-tab-panel="settings" role="tabpanel" hidden>
+            <div class="ftr-elements" role="group" aria-label="Elements">
+              <label class="checkbox">
+                <input type="checkbox" data-el="logo" />
+                <span class="checkbox__box" aria-hidden="true"></span>
+                <span class="checkbox__label">Logo</span>
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" data-el="navigation" />
+                <span class="checkbox__box" aria-hidden="true"></span>
+                <span class="checkbox__label">Navigation</span>
+              </label>
             </div>
           </div>
 
-          <hr class="ftr-divider" data-links-divider hidden />
-          <div class="ftr-links" data-tree></div>
+          <div data-tab-panel="color" role="tabpanel" hidden>
+            <div class="ftr-colors" role="group" aria-label="Colors">
+              <div class="colorrow" data-color="background">
+                <span class="colorrow__label">Background</span>
+                <span class="colorrow__controls">
+                  <input type="color" class="colorrow__swatch" data-color-swatch value="#FFFFFF" aria-label="Background colour" />
+                  <input type="text" class="colorrow__hex" data-color-hex value="#FFFFFF" maxlength="7" spellcheck="false" aria-label="Background colour hex" />
+                  <span class="colorrow__opacity">
+                    <input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="Background opacity percent" /><span aria-hidden="true">%</span>
+                  </span>
+                </span>
+              </div>
+              <div class="colorrow" data-color="text">
+                <span class="colorrow__label">Text</span>
+                <span class="colorrow__controls">
+                  <input type="color" class="colorrow__swatch" data-color-swatch value="#3D3F42" aria-label="Text colour" />
+                  <input type="text" class="colorrow__hex" data-color-hex value="#3D3F42" maxlength="7" spellcheck="false" aria-label="Text colour hex" />
+                  <span class="colorrow__opacity">
+                    <input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="Text opacity percent" /><span aria-hidden="true">%</span>
+                  </span>
+                </span>
+              </div>
+              <div class="colorrow" data-color="link">
+                <span class="colorrow__label">Link</span>
+                <span class="colorrow__controls">
+                  <input type="color" class="colorrow__swatch" data-color-swatch value="#255096" aria-label="Link colour" />
+                  <input type="text" class="colorrow__hex" data-color-hex value="#255096" maxlength="7" spellcheck="false" aria-label="Link colour hex" />
+                  <span class="colorrow__opacity">
+                    <input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="Link opacity percent" /><span aria-hidden="true">%</span>
+                  </span>
+                </span>
+              </div>
+            </div>
+          </div>
         </section>
 
         <div class="navpreview" role="img" aria-label="Live website preview">
