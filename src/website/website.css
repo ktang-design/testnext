@@ -288,6 +288,24 @@ img { display: block; }
 .save-status--error { color: var(--error); }
 .save-status[hidden] { display: none; }
 
+/* Settings-panel tab strip (Figma 123:10170 / 7339:89059) — one row of text
+   tabs over a 2px rule; the active tab is blue/semibold with a 2px indicator.
+   Shared by the Pages builder's per-element settings and the Footer panel. */
+.pgb__tabs {
+  display: flex; align-items: flex-start; gap: 24px;
+  border-bottom: 2px solid var(--gray-200);
+}
+.pgb__tab {
+  position: relative; padding: 8px 0 6px; border: 0; background: none;
+  font: 400 14px/21px var(--font); color: var(--gray-600); cursor: pointer;
+}
+.pgb__tab.is-active { font-weight: 600; color: #3e75cf; }
+.pgb__tab.is-active::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px;
+  background: #3e75cf; border-radius: 4px 4px 0 0;
+}
+.pgb__tab:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); border-radius: 2px; }
+
 /* ===========================  Responsive  =========================== */
 @media (max-width: 1023px) {
   /* Editor takes the full width; the decorative preview steps aside. */

@@ -3,7 +3,8 @@
 (function () {
   const $ = (s) => document.querySelector(s);
   const treeMount = $('[data-tree]');
-  const divider = $('[data-links-divider]');
+  const treeSkeleton = $('[data-tree-skeleton]');
+  const linksEmpty = $('[data-links-empty]');
   const addBtn = $('[data-add]');
   const saveBtn = $('[data-action="save"]');
   const statusEl = $('[data-save-status]');
@@ -106,8 +107,9 @@
   }
 
   function refresh() {
+    if (treeSkeleton) treeSkeleton.hidden = true;
     const count = tree ? tree.getItems().length : 0;
-    divider.hidden = count === 0;
+    linksEmpty.hidden = count > 0;
     if (preview) preview.update({ footer: current() });
     updateSaveBar();
   }
@@ -198,6 +200,7 @@
     const v = await openLinkModal('Add custom link');
     if (!v) return;
     addLink({ id: uid(), url: v.url.trim(), label: v.label.trim(), children: [] });
+    tabs.select('links'); // jump to the tab that shows what was just added
   }
   async function editLink(id) {
     const item = tree.getItems().find((i) => i.id === id);
@@ -251,6 +254,23 @@
     colorFields.forEach((f) => f.set());
     mountTree(config.links || []);
   }
+
+  // ---------- tabs (Links / Settings / Color) ----------
+  function setupTabs() {
+    const tabs = Array.from(document.querySelectorAll('[data-tab]'));
+    const panels = Array.from(document.querySelectorAll('[data-tab-panel]'));
+    function select(key) {
+      tabs.forEach((t) => {
+        const active = t.dataset.tab === key;
+        t.classList.toggle('is-active', active);
+        t.setAttribute('aria-selected', String(active));
+      });
+      panels.forEach((p) => { p.hidden = p.dataset.tabPanel !== key; });
+    }
+    tabs.forEach((t) => t.addEventListener('click', () => select(t.dataset.tab)));
+    return { select };
+  }
+  const tabs = setupTabs();
 
   // ---------- nav guard ----------
   function setupNavGuard() {
