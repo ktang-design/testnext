@@ -161,7 +161,7 @@
   async function deleteItem(id) {
     const ok = await window.Modal.confirm({
       title: 'Delete navigation item',
-      message: 'This menu item will be removed from your navigation. This can’t be undone.',
+      message: 'This menu item will be removed from your navigation. This cannot be undone.',
       confirmLabel: 'Delete item',
       cancelLabel: 'Keep item',
       danger: true,

@@ -195,7 +195,7 @@
     if (!cur || cur.isHomepage) return; // the homepage cannot be deleted
     const ok = await window.Modal.confirm({
       title: 'Delete page',
-      message: 'This page and all of its content will be removed from your website. This can’t be undone.',
+      message: 'This page and all of its content will be removed from your website. This cannot be undone.',
       confirmLabel: 'Delete page',
       cancelLabel: 'Keep page',
       danger: true,
@@ -393,7 +393,7 @@
     if (i === -1) return;
     const ok = await window.Modal.confirm({
       title: 'Delete section',
-      message: 'This section and all of its content will be removed. This can’t be undone.',
+      message: 'This section and all of its content will be removed. This cannot be undone.',
       confirmLabel: 'Delete section',
       cancelLabel: 'Keep section',
       danger: true,
@@ -428,7 +428,7 @@
   // CSS hint), so it shows in the preview and in the WYSIWYG when re-editing.
   const PLACEHOLDER_RICHTEXT =
     '<h2>Explore our digital collections</h2>' +
-    '<p>Access authoritative resources designed to support learning, research, and lifelong discovery. Whether you’re exploring a new topic, conducting academic research, or seeking reliable information, the library provides trusted digital content to help you succeed.</p>' +
+    '<p>Access authoritative resources designed to support learning, research, and lifelong discovery. Whether you are exploring a new topic, conducting academic research, or seeking reliable information, the library provides trusted digital content to help you succeed.</p>' +
     '<ul>' +
     '<li>Access thousands of eBooks and audiobooks</li>' +
     '<li>Search scholarly journals, articles, and reference materials</li>' +
@@ -751,7 +751,7 @@
     if (i === -1) return;
     const ok = await window.Modal.confirm({
       title: 'Delete element',
-      message: 'This element will be removed from the section. This can’t be undone.',
+      message: 'This element will be removed from the section. This cannot be undone.',
       confirmLabel: 'Delete element',
       cancelLabel: 'Keep element',
       danger: true,
@@ -1137,7 +1137,7 @@
     if (i === -1) return;
     const ok = await window.Modal.confirm({
       title: 'Delete card',
-      message: 'This card will be removed. This can’t be undone.',
+      message: 'This card will be removed. This cannot be undone.',
       confirmLabel: 'Delete card',
       cancelLabel: 'Keep card',
       danger: true,

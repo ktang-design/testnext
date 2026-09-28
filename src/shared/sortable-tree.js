@@ -171,7 +171,7 @@
       else if (kind === 'down') ok = moveWithinSiblings(grabbedId, +1);
       else if (kind === 'indent') ok = indent(grabbedId);
       else if (kind === 'outdent') ok = outdent(grabbedId);
-      if (!ok) { announce(`Can’t move ${kind === 'indent' || kind === 'outdent' ? '' : 'further '}${kind}.`); return; }
+      if (!ok) { announce(`Cannot move ${kind === 'indent' || kind === 'outdent' ? '' : 'further '}${kind}.`); return; }
       const id = grabbedId;
       render();
       if (kind === 'indent') announce(`${labelOf(itemById(id))} is now a subpage of ${labelOf(siblingPos(id).parent)}.`);
