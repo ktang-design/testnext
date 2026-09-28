@@ -149,8 +149,8 @@ img { display: block; }
   position: relative;
 }
 .checkbox input:checked + .checkbox__box {
-  background: var(--blue-600);
-  border-color: var(--blue-600);
+  background: var(--blue-500);
+  border-color: var(--blue-500);
 }
 .checkbox input:checked + .checkbox__box::after {
   content: "";
