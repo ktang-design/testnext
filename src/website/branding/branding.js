@@ -1,5 +1,6 @@
 // Website layer — Branding configuration.
-// A logo override (replaces the platform logo) + the brand colour palette.
+// The site logo (shared with Platform branding, kept in sync — see
+// syncPlatformBrandingCache) + the brand colour palette.
 (function () {
   const $ = (s) => document.querySelector(s);
   const saveBtn = $('[data-action="save"]');
@@ -23,19 +24,20 @@
   // Last-saved config, cached so the swatches show the real colours instantly on
   // load (no flash of black/defaults while the network resolves).
   const CACHE_KEY = 'ws-branding-cache';
-  // The server mirrors Website primary/secondary/action up into the Platform
-  // branding doc on save (routes/website-branding.js); patch the Platform
-  // page's instant-load cache here too so its swatches paint the new colours
-  // (and opacity) on the next visit instead of flashing the stale ones. The
-  // mirror image of syncWebsiteBrandingCache in /branding/branding.js. Logo,
-  // favicon, alt text and options stay as they were.
+  // The server mirrors Website logo/primary/secondary/action up into the
+  // Platform branding doc on save (routes/website-branding.js); patch the
+  // Platform page's instant-load cache here too so it paints the new
+  // logo/colours (and opacity) on the next visit instead of flashing the
+  // stale ones. The mirror image of syncWebsiteBrandingCache in
+  // /branding/branding.js. Favicon, alt text and options stay as they were.
   const PLATFORM_CACHE_KEY = 'platform-branding-config';
-  const syncPlatformBrandingCache = (primary, secondary, action) => {
+  const syncPlatformBrandingCache = (logo, primary, secondary, action) => {
     if (!primary || !secondary || !action) return;
     try {
       const cached = JSON.parse(localStorage.getItem(PLATFORM_CACHE_KEY) || 'null');
       // Never visited Platform branding — the server sync already covers it.
       if (!cached || typeof cached !== 'object' || !cached.saved) return;
+      cached.saved.logo = logo || null;
       cached.saved.primaryColor = primary.color.toUpperCase();
       cached.saved.primaryOpacity = primary.opacity;
       cached.saved.secondaryColor = secondary.color.toUpperCase();
@@ -43,7 +45,20 @@
       cached.saved.actionColor = action.color.toUpperCase();
       cached.saved.actionOpacity = action.opacity;
       localStorage.setItem(PLATFORM_CACHE_KEY, JSON.stringify(cached));
-    } catch (_) { /* ignore */ }
+    } catch (_) {
+      // Likely quota — retry without the logo so colours still sync.
+      try {
+        const cached = JSON.parse(localStorage.getItem(PLATFORM_CACHE_KEY) || 'null');
+        if (!cached || typeof cached !== 'object' || !cached.saved) return;
+        cached.saved.primaryColor = primary.color.toUpperCase();
+        cached.saved.primaryOpacity = primary.opacity;
+        cached.saved.secondaryColor = secondary.color.toUpperCase();
+        cached.saved.secondaryOpacity = secondary.opacity;
+        cached.saved.actionColor = action.color.toUpperCase();
+        cached.saved.actionOpacity = action.opacity;
+        localStorage.setItem(PLATFORM_CACHE_KEY, JSON.stringify(cached));
+      } catch (_) { /* give up */ }
+    }
   };
   const readCache = () => { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (_) { return null; } };
   const writeCache = (cfg) => {
@@ -185,7 +200,7 @@
       saving = false; saveError = null;
       applyToControls();
       writeCache(config);
-      syncPlatformBrandingCache(config.primary, config.secondary, config.action);
+      syncPlatformBrandingCache(config.logo, config.primary, config.secondary, config.action);
       updateSaveBar();
     } catch (err) {
       saving = false; saveError = err.message || 'Couldn’t save. Try again.';

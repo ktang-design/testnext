@@ -7,6 +7,7 @@
 //   save(userId, config)   -> Promise<config object>
   //   syncBrandColors(userId, primary, secondary, action, defaults) -> Promise<config>
   //     (primary/secondary/action are { color, opacity } objects)
+  //   syncLogo(userId, logo, defaults) -> Promise<config>
 
 const { get, run } = require('../db/database');
 
@@ -46,6 +47,14 @@ class BrandingRepository {
       actionColor: action.color,
       actionOpacity: action.opacity,
     });
+  }
+
+  // Mirror of WebsiteBrandingRepository.syncLogo — the two pages manage the
+  // same site logo, not independent images, so uploading or removing it on
+  // either page updates both. Same create-if-absent rule as syncBrandColors.
+  async syncLogo(userId, logo, defaults) {
+    const saved = (await this.get(userId)) || defaults || {};
+    return this.save(userId, { ...saved, logo: logo || null });
   }
 }
 

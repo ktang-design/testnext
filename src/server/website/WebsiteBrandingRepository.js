@@ -1,5 +1,7 @@
 'use strict';
-// One JSON website-branding document per user (logo override + brand colours).
+// One JSON website-branding document per user (logo + brand colours). The
+// logo is the same file Platform branding manages, not an independent
+// override — see syncLogo.
 
 const { get, run } = require('../db/database');
 
@@ -25,7 +27,7 @@ class WebsiteBrandingRepository {
   // inherits these brand colours). Only rewrites an existing saved doc — a
   // never-saved Website branding already derives primary / secondary / action
   // from Platform on read (see brandingDefaults). The other colours (heading /
-  // body / logo) are preserved.
+  // body) and the logo are preserved.
   async syncBrandColors(userId, primary, secondary, action) {
     const saved = await this.get(userId);
     if (!saved) return null;
@@ -36,6 +38,15 @@ class WebsiteBrandingRepository {
       action: { color: action.color, opacity: action.opacity },
     };
     return this.save(userId, next);
+  }
+
+  // Keep the Website logo in sync when Platform branding changes it. Only
+  // rewrites an existing saved doc — a never-saved Website branding already
+  // derives its logo from Platform on read (see brandingDefaults).
+  async syncLogo(userId, logo) {
+    const saved = await this.get(userId);
+    if (!saved) return null;
+    return this.save(userId, { ...saved, logo: logo || null });
   }
 }
 
