@@ -524,7 +524,27 @@
       tip.style.left = `${Math.round(left)}px`;
       tip.style.top = `${Math.round(top)}px`;
     }
+    // While the user is dragging — either sortable-tree.js's custom pointer
+    // drag (which calls setPointerCapture on the handle) or a native HTML5
+    // drag (the page builder's section/element reordering) — hovering over
+    // other tooltip-bearing elements shouldn't pop up new tooltips, and
+    // whatever tooltip was showing right as the drag grabbed the pointer
+    // shouldn't get stuck on screen for the whole drag. Pointer capture
+    // suppresses pointerover/pointerout for every element except the one
+    // capturing it, so the *only* reliable signal that covers both drag
+    // systems from the very first pixel of movement is "a primary pointer
+    // button is currently held down" — tracked in the capture phase so it's
+    // set before the handle's own pointerdown listener (which grabs capture
+    // and can re-trigger a boundary event) ever runs.
+    let pointerHeld = false;
+    document.addEventListener('pointerdown', (e) => { if (e.button === 0) { pointerHeld = true; hide(); } }, true);
+    document.addEventListener('pointerup', () => { pointerHeld = false; }, true);
+    document.addEventListener('pointercancel', () => { pointerHeld = false; }, true);
+    document.addEventListener('dragstart', () => { pointerHeld = true; hide(); });
+    document.addEventListener('dragend', () => { pointerHeld = false; });
+    document.addEventListener('drop', () => { pointerHeld = false; });
     function show(el) {
+      if (pointerHeld || document.body.style.cursor === 'move') return;
       const text = el.getAttribute('data-tooltip');
       if (!text || !allowed(el)) return;
       target = el;
@@ -555,7 +575,6 @@
       const el = e.target.closest && e.target.closest('[data-tooltip]');
       if (el && el === target) hide();
     });
-    document.addEventListener('pointerdown', hide); // clicking (e.g. opening a menu) dismisses
     window.addEventListener('scroll', () => { if (target) place(); }, true);
     window.addEventListener('resize', hide);
   })();
