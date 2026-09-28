@@ -49,7 +49,7 @@
     // Auth is cookie-based, so this doesn't touch the session. (Login clears on
     // the way in too, as a belt-and-suspenders for expired/other exits.)
     try {
-      const keep = { 'sn.sidenav': 1 };
+      const keep = { 'sn.sidenav': 1, 'pb.sidenav': 1 };
       Object.keys(localStorage).forEach((k) => { if (!keep[k]) localStorage.removeItem(k); });
     } catch (_) { /* storage disabled */ }
     window.location.assign('/login/');

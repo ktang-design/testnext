@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // localStorage doesn't affect the session. Keep only non-account UI prefs.
   const clearAccountCaches = () => {
     try {
-      const keep = { 'sn.sidenav': 1 };
+      const keep = { 'sn.sidenav': 1, 'pb.sidenav': 1 };
       Object.keys(localStorage).forEach((k) => { if (!keep[k]) localStorage.removeItem(k); });
     } catch (_) { /* storage disabled — nothing to clear */ }
   };
