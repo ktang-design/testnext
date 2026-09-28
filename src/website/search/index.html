@@ -100,6 +100,12 @@
           </div>
           <p class="navpanel__desc">Configure the search bar that appears below your site navigation. It allows patrons to search your library catalog and 3rd party resources.</p>
 
+          <!-- Shown only on a first-ever visit (no instant-load cache yet)
+               until the initial fetch resolves, then hidden for good. -->
+          <div class="navtree__skeleton" data-search-skeleton hidden aria-hidden="true">
+            <span class="skeleton" style="max-width: 100%; height: 32px; border-radius: 6px;"></span>
+            <span class="skeleton" style="max-width: 100%; height: 32px; border-radius: 6px;"></span>
+          </div>
           <div class="ws-tree" data-search-list></div>
 
           <span class="ws-label ws-colors__heading">Colors</span>
