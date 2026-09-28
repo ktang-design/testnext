@@ -177,12 +177,12 @@
   }
 
   function deleteBlock(id) {
-    var block = state.blocks.filter(function (b) { return b.id === id; })[0];
     window.Modal.confirm({
-      title: 'Delete block',
-      message: 'Delete "' + labelOf(block) + '"? This can’t be undone.',
-      confirmLabel: 'Delete',
-      danger: true,
+      title: 'Delete bento block',
+      message: 'This block will be removed from the Bento page. The change will be reflected on your website after the Bento page is published.',
+      cancelLabel: 'Keep block',
+      confirmLabel: 'Delete block',
+      outline: true,
     }).then(function (ok) {
       if (!ok) return;
       state.blocks = state.blocks.filter(function (b) { return b.id !== id; });
