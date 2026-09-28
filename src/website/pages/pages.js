@@ -1055,7 +1055,7 @@
     return {
       heading: { color: '#3D3F42', opacity: 100 },
       text: { color: '#55585D', opacity: 100 },
-      link: { color: '#255096', opacity: 100 },
+      action: { color: '#255096', opacity: 100 },
       background: { color: '#FFFFFF', opacity: 0 }, // transparent until a colour is chosen
       borderWidth: '1', // "Default" = 1px
       borderSides: { top: true, right: true, bottom: true, left: true }, // first option = all
@@ -1066,7 +1066,7 @@
   function rtStyle(elc) {
     const d = defaultRichtextStyle();
     const s = Object.assign({}, d, elc.style || {});
-    ['heading', 'text', 'link', 'background', 'borderColor'].forEach((k) => { s[k] = Object.assign({}, d[k], s[k] || {}); });
+    ['heading', 'text', 'action', 'background', 'borderColor'].forEach((k) => { s[k] = Object.assign({}, d[k], s[k] || {}); });
     s.borderSides = Object.assign({}, d.borderSides, s.borderSides || {});
     elc.style = s;
     return s;
@@ -1540,7 +1540,7 @@
         const colors = grp('pgb__colors');
         colors.appendChild(makeColorRow('Heading', st.heading, afterFieldEdit, elementContrast(st, 'heading')));
         colors.appendChild(makeColorRow('Body', st.text, afterFieldEdit, elementContrast(st, 'text')));
-        colors.appendChild(makeColorRow('Link', st.link, afterFieldEdit, elementContrast(st, 'link')));
+        colors.appendChild(makeColorRow('Actions', st.action, afterFieldEdit, elementContrast(st, 'action')));
         colors.appendChild(makeColorRow('Background', st.background, afterFieldEdit, elementContrast(st, 'background')));
         settings.appendChild(colors);
 
@@ -1566,7 +1566,7 @@
       const colors = grp('pgb__colors');
       colors.appendChild(makeColorRow('Heading', st.heading, afterFieldEdit, elementContrast(st, 'heading')));
       colors.appendChild(makeColorRow('Body', st.text, afterFieldEdit, elementContrast(st, 'text')));
-      colors.appendChild(makeColorRow('Link', st.link, afterFieldEdit, elementContrast(st, 'link')));
+      colors.appendChild(makeColorRow('Actions', st.action, afterFieldEdit, elementContrast(st, 'action')));
       colors.appendChild(makeColorRow('Background', st.background, afterFieldEdit, elementContrast(st, 'background')));
 
       const border = grp('pgb__group');

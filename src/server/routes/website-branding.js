@@ -38,7 +38,6 @@ async function brandingDefaults(userId) {
     action: { color: action, opacity: 100 },
     heading: { color: secondary, opacity: 100 },
     body: { color: WEBSITE_BRANDING_DEFAULTS.body.color, opacity: 100 },
-    link: { color: primary, opacity: 100 },
   };
 }
 

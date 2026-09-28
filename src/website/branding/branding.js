@@ -15,15 +15,13 @@
 
   const COLORS = [
     // `solid`: shared with Platform branding, which stores a bare hex — so these
-    // two carry no opacity. Offering the control would let the same hex render
-    // differently on the two pages. Nothing renders them either: the website
-    // preview consumes heading / body / link.
+    // three carry no opacity. Offering the control would let the same hex render
+    // differently on the two pages.
     { key: 'primary', label: 'Primary', def: '#255096', solid: true, tip: 'For key actions, highlights, and core interactive elements.' },
     { key: 'secondary', label: 'Secondary', def: '#3D3F42', solid: true, tip: 'For alternative actions, supporting components, and secondary emphasis.' },
-    { key: 'action', label: 'Actions', def: '#255096', solid: true, tip: 'For buttons and other actionable elements.' },
+    { key: 'action', label: 'Actions', def: '#255096', solid: true, tip: 'For buttons, links, and other interactive elements.' },
     { key: 'heading', label: 'Heading', def: '#3D3F42', tip: 'Applied to headings and section titles across your site.' },
     { key: 'body', label: 'Body', def: '#55585D', tip: 'Applied to body and paragraph text.' },
-    { key: 'link', label: 'Link', def: '#255096', tip: 'Applied to links and other interactive text.' },
   ];
   // Last-saved config, cached so the swatches show the real colours instantly on
   // load (no flash of black/defaults while the network resolves).
@@ -243,7 +241,7 @@
       updateSaveBar();
     })
     .catch(() => {
-      config = clone({ logo: null, primary: { color: '#255096', opacity: 100 }, secondary: { color: '#3D3F42', opacity: 100 }, action: { color: '#255096', opacity: 100 }, heading: { color: '#3D3F42', opacity: 100 }, body: { color: '#55585D', opacity: 100 }, link: { color: '#255096', opacity: 100 } });
+      config = clone({ logo: null, primary: { color: '#255096', opacity: 100 }, secondary: { color: '#3D3F42', opacity: 100 }, action: { color: '#255096', opacity: 100 }, heading: { color: '#3D3F42', opacity: 100 }, body: { color: '#55585D', opacity: 100 } });
       baseline = serialize();
       loaded = true;
       applyToControls();

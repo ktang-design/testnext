@@ -52,7 +52,7 @@
     const step = (d) => HEADING_LADDER[Math.max(0, Math.min(HEADING_LADDER.length - 1, i + d))];
     return { h1: step(1), h2: px, h3: step(-1), h4: step(-2), h5: step(-3) };
   }
-  const BRAND_D = { logo: null, primary: { color: '#255096', opacity: 100 }, secondary: { color: '#3D3F42', opacity: 100 }, heading: { color: '#3D3F42', opacity: 100 }, body: { color: '#55585D', opacity: 100 }, link: { color: '#255096', opacity: 100 } };
+  const BRAND_D = { logo: null, primary: { color: '#255096', opacity: 100 }, secondary: { color: '#3D3F42', opacity: 100 }, action: { color: '#255096', opacity: 100 }, heading: { color: '#3D3F42', opacity: 100 }, body: { color: '#55585D', opacity: 100 } };
   const SEARCH_D = { background: { color: '#255096', opacity: 100 }, backgroundImage: null, searches: [] };
 
   // The preview paints from this cache on first frame so saved configuration
@@ -162,7 +162,7 @@
   // user hasn't picked a custom colour), treat them as "inherit from Branding"
   // so published pages track the Branding heading/body/link colours live. An
   // explicit non-default colour still wins.
-  const EL_DEFAULT = { heading: '#3D3F42', text: '#55585D', link: '#255096' };
+  const EL_DEFAULT = { heading: '#3D3F42', text: '#55585D', action: '#255096' };
   const isDefaultColor = (c, hex) => !!c && String(c.color || '').toUpperCase() === hex;
   function applyRichtextStyle(elt, rt, st) {
     if (!st) return;
@@ -170,7 +170,7 @@
     if (st.background && st.background.opacity > 0) { elt.style.background = rgba(st.background); padded = true; }
     if (st.heading && st.heading.opacity > 0 && !isDefaultColor(st.heading, EL_DEFAULT.heading)) rt.style.setProperty('--rt-heading', rgba(st.heading));
     if (st.text && st.text.opacity > 0 && !isDefaultColor(st.text, EL_DEFAULT.text)) rt.style.setProperty('--rt-text', rgba(st.text));
-    if (st.link && st.link.opacity > 0 && !isDefaultColor(st.link, EL_DEFAULT.link)) rt.style.setProperty('--rt-link', rgba(st.link));
+    if (st.action && st.action.opacity > 0 && !isDefaultColor(st.action, EL_DEFAULT.action)) rt.style.setProperty('--rt-action', rgba(st.action));
     const bw = ({ 1: 1, 2: 2, 4: 4 })[st.borderWidth] || 1;
     const sides = st.borderSides || {};
     // A border only appears once a border colour is chosen (opacity > 0).
@@ -308,7 +308,7 @@
     if (st.background && st.background.opacity > 0) { elt.style.background = rgba(st.background); padded = true; }
     if (st.heading && st.heading.opacity > 0 && !isDefaultColor(st.heading, EL_DEFAULT.heading)) grid.style.setProperty('--wsprev-heading', rgba(st.heading));
     if (st.text && st.text.opacity > 0 && !isDefaultColor(st.text, EL_DEFAULT.text)) grid.style.setProperty('--wsprev-bodyc', rgba(st.text));
-    if (st.link && st.link.opacity > 0 && !isDefaultColor(st.link, EL_DEFAULT.link)) grid.style.setProperty('--rt-link', rgba(st.link));
+    if (st.action && st.action.opacity > 0 && !isDefaultColor(st.action, EL_DEFAULT.action)) grid.style.setProperty('--rt-action', rgba(st.action));
     const bw = ({ 1: 1, 2: 2, 4: 4 })[st.borderWidth] || 1;
     const sides = st.borderSides || {};
     if (st.borderColor && st.borderColor.opacity > 0 && (sides.top || sides.right || sides.bottom || sides.left)) {
@@ -1006,11 +1006,14 @@
       docEl.style.setProperty('--wsprev-h5', scale.h5 + 'px');
       root.style.setProperty('--wsprev-body-size', num(t.bodySize, '16') + 'px');
       root.style.setProperty('--wsprev-body-weight', num(t.bodyWeight, '400'));
-      // Branding colours drive the default heading / body / link colours for all
-      // published pages (homepage + any added page) and the Bento page. Per-
-      // element overrides (--rt-*) still win over these defaults.
+      // Branding colours drive the default heading / body / action colours for
+      // all published pages (homepage + any added page) and the Bento page.
+      // Per-element overrides (--rt-*) still win over these defaults. Secondary
+      // is exposed too, for the narrower uses Branding calls out for it (e.g.
+      // the Bento block divider below).
       const brand = state.branding || BRAND_D;
-      root.style.setProperty('--wsprev-link', textColor(brand.link, rgba(BRAND_D.link)));
+      root.style.setProperty('--wsprev-action', textColor(brand.action, rgba(BRAND_D.action)));
+      root.style.setProperty('--wsprev-secondary', textColor(brand.secondary, rgba(BRAND_D.secondary)));
       root.style.setProperty('--wsprev-heading', textColor(brand.heading, rgba(BRAND_D.heading)));
       root.style.setProperty('--wsprev-bodyc', textColor(brand.body, rgba(BRAND_D.body)));
       root.innerHTML = '';
@@ -1110,7 +1113,7 @@
           if (currentViewPage() && currentViewPage().isBento) input.value = SAMPLE_QUERY;
           const btn = el('button', 'wsprev__searchbtn');
           btn.type = 'button';
-          btn.innerHTML = '<svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="#2d62b7" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg>';
+          btn.innerHTML = '<svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="var(--wsprev-action, #2d62b7)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg>';
           const setBtnLabel = (lbl) => { btn.setAttribute('aria-label', lbl); btn.title = lbl; };
           setBtnLabel(def.buttonLabel || 'Search');
           select.addEventListener('change', () => {
