@@ -21,6 +21,13 @@
   let loaded = false; // true once the saved config has loaded — no "dirty" before then
   let saving = false;
   let saveError = null;
+  let touched = false; // set once the user edits, so the revalidation fetch won't clobber it
+
+  // Instant-load cache: paint the last-known config before the network
+  // resolves, then revalidate. Avoids the flash of empty/default state on load.
+  const CACHE_KEY = 'ws-footer-cache';
+  const readCache = () => { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (_) { return null; } };
+  const writeCache = (data) => { try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (_) { /* ignore */ } };
 
   const uid = () =>
     'ftr-' + (window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.floor(performance.now()));
@@ -31,6 +38,19 @@
     showLogo, showNavigation,
     background: { ...colors.background }, text: { ...colors.text }, link: { ...colors.link },
     links: stripLinks(tree ? tree.getItems() : []),
+  });
+  // Same shape as current(), but from an arbitrary config object rather than
+  // the live DOM/tree state — used to compute a fresh baseline for the dirty
+  // check when a revalidation fetch resolves while the user is mid-edit (so
+  // their in-progress work isn't clobbered, but Save still re-enables
+  // correctly against the latest saved server value).
+  const serializeConfig = (cfg) => JSON.stringify({
+    showLogo: !!cfg.showLogo,
+    showNavigation: !!cfg.showNavigation,
+    background: { color: (cfg.background && cfg.background.color) || COLOR_DEFAULTS.background.color, opacity: cfg.background && typeof cfg.background.opacity === 'number' ? cfg.background.opacity : COLOR_DEFAULTS.background.opacity },
+    text: { color: (cfg.text && cfg.text.color) || COLOR_DEFAULTS.text.color, opacity: cfg.text && typeof cfg.text.opacity === 'number' ? cfg.text.opacity : COLOR_DEFAULTS.text.opacity },
+    link: { color: (cfg.link && cfg.link.color) || COLOR_DEFAULTS.link.color, opacity: cfg.link && typeof cfg.link.opacity === 'number' ? cfg.link.opacity : COLOR_DEFAULTS.link.opacity },
+    links: stripLinks(cfg.links || []),
   });
   const serialize = () => JSON.stringify(current());
   const isDirty = () => loaded && serialize() !== baseline;
@@ -80,7 +100,7 @@
       labelOf: (it) => it.label,
       renderContent,
       renderTrailing,
-      onChange: () => refresh(),
+      onChange: () => { touched = true; refresh(); },
     });
     refresh();
   }
@@ -112,16 +132,17 @@
     if (window.ColorPicker) window.ColorPicker.upgrade(swatch, { opacityInput: op, label: key });
     // Picking a colour while fully transparent would show nothing — make it visible.
     const ensureVisible = () => { if (colors[key].opacity === 0) { colors[key].opacity = 100; op.value = 100; } };
-    swatch.addEventListener('input', () => { colors[key].color = swatch.value.toUpperCase(); hex.value = colors[key].color; ensureVisible(); saveError = null; refresh(); });
+    swatch.addEventListener('input', () => { touched = true; colors[key].color = swatch.value.toUpperCase(); hex.value = colors[key].color; ensureVisible(); saveError = null; refresh(); });
     hex.addEventListener('input', () => {
       let v = hex.value.trim();
       if (v && !v.startsWith('#')) v = '#' + v;
-      if (/^#[0-9a-fA-F]{6}$/.test(v)) { colors[key].color = v.toUpperCase(); swatch.value = colors[key].color; ensureVisible(); saveError = null; refresh(); }
+      if (/^#[0-9a-fA-F]{6}$/.test(v)) { touched = true; colors[key].color = v.toUpperCase(); swatch.value = colors[key].color; ensureVisible(); saveError = null; refresh(); }
     });
     hex.addEventListener('blur', () => { hex.value = colors[key].color; });
     op.addEventListener('input', () => {
       let n = parseInt(op.value, 10);
       if (Number.isNaN(n)) return;
+      touched = true;
       colors[key].opacity = Math.max(0, Math.min(100, n));
       saveError = null; refresh();
     });
@@ -134,6 +155,7 @@
   function addLink(link) {
     const items = tree.getItems();
     items.push(link);
+    touched = true;
     saveError = null;
     mountTree(items);
   }
@@ -146,6 +168,7 @@
       danger: true,
     });
     if (!ok) return;
+    touched = true;
     saveError = null;
     mountTree(tree.getItems().filter((i) => i.id !== id));
   }
@@ -153,6 +176,7 @@
     const items = tree.getItems();
     const it = items.find((i) => i.id === id);
     if (it) Object.assign(it, patch);
+    touched = true;
     saveError = null;
     mountTree(items);
   }
@@ -201,8 +225,10 @@
       }
       const data = await res.json();
       saving = false; saveError = null;
+      touched = false;
       applyConfig(data.saved);
       baseline = serialize();
+      writeCache(data.saved);
       updateSaveBar();
     } catch (err) {
       saving = false; saveError = err.message || 'Couldn’t save. Try again.';
@@ -255,17 +281,29 @@
   // ---------- boot ----------
   saveBtn.addEventListener('click', save);
   addBtn.addEventListener('click', openAddCustom);
-  logoCheck.addEventListener('change', () => { showLogo = logoCheck.checked; saveError = null; refresh(); });
-  navCheck.addEventListener('change', () => { showNavigation = navCheck.checked; saveError = null; refresh(); });
+  logoCheck.addEventListener('change', () => { touched = true; showLogo = logoCheck.checked; saveError = null; refresh(); });
+  navCheck.addEventListener('change', () => { touched = true; showNavigation = navCheck.checked; saveError = null; refresh(); });
   setupNavGuard();
+
+  // Initial paint from the local cache (instant), then hydrate/revalidate.
+  const cached = readCache();
+  if (cached) {
+    applyConfig(cached);
+    baseline = serialize();
+    loaded = true;
+    updateSaveBar();
+  }
 
   fetch('/api/website/footer', { credentials: 'include' })
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null)
     .then((ftr) => {
-      applyConfig((ftr && (ftr.saved || ftr.defaults)) || { showLogo: false, showNavigation: false, links: [] });
-      baseline = serialize();
+      const serverConfig = (ftr && (ftr.saved || ftr.defaults)) || { showLogo: false, showNavigation: false, links: [] };
+      writeCache(serverConfig);
       loaded = true;
+      if (touched) { baseline = serializeConfig(serverConfig); updateSaveBar(); return; } // keep the user's in-progress edits
+      applyConfig(serverConfig);
+      baseline = serialize();
       updateSaveBar();
     });
 })();

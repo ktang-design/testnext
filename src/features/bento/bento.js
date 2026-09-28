@@ -10,6 +10,7 @@
   var AUTO_SAVE_DELAY = 2000; // ms of idle time after the last edit before auto-saving
   var KEBAB = '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>';
 
+  var loadingEl = document.querySelector('[data-state="loading"]');
   var noticeEl = document.querySelector('[data-state="no-integration"]');
   var configuredEl = document.querySelector('[data-state="configured"]');
   var createBtn = document.querySelector('[data-create]');
@@ -79,6 +80,7 @@
 
   // ---- state visibility ----
   function renderStates() {
+    loadingEl.hidden = true;
     var configured = !!state.integrationConfigured;
     noticeEl.hidden = configured;
     configuredEl.hidden = !configured;

@@ -125,6 +125,8 @@ img { display: block; }
 .navpanel__add[aria-expanded="true"] { background: var(--blue-50); color: var(--blue-700); }
 .navpanel__desc { margin: 8px 0 16px; font-size: 13px; line-height: 19px; color: var(--gray-500); }
 .navpanel__empty { margin: 8px 2px; font-size: 13px; line-height: 19px; color: var(--gray-500); }
+.navtree__skeleton { display: flex; flex-direction: column; gap: 8px; }
+.navtree__skeleton[hidden] { display: none; }
 
 .navpreview {
   flex: 1; min-width: 0; margin: 16px;

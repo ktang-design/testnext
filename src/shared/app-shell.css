@@ -588,3 +588,26 @@ select.modal__control {
   .modal__footer { padding-left: 20px; padding-right: 20px; }
   .modal__footer { flex-wrap: wrap; }
 }
+
+/* ---------------------------  Skeleton loader  --------------------------- */
+/* Shared shimmering placeholder, loaded on every page so any area waiting on
+   a fetch can show it instead of a blank/flash-of-default state. Originally
+   scoped to platform-table.js's table rows (src/platform/platform.css); made
+   global here so other pages (e.g. Bento) can reuse the same visual pattern
+   without depending on that page's stylesheet. Size/shape per use — override
+   width/height/border-radius on the element or a wrapper. */
+.skeleton {
+  display: block;
+  height: 14px;
+  width: 100%;
+  max-width: 180px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 37%, var(--gray-100) 63%);
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+@keyframes skeleton-shimmer {
+  from { background-position: 100% 50%; }
+  to { background-position: 0 50%; }
+}
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
