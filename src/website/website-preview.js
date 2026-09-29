@@ -541,6 +541,25 @@
       tb.appendChild(iconBtn('wsprev__tbbtn', 'Delete', TRASH, onDelete));
       return tb;
     }
+    // A selected element's own toolbar: move up / move down / edit / trash
+    // (Figma 7391:83069) — like a section, elements reorder via these
+    // discrete buttons plus the existing drag (armed by the grip), not a
+    // single mechanism. `onEdit` may be null (a cards element has no
+    // single-content modal).
+    function elementToolbar(onMoveUp, onMoveDown, onEdit, onDelete, canMoveUp, canMoveDown, showGrip) {
+      const tb = el('div', 'wsprev__toolbar');
+      if (showGrip !== false) {
+        const grip = el('span', 'wsprev__tbgrip');
+        grip.innerHTML = GRIP;
+        grip.title = 'Click to drag and reorder';
+        tb.appendChild(grip);
+      }
+      tb.appendChild(iconBtn('wsprev__tbbtn', 'Move element up', ARROW_UP, onMoveUp, !canMoveUp));
+      tb.appendChild(iconBtn('wsprev__tbbtn', 'Move element down', ARROW_DOWN, onMoveDown, !canMoveDown));
+      if (onEdit) tb.appendChild(iconBtn('wsprev__tbbtn', 'Edit', PENCIL, onEdit));
+      tb.appendChild(iconBtn('wsprev__tbbtn', 'Delete', TRASH, onDelete));
+      return tb;
+    }
     // A single card's toolbar: grip + edit + trash (Figma 5621:73657). The grip
     // arms dragging on the card's wrapper, so cards reorder like elements do.
     function cardToolbar(onEdit, onDelete, wrapper, canReorder) {
@@ -701,17 +720,31 @@
         cb.onReorderSection && cb.onReorderSection(id, before ? before.dataset.id : null);
       });
 
+      const ELEMENT_TYPE_LABEL = { richtext: 'Richtext', code: 'Code', cards: 'Cards' };
       function buildElement(element, section) {
         const elt = el('div', 'wsprev__el');
         elt.dataset.id = element.id;
-        if (element.id === blr.selectedElementId) elt.classList.add('is-selected');
+        const elSelected = element.id === blr.selectedElementId;
+        if (elSelected) elt.classList.add('is-selected');
         elt.addEventListener('click', (e) => { e.stopPropagation(); cb.onSelectElement && cb.onSelectElement(section.id, element.id); });
+        const tag = el('span', 'wsprev__eltag', ELEMENT_TYPE_LABEL[element.type] || 'Richtext');
+        elt.appendChild(tag);
         // Reordering is possible with more than one element, or in a two-column
         // section where a lone element can still move across.
         const canMoveEl = (section.elements || []).length > 1 || Number(section.columns) === 2;
-        const elToolbar = blockToolbar(
+        // Move up/down is scoped to the element's own column (elements render
+        // grouped per column, so "up"/"down" should walk that same grouping).
+        const colSiblings = Number(section.columns) === 2
+          ? (section.elements || []).filter((e) => colOf(e) === colOf(element))
+          : (section.elements || []);
+        const elIndex = colSiblings.findIndex((e) => e.id === element.id);
+        const elToolbar = elementToolbar(
+          () => cb.onMoveElementUp && cb.onMoveElementUp(section.id, element.id),
+          () => cb.onMoveElementDown && cb.onMoveElementDown(section.id, element.id),
           element.type === 'cards' ? null : () => cb.onEditElement && cb.onEditElement(section.id, element.id),
           () => cb.onDeleteElement && cb.onDeleteElement(section.id, element.id),
+          elIndex > 0,
+          elIndex < colSiblings.length - 1,
           canMoveEl
         );
         elt.appendChild(elToolbar);

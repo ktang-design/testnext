@@ -100,14 +100,18 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 .wsprev__section > .wsprev__cta { margin: 12px 0 0; }
 
 /* Section + element blocks. A selected SECTION gets a teal double focus-ring
-   (Figma 5944:65546) + its "Section" tag + its move-up/move-down/trash
-   toolbar; a selected ELEMENT keeps the pink outline, its affordance being
-   the toolbar rather than a fill. */
+   (Figma 5944:65546 / 7391:82862) + its "Section" tag + its move-up/move-
+   down/trash toolbar; a selected ELEMENT gets a blue double focus-ring
+   (Figma 7391:83069) + its type tag (e.g. "Richtext") + its move-up/move-
+   down/edit/trash toolbar. */
 /* Horizontal padding (48px) matches the header, search, and footer so every
    section lines up to the same left/right edge. */
 .wsprev__section { position: relative; padding: 24px 48px; }
 .wsprev__el { position: relative; padding: 12px 0; cursor: pointer; }
-.wsprev__el.is-selected { outline: 2px solid #e0489b; outline-offset: -2px; border-radius: 4px; }
+/* Selected element: blue focus ring (Figma 7391:83069 — box-shadow, not
+   outline, so it doesn't fight any background/border the element itself
+   carries). */
+.wsprev__el.is-selected { box-shadow: 0 0 0 3px #3e75cf, 0 0 0 6px #d8e3f5; border-radius: 4px; }
 /* Selected section: teal focus ring (Figma 5944:65546 — box-shadow, not outline,
    so it doesn't fight the section's own background colour/image underneath). */
 .wsprev__section.is-selected {
@@ -381,6 +385,17 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
   opacity: 0; visibility: hidden;
 }
 .wsprev__section.is-selected > .wsprev__sectag { opacity: 1; visibility: visible; }
+
+/* Element type tag (Figma 7391:83069 — "Richtext") — same treatment as
+   `.wsprev__sectag`, blue instead of teal to match the element's focus ring. */
+.wsprev__eltag {
+  position: absolute; top: 0; left: 0; transform: translateY(-100%); z-index: 3;
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; background: #3e75cf; color: #fff;
+  font: 400 14px/21px "Noto Sans", Arial, sans-serif;
+  opacity: 0; visibility: hidden;
+}
+.wsprev__el.is-selected > .wsprev__eltag { opacity: 1; visibility: visible; }
 
 /* Footer */
 .wsprev__footer { background: #fff; padding: 24px 48px 20px; display: flex; flex-direction: column; gap: 20px; }

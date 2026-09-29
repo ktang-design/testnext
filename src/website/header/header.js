@@ -20,8 +20,8 @@
   const DEFAULTS = {
     logo: 'left', nav: 'left',
     siteName: { color: '#FFFFFF', opacity: 100 },
-    background: { color: '#FFFFFF', opacity: 100 },
-    searchBackground: { color: '#FFFFFF', opacity: 100 },
+    background: { color: '#002F56', opacity: 100 },
+    searchBackground: { color: '#002F56', opacity: 100 },
     headerImage: null,
   };
   // Shared website preview in the main area (header + body + footer).
