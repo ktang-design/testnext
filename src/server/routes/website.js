@@ -163,7 +163,7 @@ async function primaryColor(userId) {
 const HEADER_IMAGE_MAX = Math.ceil(3 * 1024 * 1024 * 1.4);
 
 router.get('/header', requireApiAuth, ah(async (req, res) => {
-  const defaults = { ...HEADER_DEFAULTS, background: { color: await primaryColor(req.session.userId), opacity: 100 } };
+  const defaults = HEADER_DEFAULTS;
   const { draft, published } = await headerRepository.get(req.session.userId);
   // Merge over the defaults so a doc saved before a field (e.g. siteName,
   // searchBackground, headerImage) existed still comes back fully populated.

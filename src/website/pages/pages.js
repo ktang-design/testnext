@@ -872,6 +872,28 @@
     }
     afterFieldEdit();
   }
+  // Discrete move-up/move-down (Figma 7391:83069's toolbar), scoped to the
+  // element's own column — swap with the adjacent same-column sibling by
+  // swapping their positions in the underlying flat array (elements of the
+  // OTHER column may sit between them there); a no-op at either end.
+  function moveElementBy(secId, id, delta) {
+    const sec = findSection(secId);
+    if (!sec) return;
+    const elements = sec.elements;
+    const colOf = (e) => (sec.columns === 2 ? (Number(e.column) === 1 ? 1 : 0) : 0);
+    const target = elements.find((e) => e.id === id);
+    if (!target) return;
+    const siblings = elements.filter((e) => colOf(e) === colOf(target));
+    const i = siblings.findIndex((e) => e.id === id);
+    const j = i + delta;
+    if (i === -1 || j < 0 || j >= siblings.length) return;
+    const flatI = elements.indexOf(siblings[i]);
+    const flatJ = elements.indexOf(siblings[j]);
+    [elements[flatI], elements[flatJ]] = [elements[flatJ], elements[flatI]];
+    afterContentChange();
+  }
+  function moveElementUp(secId, id) { moveElementBy(secId, id, -1); }
+  function moveElementDown(secId, id) { moveElementBy(secId, id, 1); }
 
   // ---- element type chooser (cards) on the shared modal chrome ----
   function chooseElementType() {
@@ -1684,6 +1706,8 @@
         onMoveSectionUp: moveSectionUp,
         onMoveSectionDown: moveSectionDown,
         onDeleteElement: deleteElement,
+        onMoveElementUp: moveElementUp,
+        onMoveElementDown: moveElementDown,
         onAddCard: (sid, elId) => addCard(sid, elId),
         onSelectCard: (sid, elId, cardId) => selectCard(sid, elId, cardId),
         onEditCard: (sid, elId, cardId) => openCardModal(sid, elId, cardId),
