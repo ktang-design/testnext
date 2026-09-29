@@ -284,6 +284,8 @@ img { display: block; }
   padding: 16px 24px;
 }
 .pageactions__inner { display: flex; align-items: center; justify-content: flex-end; gap: 16px; }
+.pageactions [data-save-status] { margin-right: auto; }
+.pageactions__buttons { display: flex; align-items: center; gap: 8px; }
 .save-status { font-size: 14px; line-height: 21px; color: var(--gray-600); white-space: nowrap; }
 .save-status--error { color: var(--error); }
 .save-status[hidden] { display: none; }

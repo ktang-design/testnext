@@ -1,28 +1,33 @@
 // Website layer — Footer configuration.
 // Element toggles (Logo / Navigation) + an ordered list of custom links.
+// Edits auto-save as a DRAFT a couple of seconds after you stop typing; the
+// shared Page Builder pageactions bar (website-saveactions.js) is what
+// actually promotes drafts to published, across every section at once.
 (function () {
   const $ = (s) => document.querySelector(s);
   const treeMount = $('[data-tree]');
   const treeSkeleton = $('[data-tree-skeleton]');
   const linksEmpty = $('[data-links-empty]');
   const addBtn = $('[data-add]');
-  const saveBtn = $('[data-action="save"]');
-  const statusEl = $('[data-save-status]');
   const logoCheck = $('[data-el="logo"]');
   const navCheck = $('[data-el="navigation"]');
   // Shared website preview in the main area (header + body + footer).
   const preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'), { highlight: 'footer' });
+
+  const AUTO_SAVE_DELAY = 2000; // ms of idle time after the last edit before auto-saving
 
   let showLogo = false;
   let showNavigation = false;
   const COLOR_DEFAULTS = { background: { color: '#FFFFFF', opacity: 100 }, text: { color: '#3D3F42', opacity: 100 }, link: { color: '#255096', opacity: 100 } };
   const colors = { background: { ...COLOR_DEFAULTS.background }, text: { ...COLOR_DEFAULTS.text }, link: { ...COLOR_DEFAULTS.link } };
   let tree = null;
-  let baseline = '';
-  let loaded = false; // true once the saved config has loaded — no "dirty" before then
-  let saving = false;
-  let saveError = null;
-  let touched = false; // set once the user edits, so the revalidation fetch won't clobber it
+  let publishedSerialized = ''; // last-known published snapshot, serialized
+  let loaded = false; // true once the draft has loaded — no dirty check before then
+  let saving = false; // an auto-save PUT is in flight
+  let saveState = 'idle'; // 'idle' | 'pending' | 'saved'
+  let autoSaveTimer = null;
+  let touched = false; // set once the user edits, so the boot revalidation fetch won't clobber it
+  let bar = null;
 
   // Instant-load cache: paint the last-known config before the network
   // resolves, then revalidate. Avoids the flash of empty/default state on load.
@@ -41,10 +46,9 @@
     links: stripLinks(tree ? tree.getItems() : []),
   });
   // Same shape as current(), but from an arbitrary config object rather than
-  // the live DOM/tree state — used to compute a fresh baseline for the dirty
-  // check when a revalidation fetch resolves while the user is mid-edit (so
-  // their in-progress work isn't clobbered, but Save still re-enables
-  // correctly against the latest saved server value).
+  // the live DOM/tree state — used to compute a comparable serialized
+  // snapshot (the published baseline, or a fresh one from a revalidation
+  // fetch) without clobbering in-progress edits.
   const serializeConfig = (cfg) => JSON.stringify({
     showLogo: !!cfg.showLogo,
     showNavigation: !!cfg.showNavigation,
@@ -54,7 +58,7 @@
     links: stripLinks(cfg.links || []),
   });
   const serialize = () => JSON.stringify(current());
-  const isDirty = () => loaded && serialize() !== baseline;
+  const isLocalDirty = () => loaded && serialize() !== publishedSerialized;
 
   // ---------- rendering ----------
   function svgIcon(paths) {
@@ -101,7 +105,7 @@
       labelOf: (it) => it.label,
       renderContent,
       renderTrailing,
-      onChange: () => { touched = true; refresh(); },
+      onChange: () => { onEdit(); },
     });
     refresh();
   }
@@ -111,16 +115,14 @@
     const count = tree ? tree.getItems().length : 0;
     linksEmpty.hidden = count > 0;
     if (preview) preview.update({ footer: current() });
-    updateSaveBar();
+    if (bar) bar.refresh(saveState);
   }
 
-  function updateSaveBar() {
-    const dirty = isDirty();
-    saveBtn.disabled = saving || !dirty;
-    saveBtn.classList.toggle('is-saving', saving);
-    if (saving) { statusEl.hidden = false; statusEl.classList.remove('save-status--error'); statusEl.textContent = 'Saving…'; }
-    else if (saveError) { statusEl.hidden = false; statusEl.classList.add('save-status--error'); statusEl.textContent = saveError; }
-    else { statusEl.hidden = !dirty; statusEl.classList.remove('save-status--error'); statusEl.textContent = 'Unsaved changes'; }
+  function onEdit() {
+    touched = true;
+    saveState = 'pending';
+    refresh();
+    scheduleAutoSave();
   }
 
   // ---------- colour rows (background / text / link) ----------
@@ -134,19 +136,18 @@
     if (window.ColorPicker) window.ColorPicker.upgrade(swatch, { opacityInput: op, label: key });
     // Picking a colour while fully transparent would show nothing — make it visible.
     const ensureVisible = () => { if (colors[key].opacity === 0) { colors[key].opacity = 100; op.value = 100; } };
-    swatch.addEventListener('input', () => { touched = true; colors[key].color = swatch.value.toUpperCase(); hex.value = colors[key].color; ensureVisible(); saveError = null; refresh(); });
+    swatch.addEventListener('input', () => { colors[key].color = swatch.value.toUpperCase(); hex.value = colors[key].color; ensureVisible(); onEdit(); });
     hex.addEventListener('input', () => {
       let v = hex.value.trim();
       if (v && !v.startsWith('#')) v = '#' + v;
-      if (/^#[0-9a-fA-F]{6}$/.test(v)) { touched = true; colors[key].color = v.toUpperCase(); swatch.value = colors[key].color; ensureVisible(); saveError = null; refresh(); }
+      if (/^#[0-9a-fA-F]{6}$/.test(v)) { colors[key].color = v.toUpperCase(); swatch.value = colors[key].color; ensureVisible(); onEdit(); }
     });
     hex.addEventListener('blur', () => { hex.value = colors[key].color; });
     op.addEventListener('input', () => {
       let n = parseInt(op.value, 10);
       if (Number.isNaN(n)) return;
-      touched = true;
       colors[key].opacity = Math.max(0, Math.min(100, n));
-      saveError = null; refresh();
+      onEdit();
     });
     op.addEventListener('blur', () => { op.value = colors[key].opacity; });
     return { set: () => { swatch.value = colors[key].color; hex.value = colors[key].color; op.value = colors[key].opacity; } };
@@ -157,9 +158,8 @@
   function addLink(link) {
     const items = tree.getItems();
     items.push(link);
-    touched = true;
-    saveError = null;
     mountTree(items);
+    onEdit();
   }
   async function deleteLink(id) {
     const ok = await window.Modal.confirm({
@@ -170,17 +170,15 @@
       danger: true,
     });
     if (!ok) return;
-    touched = true;
-    saveError = null;
     mountTree(tree.getItems().filter((i) => i.id !== id));
+    onEdit();
   }
   function updateLink(id, patch) {
     const items = tree.getItems();
     const it = items.find((i) => i.id === id);
     if (it) Object.assign(it, patch);
-    touched = true;
-    saveError = null;
     mountTree(items);
+    onEdit();
   }
 
   // ---------- add / edit modal ----------
@@ -210,33 +208,41 @@
     updateLink(id, { url: v.url.trim(), label: v.label.trim() });
   }
 
-  // ---------- save ----------
-  async function save() {
-    if (saving || !isDirty()) return;
-    saving = true; saveError = null; updateSaveBar();
-    try {
-      const res = await fetch('/api/website/footer', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(current()),
-      });
-      if (!res.ok) {
-        let msg = 'Couldn’t save. Try again.';
-        try { const d = await res.json(); if (d.message) msg = d.message; } catch (_) {}
-        throw new Error(msg);
-      }
-      const data = await res.json();
-      saving = false; saveError = null;
-      touched = false;
+  // ---------- auto-save (draft only) ----------
+  function scheduleAutoSave() {
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => { autoSaveTimer = null; autoSave(); }, AUTO_SAVE_DELAY);
+  }
+  function cancelPendingSave() {
+    if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
+  }
+  function flushPendingSave() {
+    if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; return autoSave(); }
+    return Promise.resolve();
+  }
+  function autoSave() {
+    if (saving) return Promise.resolve();
+    saving = true;
+    return fetch('/api/website/footer', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(current()),
+    }).then((res) => {
+      if (!res.ok) return res.json().catch(() => ({})).then((d) => { throw new Error(d.message || 'We could not save your changes. Try again.'); });
+      return res.json();
+    }).then((data) => {
+      saving = false;
+      saveState = 'saved';
       applyConfig(data.saved);
-      baseline = serialize();
       writeCache(data.saved);
-      updateSaveBar();
-    } catch (err) {
-      saving = false; saveError = err.message || 'Couldn’t save. Try again.';
-      updateSaveBar();
-    }
+      refresh();
+    }).catch((err) => {
+      saving = false;
+      saveState = 'idle';
+      refresh();
+      if (window.Toast) window.Toast.show(err.message || 'We could not save your changes. Try again.');
+    });
   }
 
   function applyConfig(config) {
@@ -272,58 +278,66 @@
   }
   const tabs = setupTabs();
 
-  // ---------- nav guard ----------
-  function setupNavGuard() {
-    const modal = $('[data-modal="unsaved"]');
-    let pendingHref = null;
-    let allowLeave = false;
-    const open = () => { modal.hidden = false; modal.querySelector('[data-modal-keep]').focus(); };
-    const close = () => { modal.hidden = true; pendingHref = null; };
-    modal.querySelector('[data-modal-close]').addEventListener('click', close);
-    modal.querySelector('[data-modal-keep]').addEventListener('click', close);
-    modal.querySelector('[data-modal-discard]').addEventListener('click', () => {
-      allowLeave = true; const href = pendingHref; close(); if (href) window.location.href = href;
-    });
-    document.addEventListener('click', (e) => {
-      const link = e.target.closest('a[href]');
-      if (!link || allowLeave || !isDirty()) return;
-      const href = link.getAttribute('href');
-      if (!href || href.startsWith('#') || link.target === '_blank') return;
-      const url = new URL(href, location.href);
-      if (url.origin === location.origin && url.pathname === location.pathname) return;
-      e.preventDefault(); pendingHref = url.href; open();
-    });
-    window.addEventListener('beforeunload', (e) => {
-      if (isDirty() && !allowLeave) { e.preventDefault(); e.returnValue = ''; }
-    });
-  }
-
   // ---------- boot ----------
-  saveBtn.addEventListener('click', save);
   addBtn.addEventListener('click', openAddCustom);
-  logoCheck.addEventListener('change', () => { touched = true; showLogo = logoCheck.checked; saveError = null; refresh(); });
-  navCheck.addEventListener('change', () => { touched = true; showNavigation = navCheck.checked; saveError = null; refresh(); });
-  setupNavGuard();
+  logoCheck.addEventListener('change', () => { showLogo = logoCheck.checked; onEdit(); });
+  navCheck.addEventListener('change', () => { showNavigation = navCheck.checked; onEdit(); });
 
   // Initial paint from the local cache (instant), then hydrate/revalidate.
   const cached = readCache();
   if (cached) {
     applyConfig(cached);
-    baseline = serialize();
     loaded = true;
-    updateSaveBar();
   }
+
+  bar = window.WebsiteSaveActions.init({
+    isLocalDirty,
+    flushLocalSave: flushPendingSave,
+    cancelLocalPending: cancelPendingSave,
+    onPublished: (published) => {
+      const p = published && published.footer;
+      if (p) publishedSerialized = serializeConfig(p);
+      refresh();
+    },
+    onDiscarded: (draft) => {
+      const d = draft && draft.footer;
+      if (d) {
+        applyConfig(d);
+        publishedSerialized = serializeConfig(d);
+        writeCache(d);
+        refresh();
+      }
+    },
+  });
+  refresh();
+
+  window.addEventListener('beforeunload', () => {
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = null;
+      try {
+        fetch('/api/website/footer', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          keepalive: true,
+          body: JSON.stringify(current()),
+        });
+      } catch (_) { /* best effort */ }
+    }
+  });
 
   fetch('/api/website/footer', { credentials: 'include' })
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null)
     .then((ftr) => {
-      const serverConfig = (ftr && (ftr.saved || ftr.defaults)) || { showLogo: false, showNavigation: false, links: [] };
-      writeCache(serverConfig);
+      const draft = (ftr && (ftr.draft || ftr.defaults)) || { showLogo: false, showNavigation: false, links: [] };
+      const published = (ftr && ftr.published) || draft;
+      publishedSerialized = serializeConfig(published);
       loaded = true;
-      if (touched) { baseline = serializeConfig(serverConfig); updateSaveBar(); return; } // keep the user's in-progress edits
-      applyConfig(serverConfig);
-      baseline = serialize();
-      updateSaveBar();
+      writeCache(draft);
+      if (touched) { refresh(); return; } // keep the user's in-progress edits
+      applyConfig(draft);
+      refresh();
     });
 })();

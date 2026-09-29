@@ -492,19 +492,22 @@
     }
 
     // ---- Content builder overlays (only the body changes; header/footer stay) ----
-    function iconBtn(cls, label, paths, onClick) {
+    function iconBtn(cls, label, paths, onClick, disabled) {
       const b = el('button', cls);
       b.type = 'button';
       b.title = label;
       b.setAttribute('aria-label', label);
       b.innerHTML = paths;
-      b.addEventListener('click', (e) => { e.stopPropagation(); onClick(); });
+      if (disabled) b.disabled = true;
+      b.addEventListener('click', (e) => { e.stopPropagation(); if (!disabled) onClick(); });
       return b;
     }
     const GRIP = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><circle cx="5.5" cy="3" r="1.3"/><circle cx="10.5" cy="3" r="1.3"/><circle cx="5.5" cy="8" r="1.3"/><circle cx="10.5" cy="8" r="1.3"/><circle cx="5.5" cy="13" r="1.3"/><circle cx="10.5" cy="13" r="1.3"/></svg>';
     const PENCIL = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M10.8 2.6 13.4 5.2 5.4 13.2H2.8v-2.6z"/></svg>';
     const TRASH = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5h10M6 4.5V3h4v1.5M4.8 4.5 5.4 13h5.2l.6-8.5"/></svg>';
     const PLUSC = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6.4"/><path d="M8 5v6M5 8h6"/></svg>';
+    const ARROW_UP = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V3M4 6.5 8 3l4 3.5"/></svg>';
+    const ARROW_DOWN = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M4 9.5 8 13l4-3.5"/></svg>';
 
     // `onEdit` may be null — a cards element has no single-content modal, so its
     // toolbar is grip + trash only (Figma 5624:73770).
@@ -521,6 +524,20 @@
         tb.appendChild(grip);
       }
       if (onEdit) tb.appendChild(iconBtn('wsprev__tbbtn', 'Edit', PENCIL, onEdit));
+      tb.appendChild(iconBtn('wsprev__tbbtn', 'Delete', TRASH, onDelete));
+      return tb;
+    }
+    // A selected section's own toolbar: move up / move down / trash (Figma
+    // 5944:65546) — sections reorder via these discrete buttons plus the
+    // existing whole-section drag (armed by the grip), not a single mechanism.
+    function sectionToolbar(onMoveUp, onMoveDown, onDelete, canMoveUp, canMoveDown) {
+      const tb = el('div', 'wsprev__toolbar');
+      const grip = el('span', 'wsprev__tbgrip');
+      grip.innerHTML = GRIP;
+      grip.title = 'Click to drag and reorder';
+      tb.appendChild(grip);
+      tb.appendChild(iconBtn('wsprev__tbbtn', 'Move section up', ARROW_UP, onMoveUp, !canMoveUp));
+      tb.appendChild(iconBtn('wsprev__tbbtn', 'Move section down', ARROW_DOWN, onMoveDown, !canMoveDown));
       tb.appendChild(iconBtn('wsprev__tbbtn', 'Delete', TRASH, onDelete));
       return tb;
     }
@@ -766,12 +783,13 @@
         return elt;
       }
 
-      (blr.sections || []).forEach((section) => {
+      const sectionList = blr.sections || [];
+      sectionList.forEach((section, sectionIndex) => {
         const sec = el('div', 'wsprev__section');
         sec.dataset.id = section.id;
         // Always show the section's real background (colour + image) — even while
         // it is selected — so the user sees what they're editing. The selection
-        // pink outline sits on top of it.
+        // teal ring sits on top of it.
         const sectionSelected = section.id === blr.selectedSectionId && !blr.selectedElementId;
         applySectionBg(sec, section.background, section.backgroundImage);
         if (sectionSelected) sec.classList.add('is-selected');
@@ -779,9 +797,14 @@
         // section — selecting an element keeps its section active.
         const active = section.id === blr.selectedSectionId;
         sec.addEventListener('click', () => cb.onSelectSection && cb.onSelectSection(section.id));
-        const secToolbar = blockToolbar(
-          () => cb.onSelectSection && cb.onSelectSection(section.id),
-          () => cb.onDeleteSection && cb.onDeleteSection(section.id)
+        const tag = el('span', 'wsprev__sectag', 'Section');
+        sec.appendChild(tag);
+        const secToolbar = sectionToolbar(
+          () => cb.onMoveSectionUp && cb.onMoveSectionUp(section.id),
+          () => cb.onMoveSectionDown && cb.onMoveSectionDown(section.id),
+          () => cb.onDeleteSection && cb.onDeleteSection(section.id),
+          sectionIndex > 0,
+          sectionIndex < sectionList.length - 1
         );
         sec.appendChild(secToolbar);
         // The section toolbar's grip arms whole-section dragging (the section

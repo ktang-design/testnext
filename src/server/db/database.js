@@ -84,34 +84,58 @@ const SCHEMA = [
     updated_at  TEXT NOT NULL,
     PRIMARY KEY (user_id, id)
   )`,
+  // Mirrors `pages` exactly — the last-published snapshot of the whole Pages
+  // list (order/content/etc.), kept apart from the auto-saved draft in `pages`
+  // so in-progress edits never leak out before Publish. Not to be confused
+  // with the per-page `status` column above, which is an unrelated per-page
+  // visibility flag.
+  `CREATE TABLE IF NOT EXISTS pages_published (
+    id         TEXT NOT NULL,
+    user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title       TEXT NOT NULL,
+    slug        TEXT NOT NULL,
+    status      TEXT NOT NULL DEFAULT 'published',
+    description TEXT NOT NULL DEFAULT '',
+    is_homepage INTEGER NOT NULL DEFAULT 0,
+    content     TEXT NOT NULL DEFAULT '{"sections":[]}',
+    sort        INTEGER NOT NULL DEFAULT 0,
+    updated_at  TEXT NOT NULL,
+    PRIMARY KEY (user_id, id)
+  )`,
   `CREATE TABLE IF NOT EXISTS website_navigation (
     user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     data       TEXT NOT NULL,
+    published_data TEXT,
     updated_at TEXT NOT NULL
   )`,
   `CREATE TABLE IF NOT EXISTS website_header (
     user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     data       TEXT NOT NULL,
+    published_data TEXT,
     updated_at TEXT NOT NULL
   )`,
   `CREATE TABLE IF NOT EXISTS website_footer (
     user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     data       TEXT NOT NULL,
+    published_data TEXT,
     updated_at TEXT NOT NULL
   )`,
   `CREATE TABLE IF NOT EXISTS website_typography (
     user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     data       TEXT NOT NULL,
+    published_data TEXT,
     updated_at TEXT NOT NULL
   )`,
   `CREATE TABLE IF NOT EXISTS website_branding (
     user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     data       TEXT NOT NULL,
+    published_data TEXT,
     updated_at TEXT NOT NULL
   )`,
   `CREATE TABLE IF NOT EXISTS website_search (
     user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     data       TEXT NOT NULL,
+    published_data TEXT,
     updated_at TEXT NOT NULL
   )`,
   // Platform settings that are a small JSON doc per (user, kind): communication,
@@ -159,6 +183,12 @@ const COLUMN_PATCHES = [
   { table: 'users', column: 'last_accessed_at', ddl: 'ALTER TABLE users ADD COLUMN last_accessed_at TEXT' },
   { table: 'site_settings', column: 'admin_email', ddl: "ALTER TABLE site_settings ADD COLUMN admin_email TEXT NOT NULL DEFAULT ''" },
   { table: 'bento_settings', column: 'published_data', ddl: 'ALTER TABLE bento_settings ADD COLUMN published_data TEXT' },
+  { table: 'website_navigation', column: 'published_data', ddl: 'ALTER TABLE website_navigation ADD COLUMN published_data TEXT' },
+  { table: 'website_header', column: 'published_data', ddl: 'ALTER TABLE website_header ADD COLUMN published_data TEXT' },
+  { table: 'website_footer', column: 'published_data', ddl: 'ALTER TABLE website_footer ADD COLUMN published_data TEXT' },
+  { table: 'website_typography', column: 'published_data', ddl: 'ALTER TABLE website_typography ADD COLUMN published_data TEXT' },
+  { table: 'website_branding', column: 'published_data', ddl: 'ALTER TABLE website_branding ADD COLUMN published_data TEXT' },
+  { table: 'website_search', column: 'published_data', ddl: 'ALTER TABLE website_search ADD COLUMN published_data TEXT' },
 ];
 async function ensureColumns() {
   for (const p of COLUMN_PATCHES) {

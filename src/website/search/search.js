@@ -4,10 +4,11 @@
 // the "+" menu (EBSCO Discovery Service / Custom search) via a focused
 // "Add … search" modal. The search bar's own background colour/image is
 // configured from Header Settings (see src/website/header/header.js).
+// Edits auto-save as a DRAFT a couple of seconds after you stop editing; the
+// shared Page Builder pageactions bar (website-saveactions.js) is what
+// actually promotes drafts to published, across every section at once.
 (function () {
   const $ = (s) => document.querySelector(s);
-  const saveBtn = $('[data-action="save"]');
-  const statusEl = $('[data-save-status]');
   const addBtn = $('[data-add-search]');
   const listEl = $('[data-search-list]');
   const listSkeleton = $('[data-search-skeleton]');
@@ -15,21 +16,26 @@
   const NAME_MAX = 120;
   const LABEL_MAX = 120;
   const MAX_SEARCHES = 20;
+  const AUTO_SAVE_DELAY = 2000; // ms of idle time after the last edit before auto-saving
 
   const DEFAULTS = { searches: [] };
-  const CACHE_KEY = 'ws-search-config'; // last-known config, for instant load
-  // Separate from CACHE_KEY: that one only ever holds data.saved, which stays
-  // null forever for an account that has never clicked Save — so it can't
+  const CACHE_KEY = 'ws-search-config'; // last-known draft, for instant load
+  // Separate from CACHE_KEY: that one only ever holds the draft, which stays
+  // null forever for an account that has never edited anything — so it can't
   // tell "never loaded" apart from "loaded, and there's genuinely nothing
   // saved yet." This flag just means "we've successfully talked to the
   // server at least once," which is what the skeleton actually needs to know.
   const VISITED_KEY = 'ws-search-visited';
-  const cacheConfig = (saved) => { try { localStorage.setItem(CACHE_KEY, JSON.stringify(saved || null)); } catch (_) { /* ignore */ } };
+  const cacheConfig = (draft) => { try { localStorage.setItem(CACHE_KEY, JSON.stringify(draft || null)); } catch (_) { /* ignore */ } };
 
   let config = null;
-  let baseline = '';
-  let saving = false;
-  let saveError = null;
+  let publishedSerialized = ''; // last-known published snapshot, serialized
+  let saving = false; // an auto-save PUT is in flight
+  let saveState = 'idle'; // 'idle' | 'pending' | 'saved'
+  let autoSaveTimer = null;
+  let touched = false; // set once the user edits, so the boot revalidation fetch won't clobber it
+  let bar = null;
+  let bentoIsConfigured = false; // last-known Bento-configured state, reapplied after Publish/Discard
   let preview = null;
   // True once we know the REAL list (from a cache or the first server
   // response) — until then, an empty config.searches doesn't mean "no
@@ -39,13 +45,18 @@
 
   const clone = (x) => JSON.parse(JSON.stringify(x));
   const serialize = () => JSON.stringify(config);
-  const isDirty = () => serialize() !== baseline;
+  const isLocalDirty = () => serialize() !== publishedSerialized;
   const show = (el) => { el.hidden = false; };
   const hide = (el) => { el.hidden = true; };
   const uid = () => 'search-' + Math.random().toString(36).slice(2, 10);
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-  function onChange() { saveError = null; pushPreview(); updateSaveBar(); }
+  function onEdit() {
+    touched = true;
+    saveState = 'pending';
+    render();
+    scheduleAutoSave();
+  }
 
   // Features > Bento: when a Bento search integration is configured (EDS filled
   // in + at least one block), a "Bento search" is pre-created in the list. It
@@ -55,16 +66,26 @@
   function bentoConfigured(bento) {
     return !!(bento && bento.integrationConfigured && bento.published && Array.isArray(bento.published.blocks) && bento.published.blocks.length);
   }
-  function ensureBentoSearch(configured) {
-    const list = config.searches || (config.searches = []);
+  // Pure: returns a new searches array with the synthetic Bento entry
+  // added/removed, so it can be applied identically to the draft AND the
+  // published snapshot — otherwise this derived, always-in-sync entry would
+  // make a freshly-loaded page look "dirty" purely from the injection itself.
+  function withBentoSearch(list, configured) {
+    list = list || [];
     const idx = list.findIndex((s) => s.type === 'bento');
     if (configured && idx === -1) {
-      list.push({ id: 'search-bento', type: 'bento', name: 'Bento search', displayLabel: 'Bento search', url: '', urlencode: true, buttonLabel: 'Search', isDefault: list.length === 0 });
-    } else if (!configured && idx !== -1) {
-      const wasDefault = list[idx].isDefault;
-      list.splice(idx, 1);
-      if (wasDefault && list.length && !list.some((s) => s.isDefault)) list[0].isDefault = true;
+      return [...list, { id: 'search-bento', type: 'bento', name: 'Bento search', displayLabel: 'Bento search', url: '', urlencode: true, buttonLabel: 'Search', isDefault: list.length === 0 }];
     }
+    if (!configured && idx !== -1) {
+      const wasDefault = list[idx].isDefault;
+      const next = list.slice(0, idx).concat(list.slice(idx + 1));
+      if (wasDefault && next.length && !next.some((s) => s.isDefault)) next[0].isDefault = true;
+      return next;
+    }
+    return list;
+  }
+  function ensureBentoSearch(configured) {
+    config.searches = withBentoSearch(config.searches, configured);
   }
   const pushPreview = () => { if (config && preview) preview.update({ search: config }); };
 
@@ -122,7 +143,7 @@
   // preview's dropdown; deleting it promotes the first remaining search.
   function makeDefault(id) {
     config.searches.forEach((s) => { s.isDefault = s.id === id; });
-    renderList(); onChange();
+    renderList(); onEdit();
   }
   function duplicateSearch(id) {
     const idx = config.searches.findIndex((s) => s.id === id);
@@ -136,7 +157,7 @@
     copy.isDefault = false;
     copy.enabled = true;
     config.searches.splice(idx + 1, 0, copy);
-    renderList(); onChange();
+    renderList(); onEdit();
   }
   // The default search can't be disabled (it's what visitors get pre-selected),
   // so the option only ever appears on non-default searches.
@@ -144,7 +165,7 @@
     const s = config.searches.find((x) => x.id === id);
     if (!s || s.isDefault) return;
     s.enabled = s.enabled === false ? true : false;
-    renderList(); onChange();
+    renderList(); onEdit();
   }
   async function deleteSearch(id) {
     const ok = await window.Modal.confirm({
@@ -162,7 +183,7 @@
       const next = config.searches.find((s) => s.enabled !== false) || config.searches[0];
       next.isDefault = true;
     }
-    renderList(); onChange();
+    renderList(); onEdit();
   }
   // Trailing row actions: a star on the default search + the actions kebab.
   function rowActions(s) {
@@ -245,7 +266,7 @@
         const s = config.searches.find((x) => x.id === it.id);
         return { className: s && s.enabled === false ? 'is-unavailable' : '' };
       },
-      onChange: () => { reorderSearches(tree.getItems().map((it) => it.id)); onChange(); },
+      onChange: () => { reorderSearches(tree.getItems().map((it) => it.id)); onEdit(); },
     });
   }
 
@@ -345,7 +366,7 @@
       } else {
         config.searches.push(draft);
       }
-      renderList(); onChange(); close();
+      renderList(); onEdit(); close();
     }
     modal.querySelector('.modal__close').addEventListener('click', close);
     modal.querySelector('[data-cancel]').addEventListener('click', close);
@@ -364,90 +385,106 @@
     nameI.focus();
   }
 
-  // ---------- render / save bar ----------
+  // ---------- render ----------
   function applyToControls() {
     renderList();
+    render();
+  }
+  function render() {
     pushPreview();
-  }
-  function updateSaveBar() {
-    const dirty = isDirty();
-    saveBtn.disabled = saving || !dirty;
-    saveBtn.classList.toggle('is-saving', saving);
-    if (saving) { statusEl.hidden = false; statusEl.classList.remove('save-status--error'); statusEl.textContent = 'Saving…'; }
-    else if (saveError) { statusEl.hidden = false; statusEl.classList.add('save-status--error'); statusEl.textContent = saveError; }
-    else { statusEl.hidden = !dirty; statusEl.classList.remove('save-status--error'); statusEl.textContent = 'Unsaved changes'; }
+    if (bar) bar.refresh(saveState);
   }
 
-  async function save() {
-    if (saving || !isDirty()) return;
-    saving = true; saveError = null; updateSaveBar();
-    try {
-      const res = await fetch('/api/website/search', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(config),
-      });
-      if (!res.ok) {
-        let msg = 'Couldn’t save. Try again.';
-        try { const d = await res.json(); if (d.message) msg = d.message; } catch (_) {}
-        throw new Error(msg);
-      }
-      const data = await res.json();
-      config = data.saved;
-      baseline = serialize();
+  // ---------- auto-save (draft only) ----------
+  function scheduleAutoSave() {
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => { autoSaveTimer = null; autoSave(); }, AUTO_SAVE_DELAY);
+  }
+  function cancelPendingSave() {
+    if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
+  }
+  function flushPendingSave() {
+    if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; return autoSave(); }
+    return Promise.resolve();
+  }
+  function autoSave() {
+    if (saving) return Promise.resolve();
+    saving = true;
+    return fetch('/api/website/search', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(config),
+    }).then((res) => {
+      if (!res.ok) return res.json().catch(() => ({})).then((d) => { throw new Error(d.message || 'We could not save your changes. Try again.'); });
+      return res.json();
+    }).then((data) => {
+      config = data.draft || data.saved;
+      saving = false;
+      saveState = 'saved';
       cacheConfig(config); // keep the instant-load cache in sync
-      saving = false; saveError = null;
       applyToControls();
-      updateSaveBar();
-    } catch (err) {
-      saving = false; saveError = err.message || 'Couldn’t save. Try again.';
-      updateSaveBar();
-    }
-  }
-
-  // ---------- nav guard ----------
-  function setupNavGuard() {
-    const modal = $('[data-modal="unsaved"]');
-    let pendingHref = null;
-    let allowLeave = false;
-    const open = () => { modal.hidden = false; modal.querySelector('[data-modal-keep]').focus(); };
-    const close = () => { modal.hidden = true; pendingHref = null; };
-    modal.querySelector('[data-modal-close]').addEventListener('click', close);
-    modal.querySelector('[data-modal-keep]').addEventListener('click', close);
-    modal.querySelector('[data-modal-discard]').addEventListener('click', () => {
-      allowLeave = true; const href = pendingHref; close(); if (href) window.location.href = href;
-    });
-    document.addEventListener('click', (e) => {
-      const link = e.target.closest('a[href]');
-      if (!link || allowLeave || !isDirty()) return;
-      const href = link.getAttribute('href');
-      if (!href || href.startsWith('#') || link.target === '_blank') return;
-      const url = new URL(href, location.href);
-      if (url.origin === location.origin && url.pathname === location.pathname) return;
-      e.preventDefault(); pendingHref = url.href; open();
-    });
-    window.addEventListener('beforeunload', (e) => {
-      if (isDirty() && !allowLeave) { e.preventDefault(); e.returnValue = ''; }
+    }).catch((err) => {
+      saving = false;
+      saveState = 'idle';
+      render();
+      if (window.Toast) window.Toast.show(err.message || 'We could not save your changes. Try again.');
     });
   }
 
   // ---------- boot ----------
   preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'), { highlight: 'search' });
-  saveBtn.addEventListener('click', save);
-  setupNavGuard();
 
-  // Paint the saved configuration instantly from a local cache (panel + preview)
-  // instead of waiting for the network — then revalidate against the server and
-  // adopt it only if the user hasn't started editing. This removes the visible
-  // "pop-in" of saved changes on load.
+  // Paint the draft configuration instantly from a local cache (panel +
+  // preview) instead of waiting for the network — then revalidate against
+  // the server and adopt it only if the user hasn't started editing. This
+  // removes the visible "pop-in" of saved changes on load.
   let cached = null;
   try { cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (_) { /* ignore */ }
   try { searchesLoaded = localStorage.getItem(VISITED_KEY) === '1'; } catch (_) { /* ignore */ }
   config = clone(cached || DEFAULTS);
-  baseline = serialize();
+  publishedSerialized = serialize();
   applyToControls();
-  updateSaveBar();
+
+  bar = window.WebsiteSaveActions.init({
+    isLocalDirty,
+    flushLocalSave: flushPendingSave,
+    cancelLocalPending: cancelPendingSave,
+    onPublished: (published) => {
+      const p = published && published.search;
+      if (p) {
+        p.searches = withBentoSearch(p.searches, bentoIsConfigured);
+        publishedSerialized = JSON.stringify(p);
+      }
+      render();
+    },
+    onDiscarded: (draft) => {
+      const d = draft && draft.search;
+      if (d) {
+        d.searches = withBentoSearch(d.searches, bentoIsConfigured);
+        config = clone(d);
+        publishedSerialized = serialize();
+        cacheConfig(config);
+        applyToControls();
+      }
+    },
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = null;
+      try {
+        fetch('/api/website/search', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          keepalive: true,
+          body: JSON.stringify(config),
+        });
+      } catch (_) { /* best effort */ }
+    }
+  });
 
   const getJSON = (url) => fetch(url, { credentials: 'include' }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
   Promise.all([getJSON('/api/website/search'), getJSON('/api/features/bento')])
@@ -455,12 +492,18 @@
       searchesLoaded = true;
       if (data) { try { localStorage.setItem(VISITED_KEY, '1'); } catch (_) { /* ignore */ } }
       if (!data) { renderList(); return; } // search fetch failed — keep the cached/default view
-      cacheConfig(data.saved);
-      if (isDirty()) { renderList(); return; } // the user already started editing — keep their work
-      config = clone(data.saved || data.defaults || DEFAULTS);
-      ensureBentoSearch(bentoConfigured(bento)); // pre-create the Bento search when configured
-      baseline = serialize();
+      const draft = clone(data.draft || data.saved || data.defaults || DEFAULTS);
+      const published = clone(data.published || draft);
+      const configured = bentoConfigured(bento);
+      bentoIsConfigured = configured;
+      // Apply the same synthetic Bento-entry injection to both sides so it
+      // never shows up as an "unpublished change" on its own.
+      published.searches = withBentoSearch(published.searches, configured);
+      publishedSerialized = JSON.stringify(published);
+      cacheConfig(draft);
+      if (touched) { render(); return; } // the user already started editing — keep their work
+      config = draft;
+      ensureBentoSearch(configured); // pre-create the Bento search when configured
       applyToControls();
-      updateSaveBar();
     });
 })();

@@ -1,8 +1,11 @@
 'use strict';
-// Pages API (per authenticated user). The Pages builder saves the whole ordered
-// set at once, so:
+// Pages API (per authenticated user). The Pages builder auto-saves the whole
+// ordered set as a draft, so:
 //   GET  /api/website/pages  -> { pages, limits }
-//   PUT  /api/website/pages  -> { saved }   (replaces the full ordered set)
+//   PUT  /api/website/pages  -> { saved }   (auto-save; replaces the full
+//                                draft ordered set — see PagesRepository for
+//                                the separate published snapshot, promoted
+//                                only by POST /api/website/publish-all)
 //
 // On save the server normalizes the set: titles required + bounded, exactly one
 // homepage (slug '/'), unique slugs derived from titles, and ids preserved so
@@ -13,8 +16,6 @@ const crypto = require('crypto');
 const sanitizeHtml = require('sanitize-html');
 const { requireApiAuth } = require('../auth/authGuard');
 const { pagesRepository } = require('../website/PagesRepository');
-const { pagesActivity } = require('../website/pagesActivity');
-const { logActivities } = require('../platform/activity');
 const {
   TITLE_MAX, DESCRIPTION_MAX, MAX_PAGES,
   SECTION_TITLE_MAX, ELEMENT_TITLE_MAX, ELEMENT_BODY_MAX, MAX_SECTIONS, MAX_ELEMENTS,
@@ -243,8 +244,17 @@ router.get('/', requireApiAuth, ah(async (req, res) => {
   // Guarantee every account has at least the starred Homepage (no-op if it
   // already has pages) so the list is never empty.
   await pagesRepository.seedDefaults(req.session.userId);
+  const [pages, published] = await Promise.all([
+    pagesRepository.list(req.session.userId),
+    pagesRepository.listPublished(req.session.userId),
+  ]);
   res.json({
-    pages: await pagesRepository.list(req.session.userId),
+    pages,
+    // The last-published snapshot of the whole Pages list (see
+    // PagesRepository) — used to compute whether this section has
+    // unpublished changes, not to be confused with the per-page `status`
+    // visibility flag already on each page.
+    published,
     limits: {
       title: TITLE_MAX, description: DESCRIPTION_MAX,
       sectionTitle: SECTION_TITLE_MAX, elementTitle: ELEMENT_TITLE_MAX, body: ELEMENT_BODY_MAX,
@@ -261,12 +271,10 @@ router.put('/', requireApiAuth, ah(async (req, res) => {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.code, message: err.message });
     throw err;
   }
-  // Read the current set first so the save can be described in the Activity log.
-  // The builder sends the whole set every time, so only the diff is worth
-  // recording — a save that changed nothing structural logs nothing.
-  const before = await pagesRepository.list(req.session.userId);
+  // Auto-save only — no activity log entry here, or editing would spam the
+  // log roughly every 2 seconds. The meaningful, logged action is Publish
+  // (POST /api/website/publish-all).
   const saved = await pagesRepository.replaceAll(req.session.userId, pages);
-  await logActivities(req.session.userId, pagesActivity(before, pages));
   res.json({ saved });
 }));
 

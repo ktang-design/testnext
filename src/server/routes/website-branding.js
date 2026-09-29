@@ -1,15 +1,18 @@
 'use strict';
 // Website branding API (logo override + brand colours). Mounted under the
 // large body parser because the logo is an image data URL.
-//   GET  /api/website/branding -> { defaults, saved }
-//   PUT  /api/website/branding -> { saved }
+//   GET /api/website/branding -> { defaults, draft, published }
+//   PUT /api/website/branding -> { draft }  (auto-save; the sync back up to
+//                                 Platform branding happens on Publish — see
+//                                 POST /api/website/publish-all — so an
+//                                 in-progress edit here never leaks into
+//                                 System Settings before it's published)
 
 const express = require('express');
 const { requireApiAuth } = require('../auth/authGuard');
 const { websiteBrandingRepository } = require('../website/WebsiteBrandingRepository');
 const { brandingRepository } = require('../settings/BrandingRepository');
 const { WEBSITE_BRANDING_DEFAULTS, WEBSITE_BRANDING_COLORS } = require('../website/defaults');
-const { BRANDING_DEFAULTS } = require('../settings/defaults');
 
 const router = express.Router();
 const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -57,17 +60,15 @@ function cleanColor(raw, fallback) {
 
 router.get('/', requireApiAuth, ah(async (req, res) => {
   const defaults = await brandingDefaults(req.session.userId);
-  const saved = await websiteBrandingRepository.get(req.session.userId);
+  const { draft, published } = await websiteBrandingRepository.get(req.session.userId);
   // Merge over the defaults so a doc saved before a colour (e.g. action)
   // existed still comes back with every field populated — a missing colour
   // would otherwise paint the swatch with an invalid CSS value (transparent).
   // The logo falls back to the live Platform-derived default whenever the
   // saved doc has none — this self-heals accounts saved before the two pages'
-  // logos were kept in sync (below), rather than staying permanently blank.
-  res.json({
-    defaults,
-    saved: saved ? { ...defaults, ...saved, logo: saved.logo || defaults.logo } : null,
-  });
+  // logos were kept in sync, rather than staying permanently blank.
+  const merge = (saved) => (saved ? { ...defaults, ...saved, logo: saved.logo || defaults.logo } : null);
+  res.json({ defaults, draft: merge(draft), published: merge(published) });
 }));
 
 router.put('/', requireApiAuth, ah(async (req, res) => {
@@ -79,15 +80,8 @@ router.put('/', requireApiAuth, ah(async (req, res) => {
   WEBSITE_BRANDING_COLORS.forEach((key) => {
     config[key] = cleanColor(b[key], WEBSITE_BRANDING_DEFAULTS[key]);
   });
-  const saved = await websiteBrandingRepository.save(req.session.userId, config);
-  // Push the logo and primary / secondary / action (colour AND opacity) back
-  // UP to Platform branding, mirroring the downward sync in routes/branding.js,
-  // so the two pages agree whichever one the user edited.
-  await brandingRepository.syncLogo(req.session.userId, config.logo, BRANDING_DEFAULTS);
-  await brandingRepository.syncBrandColors(
-    req.session.userId, config.primary, config.secondary, config.action, BRANDING_DEFAULTS
-  );
-  res.json({ saved });
+  const draft = await websiteBrandingRepository.saveDraft(req.session.userId, config);
+  res.json({ draft });
 }));
 
 module.exports = router;

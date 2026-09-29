@@ -1,7 +1,14 @@
 'use strict';
-// Website layer API: published pages + the navigation tree.
+// Website layer API: pages + the navigation tree + header/footer/typography,
+// plus the three endpoints that drive the shared Page Builder pageactions bar
+// (auto-save is per-section, but Publish/Discard always act on every section
+// together — see the "Page Builder" plan for the full rationale):
+//   GET  /api/website/publish-status -> { dirty }
+//   POST /api/website/publish-all    -> { published: { ... } } (one entry per section)
+//   POST /api/website/discard-all    -> { draft: { ... } }
+//
 //   GET  /api/website/navigation  -> { navigation, publishedPages }
-//   PUT  /api/website/navigation  -> { saved }
+//   PUT  /api/website/navigation  -> { saved }   (auto-save only)
 // The navigation tree is validated and re-shaped to a canonical form on save;
 // on read, page items are annotated with `available` (false when the linked
 // page is missing or no longer published) so the client can disable them.
@@ -13,7 +20,10 @@ const { navigationRepository } = require('../website/NavigationRepository');
 const { headerRepository } = require('../website/HeaderRepository');
 const { footerRepository } = require('../website/FooterRepository');
 const { typographyRepository } = require('../website/TypographyRepository');
+const { searchRepository } = require('../website/SearchRepository');
+const { websiteBrandingRepository } = require('../website/WebsiteBrandingRepository');
 const { brandingRepository } = require('../settings/BrandingRepository');
+const { logActivity } = require('../platform/activity');
 const { BRANDING_DEFAULTS } = require('../settings/defaults');
 const {
   LABEL_MAX, URL_MAX, MAX_ITEMS, MAX_DEPTH,
@@ -100,9 +110,13 @@ function annotate(items, pageMap) {
 router.get('/navigation', requireApiAuth, ah(async (req, res) => {
   const userId = req.session.userId;
   const { pages, map } = await loadPageMap(userId);
-  const saved = (await navigationRepository.get(userId)) || [];
+  const { draft, published } = await navigationRepository.get(userId);
   res.json({
-    navigation: annotate(saved, map),
+    navigation: annotate(draft || [], map),
+    // The last-published navigation tree — not to be confused with
+    // `publishedPages` below (individually-published pages available to link
+    // to), used to compute whether this section has unpublished changes.
+    publishedNavigation: annotate(published || [], map),
     publishedPages: pages.filter((p) => p.status === 'published').map((p) => ({ id: p.id, title: p.title })),
   });
 }));
@@ -119,7 +133,10 @@ router.put('/navigation', requireApiAuth, ah(async (req, res) => {
     }
     throw err;
   }
-  await navigationRepository.save(userId, clean);
+  // Auto-save only — no activity log entry here, or editing would spam the
+  // log roughly every 2 seconds. The meaningful, logged action is Publish
+  // (POST /api/website/publish-all).
+  await navigationRepository.saveDraft(userId, clean);
   res.json({ saved: annotate(clean, map) });
 }));
 
@@ -147,10 +164,11 @@ const HEADER_IMAGE_MAX = Math.ceil(3 * 1024 * 1024 * 1.4);
 
 router.get('/header', requireApiAuth, ah(async (req, res) => {
   const defaults = { ...HEADER_DEFAULTS, background: { color: await primaryColor(req.session.userId), opacity: 100 } };
-  const saved = await headerRepository.get(req.session.userId);
+  const { draft, published } = await headerRepository.get(req.session.userId);
   // Merge over the defaults so a doc saved before a field (e.g. siteName,
   // searchBackground, headerImage) existed still comes back fully populated.
-  res.json({ defaults, saved: saved ? { ...defaults, ...saved } : null });
+  const merge = (saved) => (saved ? { ...defaults, ...saved } : null);
+  res.json({ defaults, saved: merge(draft), draft: merge(draft), published: merge(published) });
 }));
 
 router.put('/header', requireApiAuth, ah(async (req, res) => {
@@ -166,7 +184,10 @@ router.put('/header', requireApiAuth, ah(async (req, res) => {
     searchBackground: cleanColor(b.searchBackground, HEADER_DEFAULTS.searchBackground),
     headerImage: b.headerImage || null,
   };
-  res.json({ saved: await headerRepository.save(req.session.userId, config) });
+  // Auto-save only — no activity log entry here, or editing would spam the
+  // log roughly every 2 seconds. The meaningful, logged action is Publish
+  // (POST /api/website/publish-all).
+  res.json({ saved: await headerRepository.saveDraft(req.session.userId, config) });
 }));
 
 // ---------------------------------------------------------------------------
@@ -174,7 +195,8 @@ router.put('/header', requireApiAuth, ah(async (req, res) => {
 // ---------------------------------------------------------------------------
 router.get('/footer', requireApiAuth, ah(async (req, res) => {
   const defaults = { ...FOOTER_DEFAULTS, background: { color: await primaryColor(req.session.userId), opacity: 100 } };
-  res.json({ defaults, saved: await footerRepository.get(req.session.userId) });
+  const { draft, published } = await footerRepository.get(req.session.userId);
+  res.json({ defaults, saved: draft, draft, published });
 }));
 
 router.put('/footer', requireApiAuth, ah(async (req, res) => {
@@ -200,7 +222,8 @@ router.put('/footer', requireApiAuth, ah(async (req, res) => {
     link: cleanColor(b.link, FOOTER_DEFAULTS.link),
     links,
   };
-  res.json({ saved: await footerRepository.save(req.session.userId, config) });
+  // Auto-save only — see the note on the header PUT above.
+  res.json({ saved: await footerRepository.saveDraft(req.session.userId, config) });
 }));
 
 // ---------------------------------------------------------------------------
@@ -224,13 +247,80 @@ function normalizeTypography(b) {
 }
 
 router.get('/typography', requireApiAuth, ah(async (req, res) => {
-  const saved = await typographyRepository.get(req.session.userId);
-  res.json({ defaults: TYPOGRAPHY_DEFAULTS, saved: saved ? normalizeTypography(saved) : null });
+  const { draft, published } = await typographyRepository.get(req.session.userId);
+  const norm = (saved) => (saved ? normalizeTypography(saved) : null);
+  res.json({ defaults: TYPOGRAPHY_DEFAULTS, saved: norm(draft), draft: norm(draft), published: norm(published) });
 }));
 
 router.put('/typography', requireApiAuth, ah(async (req, res) => {
   const config = normalizeTypography(req.body);
-  res.json({ saved: await typographyRepository.save(req.session.userId, config) });
+  // Auto-save only — see the note on the header PUT above.
+  res.json({ saved: await typographyRepository.saveDraft(req.session.userId, config) });
+}));
+
+// ---------------------------------------------------------------------------
+// Cross-section publish status + Publish/Discard-all (drives the shared
+// Page Builder pageactions bar — Publish and Discard always act on every
+// section together, never just the one the user happens to be viewing).
+// ---------------------------------------------------------------------------
+
+// Every section this bar covers, each exposing the same {draft, published}
+// shape from its own repository's get(). Pages is relational (list/listPublished
+// instead of a JSON blob) so it's handled separately below.
+const BLOB_SECTIONS = [
+  navigationRepository, searchRepository, headerRepository, footerRepository, typographyRepository, websiteBrandingRepository,
+];
+
+async function anySectionDirty(userId) {
+  for (const repo of BLOB_SECTIONS) {
+    const { draft, published } = await repo.get(userId);
+    if (JSON.stringify(draft || null) !== JSON.stringify(published || null)) return true;
+  }
+  const [draftPages, publishedPages] = await Promise.all([pagesRepository.list(userId), pagesRepository.listPublished(userId)]);
+  return JSON.stringify(draftPages) !== JSON.stringify(publishedPages);
+}
+
+router.get('/publish-status', requireApiAuth, ah(async (req, res) => {
+  res.json({ dirty: await anySectionDirty(req.session.userId) });
+}));
+
+router.post('/publish-all', requireApiAuth, ah(async (req, res) => {
+  const userId = req.session.userId;
+  const [pages, navigation, search, header, footer, typography, branding] = await Promise.all([
+    pagesRepository.publish(userId),
+    navigationRepository.publish(userId),
+    searchRepository.publish(userId),
+    headerRepository.publish(userId),
+    footerRepository.publish(userId),
+    typographyRepository.publish(userId),
+    websiteBrandingRepository.publish(userId),
+  ]);
+  // Push the just-published Website Branding logo/colours up to Platform
+  // Branding now that they're live, mirroring the sync that used to fire on
+  // every save — moved here so an in-progress edit never leaks into System
+  // Settings before it's actually published. Only when Website Branding was
+  // ever actually saved (publish() on an untouched account returns `{}`, with
+  // none of these fields present).
+  if (branding.primary && branding.secondary && branding.action) {
+    await brandingRepository.syncLogo(userId, branding.logo, BRANDING_DEFAULTS);
+    await brandingRepository.syncBrandColors(userId, branding.primary, branding.secondary, branding.action, BRANDING_DEFAULTS);
+  }
+  await logActivity(userId, { pre: 'Published ', linkLabel: 'Page Builder changes', linkHref: '/website/', post: '.' });
+  res.json({ published: { pages, navigation, search, header, footer, typography, branding } });
+}));
+
+router.post('/discard-all', requireApiAuth, ah(async (req, res) => {
+  const userId = req.session.userId;
+  const [pages, navigation, search, header, footer, typography, branding] = await Promise.all([
+    pagesRepository.discard(userId),
+    navigationRepository.discard(userId),
+    searchRepository.discard(userId),
+    headerRepository.discard(userId),
+    footerRepository.discard(userId),
+    typographyRepository.discard(userId),
+    websiteBrandingRepository.discard(userId),
+  ]);
+  res.json({ draft: { pages, navigation, search, header, footer, typography, branding } });
 }));
 
 module.exports = router;

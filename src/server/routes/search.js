@@ -3,8 +3,8 @@
 // bar's dropdown. The search bar's own background/image moved to Header
 // Settings (searchBackground/headerImage) since it renders as part of the
 // header composite — see src/server/routes/website.js.
-//   GET  /api/website/search -> { defaults, saved }
-//   PUT  /api/website/search -> { saved }
+//   GET  /api/website/search -> { defaults, draft, published }
+//   PUT  /api/website/search -> { draft }   (auto-save only)
 
 const express = require('express');
 const crypto = require('crypto');
@@ -68,7 +68,8 @@ function normalize(raw) {
 }
 
 router.get('/', requireApiAuth, ah(async (req, res) => {
-  res.json({ defaults: SEARCH_DEFAULTS, saved: await searchRepository.get(req.session.userId) });
+  const { draft, published } = await searchRepository.get(req.session.userId);
+  res.json({ defaults: SEARCH_DEFAULTS, saved: draft, draft, published });
 }));
 
 router.put('/', requireApiAuth, ah(async (req, res) => {
@@ -79,7 +80,7 @@ router.put('/', requireApiAuth, ah(async (req, res) => {
     if (err instanceof ValidationError) return res.status(400).json({ error: err.code, message: err.message });
     throw err;
   }
-  res.json({ saved: await searchRepository.save(req.session.userId, config) });
+  res.json({ draft: await searchRepository.saveDraft(req.session.userId, config) });
 }));
 
 module.exports = router;

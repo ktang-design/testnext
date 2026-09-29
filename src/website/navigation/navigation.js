@@ -1,23 +1,29 @@
 // Website layer — Navigation configuration.
-// Loads the saved navigation + published pages, renders an accessible sortable
-// tree, and wires the add (+) menu, per-item Edit/Delete, and Save.
+// Loads the draft navigation + published pages, renders an accessible
+// sortable tree, and wires the add (+) menu and per-item Edit/Delete. Edits
+// auto-save as a DRAFT a couple of seconds after you stop editing/dragging;
+// the shared Page Builder pageactions bar (website-saveactions.js) is what
+// actually promotes drafts to published, across every section at once.
 (function () {
   const treeMount = document.querySelector('[data-tree]');
   const treeSkeleton = document.querySelector('[data-tree-skeleton]');
   const emptyEl = document.querySelector('[data-empty]');
   const addBtn = document.querySelector('[data-add]');
-  const saveBtn = document.querySelector('[data-action="save"]');
   const statusEl = document.querySelector('[data-save-status]');
   if (!treeMount) return;
 
   const UNAVAILABLE_MSG = 'This menu item is unavailable because the linked page is unpublished.';
+  const AUTO_SAVE_DELAY = 2000; // ms of idle time after the last edit before auto-saving
 
   let publishedPages = [];
   let tree = null;
-  let baseline = '[]';
-  let loaded = false; // true once the saved navigation has loaded — no "dirty" before then
-  let saving = false;
-  let saveError = null;
+  let publishedSerialized = '[]'; // last-known published navigation tree, serialized
+  let loaded = false; // true once the draft has loaded — no dirty check before then
+  let saving = false; // an auto-save PUT is in flight
+  let saveState = 'idle'; // 'idle' | 'pending' | 'saved'
+  let autoSaveTimer = null;
+  let touched = false; // set once the user edits, so the boot revalidation fetch won't clobber it
+  let bar = null;
 
   const uid = () =>
     'nav-' + (window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.floor(performance.now()));
@@ -34,7 +40,7 @@
     }));
   }
   const serialize = () => JSON.stringify(strip(tree ? tree.getItems() : []));
-  const isDirty = () => loaded && serialize() !== baseline;
+  const isLocalDirty = () => loaded && serialize() !== publishedSerialized;
 
   // Permissive client mirror of the server URL check.
   const validUrl = (v) => /^(https?:\/\/|\/|#|mailto:|tel:)/i.test(String(v || '').trim());
@@ -118,7 +124,7 @@
         className: it.type === 'page' && it.available === false ? 'is-unavailable' : '',
         disabled: it.type === 'page' && it.available === false,
       }),
-      onChange: () => refresh(),
+      onChange: () => onEdit(),
     });
     refresh();
   }
@@ -128,32 +134,20 @@
     const count = tree ? tree.getItems().length : 0;
     emptyEl.hidden = count > 0;
     if (preview) preview.update({ navigation: tree ? tree.getItems() : [] });
-    updateSaveBar();
+    if (bar) bar.refresh(saveState);
   }
 
-  function updateSaveBar() {
-    const dirty = isDirty();
-    saveBtn.disabled = saving || !dirty;
-    saveBtn.classList.toggle('is-saving', saving);
-    if (saving) {
-      statusEl.hidden = false;
-      statusEl.classList.remove('save-status--error');
-      statusEl.textContent = 'Saving…';
-    } else if (saveError) {
-      statusEl.hidden = false;
-      statusEl.classList.add('save-status--error');
-      statusEl.textContent = saveError;
-    } else {
-      statusEl.hidden = !dirty;
-      statusEl.classList.remove('save-status--error');
-      statusEl.textContent = 'Unsaved changes';
-    }
+  function onEdit() {
+    touched = true;
+    saveState = 'pending';
+    refresh();
+    scheduleAutoSave();
   }
 
   // ---------- mutations ----------
   function commit(items) {
-    saveError = null;
     mountTree(items);
+    onEdit();
   }
   function addItem(item) {
     const items = tree.getItems();
@@ -256,71 +250,50 @@
     }
   }
 
-  // ---------- save ----------
-  async function save() {
-    if (saving || !isDirty()) return;
-    saving = true;
-    updateSaveBar();
-    try {
-      const res = await fetch('/api/website/navigation', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ items: strip(tree.getItems()) }),
-      });
-      if (!res.ok) {
-        let msg = 'Couldn’t save. Try again.';
-        try { const d = await res.json(); if (d.message) msg = d.message; } catch (_) {}
-        throw new Error(msg);
-      }
-      const data = await res.json();
-      saving = false;
-      saveError = null;
-      baseline = JSON.stringify(strip(data.saved));
-      mountTree(data.saved); // refresh availability from the server
-      writeNavCache();       // keep the instant-load cache in sync with the saved state
-    } catch (err) {
-      saving = false;
-      saveError = err.message || 'Couldn’t save. Try again.';
-      updateSaveBar();
-    }
+  // ---------- auto-save (draft only) ----------
+  function scheduleAutoSave() {
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => { autoSaveTimer = null; autoSave(); }, AUTO_SAVE_DELAY);
   }
-
-  // ---------- navigation guard (unsaved changes) ----------
-  function setupNavGuard() {
-    const modal = document.querySelector('[data-modal="unsaved"]');
-    let pendingHref = null;
-    let allowLeave = false;
-    const open = () => { modal.hidden = false; modal.querySelector('[data-modal-keep]').focus(); };
-    const close = () => { modal.hidden = true; pendingHref = null; };
-    modal.querySelector('[data-modal-close]').addEventListener('click', close);
-    modal.querySelector('[data-modal-keep]').addEventListener('click', close);
-    modal.querySelector('[data-modal-discard]').addEventListener('click', () => {
-      allowLeave = true; const href = pendingHref; close(); if (href) window.location.href = href;
-    });
-    document.addEventListener('click', (e) => {
-      const link = e.target.closest('a[href]');
-      if (!link || allowLeave || !isDirty()) return;
-      const href = link.getAttribute('href');
-      if (!href || href.startsWith('#') || link.target === '_blank') return;
-      const url = new URL(href, location.href);
-      if (url.origin === location.origin && url.pathname === location.pathname) return;
-      e.preventDefault();
-      pendingHref = url.href;
-      open();
-    });
-    window.addEventListener('beforeunload', (e) => {
-      if (isDirty() && !allowLeave) { e.preventDefault(); e.returnValue = ''; }
+  function cancelPendingSave() {
+    if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
+  }
+  function flushPendingSave() {
+    if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; return autoSave(); }
+    return Promise.resolve();
+  }
+  function autoSave() {
+    if (saving) return Promise.resolve();
+    saving = true;
+    return fetch('/api/website/navigation', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ items: strip(tree.getItems()) }),
+    }).then((res) => {
+      if (!res.ok) return res.json().catch(() => ({})).then((d) => { throw new Error(d.message || 'We could not save your changes. Try again.'); });
+      return res.json();
+    }).then((data) => {
+      saving = false;
+      saveState = 'saved';
+      mountTree(data.saved); // refresh availability from the server
+      writeNavCache();       // keep the instant-load cache in sync with the draft
+      refresh();
+    }).catch((err) => {
+      saving = false;
+      saveState = 'idle';
+      refresh();
+      if (window.Toast) window.Toast.show(err.message || 'We could not save your changes. Try again.');
     });
   }
 
   // ---------- boot ----------
   const preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'), { highlight: 'nav' });
-  saveBtn.addEventListener('click', save);
 
-  // Instant-load cache for the left-panel tree, so the saved items paint without
-  // waiting on the network (mirrors the website preview's cache). It holds only
-  // the last-saved navigation + published pages; the fetch below revalidates it.
+  // Instant-load cache for the left-panel tree, so the draft items paint
+  // without waiting on the network (mirrors the website preview's cache). It
+  // holds only the last-saved draft navigation + published pages; the fetch
+  // below revalidates it.
   const NAV_CACHE = 'ws-nav-cache';
   const readNavCache = () => { try { return JSON.parse(localStorage.getItem(NAV_CACHE) || 'null'); } catch (_) { return null; } };
   const writeNavCache = () => {
@@ -348,28 +321,64 @@
     }
   }
 
+  bar = window.WebsiteSaveActions.init({
+    isLocalDirty,
+    flushLocalSave: flushPendingSave,
+    cancelLocalPending: cancelPendingSave,
+    onPublished: (published) => {
+      const p = published && published.navigation;
+      if (p) publishedSerialized = JSON.stringify(strip(p));
+      refresh();
+    },
+    onDiscarded: (draft) => {
+      const d = draft && draft.navigation;
+      if (d) {
+        mountTree(d);
+        publishedSerialized = JSON.stringify(strip(d));
+        writeNavCache();
+        refresh();
+      }
+    },
+  });
+
   const cached = readNavCache();
   if (cached && Array.isArray(cached.navigation)) {
     publishedPages = cached.publishedPages || [];
-    baseline = JSON.stringify(strip(cached.navigation));
     loaded = true;
     mountTree(cached.navigation);
   }
+
+  window.addEventListener('beforeunload', () => {
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = null;
+      try {
+        fetch('/api/website/navigation', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          keepalive: true,
+          body: JSON.stringify({ items: strip(tree ? tree.getItems() : []) }),
+        });
+      } catch (_) { /* best effort */ }
+    }
+  });
 
   fetch('/api/website/navigation', { credentials: 'include' })
     .then((r) => (r.ok ? r.json() : Promise.reject()))
     .then((data) => {
       publishedPages = data.publishedPages || [];
+      publishedSerialized = JSON.stringify(strip(data.publishedNavigation || []));
       const fresh = JSON.stringify(strip(data.navigation || []));
-      // Re-mount only if the saved data changed and the user hasn't started
+      // Re-mount only if the draft data changed and the user hasn't started
       // editing the cached paint — never discard in-progress edits.
-      if (!isDirty()) {
-        if (fresh !== baseline || !tree) mountTree(data.navigation || []);
+      if (!touched) {
+        if (fresh !== serialize() || !tree) mountTree(data.navigation || []);
       }
-      baseline = fresh;
       loaded = true;
       wireAddMenu();
       writeNavCache();
+      refresh();
     })
     .catch(() => {
       loaded = true;
@@ -379,7 +388,6 @@
         emptyEl.hidden = false;
         emptyEl.textContent = 'Couldn’t load navigation. Refresh to try again.';
       }
+      refresh();
     });
-
-  setupNavGuard();
 })();
