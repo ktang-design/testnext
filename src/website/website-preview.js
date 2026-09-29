@@ -39,7 +39,6 @@
     background: { color: '#FFFFFF', opacity: 100 },
     searchBackground: { color: '#FFFFFF', opacity: 100 },
     headerImage: null,
-    links: { color: '#3D3F42', opacity: 100 },
   };
   const FOOTER_D = { showLogo: false, showNavigation: false, background: { color: '#FFFFFF', opacity: 100 }, text: { color: '#3D3F42', opacity: 100 }, link: { color: '#255096', opacity: 100 }, links: [] };
   const TYPO_D = { fontFamily: 'Inter', headingSize: '36', headingWeight: '600', bodySize: '16', bodyWeight: '400' };
@@ -90,6 +89,18 @@
     return `rgba(${parseInt(h.slice(1, 3), 16)}, ${parseInt(h.slice(3, 5), 16)}, ${parseInt(h.slice(5, 7), 16)}, ${o})`;
   }
   const textColor = (c, fallback) => (!c || c.opacity === 0 ? fallback : rgba(c));
+  // Auto-contrast: picks readable dark/light text against a given brand
+  // colour object, since nav links no longer have their own colour field —
+  // it's detected from the Branding background instead of manually chosen.
+  // Same luminance formula/threshold as the logo/favicon light-detection
+  // elsewhere in the product.
+  function autoContrast(colorObj, dark, light) {
+    const hex = colorObj && colorObj.color;
+    if (!hex) return dark;
+    const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+    const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    return lum > 150 ? dark : light;
+  }
 
   // Section background: a colour, with an optional cover image layered on top.
   function applySectionBg(elm, colorObj, image) {
@@ -984,7 +995,12 @@
       const keepLeft = canvas.scrollLeft;
       const highlightChanged = state.highlight !== lastHighlight;
       lastHighlight = state.highlight;
-      const h = state.header || HEADER_D;
+      // Merged (not just falling back whole-object) so a header saved/cached
+      // before a field existed (e.g. searchBackground, added after some
+      // accounts already had a saved/cached header) still gets that field's
+      // real default instead of undefined — which rgba()/textColor() would
+      // otherwise render as fully transparent.
+      const h = { ...HEADER_D, ...(state.header || {}) };
       const f = state.footer || FOOTER_D;
       const t = state.typography || TYPO_D;
       const navItems = (state.navigation || []).filter((i) => i.label);
@@ -1069,7 +1085,7 @@
       navItems.forEach((item) => {
         const targetId = live ? navTargetId(item) : null;
         const a = el(targetId ? 'a' : 'span', 'wsprev__navlink', item.label);
-        a.style.color = textColor(h.links, '#3D3F42');
+        a.style.color = autoContrast(h.background, '#3D3F42', '#FFFFFF');
         if (targetId) {
           a.href = '#';
           if (targetId === viewId) a.classList.add('is-current');

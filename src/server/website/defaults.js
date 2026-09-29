@@ -28,7 +28,9 @@ const MAX_DEPTH = 2; // parent + one level of subpages
 // background" in the UI) covers the logo/nav band; `searchBackground` covers
 // the search bar band directly below it. `headerImage`, when set, sits behind
 // both bands (spanning the search band too only while a search is enabled) —
-// the two background colours paint on top of it per their own opacity.
+// the two background colours paint on top of it per their own opacity. Nav
+// link text has no colour field of its own — it's auto-detected (light/dark)
+// against `background` at render time instead (see website-preview.js).
 const HEADER_DEFAULTS = {
   logo: 'left',
   nav: 'left',
@@ -36,7 +38,6 @@ const HEADER_DEFAULTS = {
   background: { color: '#FFFFFF', opacity: 100 },
   searchBackground: { color: '#FFFFFF', opacity: 100 },
   headerImage: null, // data URL or null
-  links: { color: '#3D3F42', opacity: 100 },
 };
 
 // Footer: which standard elements show, plus an ordered list of custom links.
