@@ -158,17 +158,6 @@
             <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif" data-img-input hidden />
             <p class="hdr-error" data-img-error role="alert" hidden></p>
           </div>
-
-          <div class="colorrow" data-color="links">
-            <span class="colorrow__label">Links</span>
-            <span class="colorrow__controls">
-              <input type="color" class="colorrow__swatch" data-color-swatch value="#3D3F42" aria-label="Links colour" />
-              <input type="text" class="colorrow__hex" data-color-hex value="#3D3F42" maxlength="7" spellcheck="false" aria-label="Links colour hex" />
-              <span class="colorrow__opacity">
-                <input type="number" class="colorrow__opacityval" data-color-opacity min="0" max="100" value="100" aria-label="Links opacity percent" /><span aria-hidden="true">%</span>
-              </span>
-            </span>
-          </div>
         </section>
 
         <div class="navpreview" role="img" aria-label="Live website preview">
@@ -235,7 +224,6 @@
         color('siteName', h.siteName);
         color('background', h.background);
         color('searchBackground', h.searchBackground);
-        color('links', h.links);
       } catch (e) { /* no cache / disabled — fall back to JS hydration */ }
     })();
   </script>

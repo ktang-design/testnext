@@ -1,5 +1,7 @@
 // Website layer — Header configuration.
-// Logo/navigation placement + background/links colours, with a live preview.
+// Logo/navigation placement + colours + header image, with a live preview.
+// Nav link text has no colour field of its own — it's auto-detected against
+// the Branding background at render time (see website-preview.js).
 (function () {
   const $ = (s) => document.querySelector(s);
   const saveBtn = $('[data-action="save"]');
@@ -19,7 +21,6 @@
     background: { color: '#FFFFFF', opacity: 100 },
     searchBackground: { color: '#FFFFFF', opacity: 100 },
     headerImage: null,
-    links: { color: '#3D3F42', opacity: 100 },
   };
   // Shared website preview in the main area (header + body + footer).
   const preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'), { highlight: 'header' });
@@ -112,7 +113,6 @@
   const siteNameColor = setupColor('siteName');
   const bgColor = setupColor('background');
   const searchBgColor = setupColor('searchBackground');
-  const linksColor = setupColor('links');
 
   // ---------- header image ----------
   function renderImage() {
@@ -142,7 +142,6 @@
     siteNameColor.set();
     bgColor.set();
     searchBgColor.set();
-    linksColor.set();
     renderImage();
     refresh();
   }

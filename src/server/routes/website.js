@@ -165,7 +165,6 @@ router.put('/header', requireApiAuth, ah(async (req, res) => {
     background: cleanColor(b.background, HEADER_DEFAULTS.background),
     searchBackground: cleanColor(b.searchBackground, HEADER_DEFAULTS.searchBackground),
     headerImage: b.headerImage || null,
-    links: cleanColor(b.links, HEADER_DEFAULTS.links),
   };
   res.json({ saved: await headerRepository.save(req.session.userId, config) });
 }));
