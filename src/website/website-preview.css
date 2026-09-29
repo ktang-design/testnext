@@ -135,25 +135,30 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
   border: 2px solid #e0489b;
   border-radius: 4px;
 }
-.wsprev__el:hover:not(.is-selected) { outline: 1px dashed #cdd6e6; outline-offset: -1px; border-radius: 4px; }
-/* Hovered section (unselected): lagoon-tint fill (Figma 5944:65453 / 5957:70443),
-   same colour as the outer ring of the selected state so hover reads as a
+/* Hovered section (unselected): lagoon-tint fill (Figma 5944:65453 / 5957:70443);
+   hovered element (unselected): blue-tint fill (Figma 5957:70562) — same
+   colours as each one's own selected-state outer ring, so hover reads as a
    "preview" of selecting. A pseudo-element, not `background-color` on the
-   section itself, because the section's own chosen background is painted as
-   an INLINE style (applySectionBg) which would otherwise always win over any
-   CSS rule regardless of specificity. `z-index: -1` paints it right after the
-   section's own background/border but still behind its (non-positioned)
-   content. */
-.wsprev__section::before {
+   block itself, because a section/element's own chosen background is painted
+   as an INLINE style (applySectionBg / applyRichtextStyle / applyCardsStyle)
+   which would otherwise always win over any CSS rule regardless of
+   specificity. `z-index: -1` paints it right after the block's own
+   background/border but still behind its (non-positioned) content. */
+.wsprev__section::before,
+.wsprev__el::before {
   content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 4px;
-  background-color: #e5f1f3; opacity: 0; pointer-events: none; transition: opacity 0.1s ease;
+  opacity: 0; pointer-events: none; transition: opacity 0.1s ease;
 }
-.wsprev__section:hover:not(.is-selected)::before { opacity: 1; }
+.wsprev__section::before { background-color: #e5f1f3; }
+.wsprev__el::before { background-color: #e9effa; }
+.wsprev__section:hover:not(.is-selected)::before,
+.wsprev__el:hover:not(.is-selected)::before { opacity: 1; }
 /* The read-only (published) view has no editing affordances. */
 .wsprev__body--published .wsprev__el { cursor: default; }
 .wsprev__body--published .wsprev__section:hover,
 .wsprev__body--published .wsprev__el:hover { outline: none; box-shadow: none; }
-.wsprev__body--published .wsprev__section:hover::before { opacity: 0; }
+.wsprev__body--published .wsprev__section:hover::before,
+.wsprev__body--published .wsprev__el:hover::before { opacity: 0; }
 
 /* An element that carries a chosen background/border is padded 16px (set inline
    by padForStyle) and grows 1rem outward, so its CONTENT stays on the page
