@@ -1,10 +1,13 @@
 // Website layer — Branding configuration.
 // The site logo (shared with Platform branding, kept in sync — see
-// syncPlatformBrandingCache) + the brand colour palette.
+// syncPlatformBrandingCache) + the brand colour palette. Edits auto-save as
+// a DRAFT a couple of seconds after you stop editing; the shared Page
+// Builder pageactions bar (website-saveactions.js) is what actually
+// promotes drafts to published, across every section at once — the sync
+// into Platform branding (below) only fires once a draft is actually
+// published, so an in-progress edit never leaks into System Settings.
 (function () {
   const $ = (s) => document.querySelector(s);
-  const saveBtn = $('[data-action="save"]');
-  const statusEl = $('[data-save-status]');
   const colorsEl = $('[data-colors]');
   const logoChoose = $('[data-logo-choose]');
   const logoPreview = $('[data-logo-preview]');
@@ -14,6 +17,8 @@
   const logoRemove = $('[data-logo-remove]');
   const logoInput = $('[data-logo-input]');
   const logoError = $('[data-logo-error]');
+
+  const AUTO_SAVE_DELAY = 2000; // ms of idle time after the last edit before auto-saving
 
   const COLORS = [
     { key: 'primary', label: 'Primary', def: '#255096', tip: 'For key actions, highlights, and core interactive elements.' },
@@ -30,13 +35,13 @@
   const colorDefaults = { logo: null };
   COLORS.forEach((c) => { colorDefaults[c.key] = { color: c.def, opacity: 100 }; });
 
-  // Last-saved config, cached so the swatches show the real colours instantly on
+  // Last-known draft, cached so the swatches show the real colours instantly on
   // load (no flash of black/defaults while the network resolves).
   const CACHE_KEY = 'ws-branding-cache';
   // The server mirrors Website logo/primary/secondary/action up into the
-  // Platform branding doc on save (routes/website-branding.js); patch the
-  // Platform page's instant-load cache here too so it paints the new
-  // logo/colours (and opacity) on the next visit instead of flashing the
+  // Platform branding doc on Publish (routes/website.js's publish-all);
+  // patch the Platform page's instant-load cache here too so it paints the
+  // new logo/colours (and opacity) on the next visit instead of flashing the
   // stale ones. The mirror image of syncWebsiteBrandingCache in
   // /branding/branding.js. Favicon, alt text and options stay as they were.
   const PLATFORM_CACHE_KEY = 'platform-branding-config';
@@ -77,20 +82,28 @@
   const LOGO_MAX = 3 * 1024 * 1024; // 3 MB (keeps uploads under the serverless body limit)
 
   let config = null;
-  let baseline = '';
-  let loaded = false; // true once the saved config has loaded — no "dirty" before then
-  let saving = false;
-  let saveError = null;
+  let publishedConfig = null; // last-known published snapshot
+  let loaded = false; // true once the draft has loaded — no dirty check before then
+  let saving = false; // an auto-save PUT is in flight
+  let saveState = 'idle'; // 'idle' | 'pending' | 'saved'
+  let autoSaveTimer = null;
+  let touched = false; // set once the user edits, so the boot revalidation fetch won't clobber it
+  let bar = null;
   let preview = null;
   const colorSetters = {};
 
   const clone = (x) => JSON.parse(JSON.stringify(x));
-  const serialize = () => JSON.stringify(config);
-  const isDirty = () => loaded && serialize() !== baseline;
+  const serialize = (x) => JSON.stringify(x);
+  const isLocalDirty = () => loaded && serialize(config) !== serialize(publishedConfig);
   const show = (el) => { el.hidden = false; };
   const hide = (el) => { el.hidden = true; };
 
-  function onChange() { saveError = null; pushPreview(); updateSaveBar(); }
+  function onEdit() {
+    touched = true;
+    saveState = 'pending';
+    render();
+    scheduleAutoSave();
+  }
   const pushPreview = () => { if (config && preview) preview.update({ branding: config }); };
 
   // ---------- colour rows (shared .colorrow component) ----------
@@ -129,11 +142,11 @@
     const ensureVisible = () => {
       if (config[key].opacity === 0) { config[key].opacity = 100; if (op) op.value = 100; }
     };
-    swatch.addEventListener('input', () => { config[key].color = swatch.value.toUpperCase(); hex.value = config[key].color; ensureVisible(); onChange(); });
+    swatch.addEventListener('input', () => { config[key].color = swatch.value.toUpperCase(); hex.value = config[key].color; ensureVisible(); onEdit(); });
     hex.addEventListener('input', () => {
       let v = hex.value.trim();
       if (v && !v.startsWith('#')) v = '#' + v;
-      if (/^#[0-9a-fA-F]{6}$/.test(v)) { config[key].color = v.toUpperCase(); swatch.value = config[key].color; ensureVisible(); onChange(); }
+      if (/^#[0-9a-fA-F]{6}$/.test(v)) { config[key].color = v.toUpperCase(); swatch.value = config[key].color; ensureVisible(); onEdit(); }
     });
     hex.addEventListener('blur', () => { hex.value = config[key].color; });
     if (op) {
@@ -141,7 +154,7 @@
         let n = parseInt(op.value, 10);
         if (Number.isNaN(n)) return;
         n = Math.max(0, Math.min(100, n));
-        config[key].opacity = n; onChange();
+        config[key].opacity = n; onEdit();
       });
       op.addEventListener('blur', () => { op.value = config[key].opacity; });
     }
@@ -198,108 +211,126 @@
     hide(logoError);
     if (file.size > LOGO_MAX) { logoError.textContent = 'Logo must be 3 MB or smaller.'; show(logoError); return; }
     const reader = new FileReader();
-    reader.onload = () => { config.logo = reader.result; renderLogo(); onChange(); };
+    reader.onload = () => { config.logo = reader.result; renderLogo(); onEdit(); };
     reader.onerror = () => { logoError.textContent = 'Couldn’t read that file. Try another.'; show(logoError); };
     reader.readAsDataURL(file);
   });
   logoChoose.addEventListener('click', pickLogo);
   logoReplace.addEventListener('click', pickLogo);
-  logoRemove.addEventListener('click', () => { config.logo = null; hide(logoError); renderLogo(); onChange(); });
+  logoRemove.addEventListener('click', () => { config.logo = null; hide(logoError); renderLogo(); onEdit(); });
 
-  // ---------- render / save bar ----------
+  // ---------- render ----------
   function applyToControls() {
     renderLogo();
     COLORS.forEach((c) => colorSetters[c.key] && colorSetters[c.key]());
+    render();
+  }
+  function render() {
     pushPreview();
-  }
-  function updateSaveBar() {
-    const dirty = isDirty();
-    saveBtn.disabled = saving || !dirty;
-    saveBtn.classList.toggle('is-saving', saving);
-    if (saving) { statusEl.hidden = false; statusEl.classList.remove('save-status--error'); statusEl.textContent = 'Saving…'; }
-    else if (saveError) { statusEl.hidden = false; statusEl.classList.add('save-status--error'); statusEl.textContent = saveError; }
-    else { statusEl.hidden = !dirty; statusEl.classList.remove('save-status--error'); statusEl.textContent = 'Unsaved changes'; }
+    if (bar) bar.refresh(saveState);
   }
 
-  async function save() {
-    if (saving || !isDirty()) return;
-    saving = true; saveError = null; updateSaveBar();
-    try {
-      const res = await fetch('/api/website/branding', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(config),
-      });
-      if (!res.ok) {
-        let msg = 'Couldn’t save. Try again.';
-        try { const d = await res.json(); if (d.message) msg = d.message; } catch (_) {}
-        throw new Error(msg);
-      }
-      const data = await res.json();
-      config = data.saved;
-      baseline = serialize();
-      saving = false; saveError = null;
-      applyToControls();
+  // ---------- auto-save (draft only) ----------
+  function scheduleAutoSave() {
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => { autoSaveTimer = null; autoSave(); }, AUTO_SAVE_DELAY);
+  }
+  function cancelPendingSave() {
+    if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
+  }
+  function flushPendingSave() {
+    if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; return autoSave(); }
+    return Promise.resolve();
+  }
+  function autoSave() {
+    if (saving) return Promise.resolve();
+    saving = true;
+    return fetch('/api/website/branding', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(config),
+    }).then((res) => {
+      if (!res.ok) return res.json().catch(() => ({})).then((d) => { throw new Error(d.message || 'We could not save your changes. Try again.'); });
+      return res.json();
+    }).then((data) => {
+      config = data.draft || data.saved;
+      saving = false;
+      saveState = 'saved';
       writeCache(config);
-      syncPlatformBrandingCache(config.logo, config.primary, config.secondary, config.action);
-      updateSaveBar();
-    } catch (err) {
-      saving = false; saveError = err.message || 'Couldn’t save. Try again.';
-      updateSaveBar();
-    }
-  }
-
-  // ---------- nav guard ----------
-  function setupNavGuard() {
-    const modal = $('[data-modal="unsaved"]');
-    let pendingHref = null;
-    let allowLeave = false;
-    const open = () => { modal.hidden = false; modal.querySelector('[data-modal-keep]').focus(); };
-    const close = () => { modal.hidden = true; pendingHref = null; };
-    modal.querySelector('[data-modal-close]').addEventListener('click', close);
-    modal.querySelector('[data-modal-keep]').addEventListener('click', close);
-    modal.querySelector('[data-modal-discard]').addEventListener('click', () => {
-      allowLeave = true; const href = pendingHref; close(); if (href) window.location.href = href;
-    });
-    document.addEventListener('click', (e) => {
-      const link = e.target.closest('a[href]');
-      if (!link || allowLeave || !isDirty()) return;
-      const href = link.getAttribute('href');
-      if (!href || href.startsWith('#') || link.target === '_blank') return;
-      const url = new URL(href, location.href);
-      if (url.origin === location.origin && url.pathname === location.pathname) return;
-      e.preventDefault(); pendingHref = url.href; open();
-    });
-    window.addEventListener('beforeunload', (e) => {
-      if (isDirty() && !allowLeave) { e.preventDefault(); e.returnValue = ''; }
+      applyToControls();
+    }).catch((err) => {
+      saving = false;
+      saveState = 'idle';
+      render();
+      if (window.Toast) window.Toast.show(err.message || 'We could not save your changes. Try again.');
     });
   }
 
   // ---------- boot ----------
   preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'));
-  saveBtn.addEventListener('click', save);
   buildColorRows();
-  setupNavGuard();
 
-  // Paint the last-saved colours immediately from cache (revalidated by the fetch).
+  // Paint the last-known draft colours immediately from cache (revalidated by the fetch).
   const cached = readCache();
   if (cached) { config = { ...clone(colorDefaults), ...clone(cached) }; applyToControls(); }
+
+  bar = window.WebsiteSaveActions.init({
+    isLocalDirty,
+    flushLocalSave: flushPendingSave,
+    cancelLocalPending: cancelPendingSave,
+    onPublished: (published) => {
+      const p = published && published.branding;
+      if (p) {
+        publishedConfig = { ...clone(colorDefaults), ...clone(p) };
+        syncPlatformBrandingCache(p.logo, p.primary, p.secondary, p.action);
+      }
+      render();
+    },
+    onDiscarded: (draft) => {
+      const d = draft && draft.branding;
+      if (d) {
+        config = { ...clone(colorDefaults), ...clone(d) };
+        publishedConfig = clone(config);
+        writeCache(config);
+        applyToControls();
+      }
+    },
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = null;
+      try {
+        fetch('/api/website/branding', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          keepalive: true,
+          body: JSON.stringify(config),
+        });
+      } catch (_) { /* best effort */ }
+    }
+  });
 
   fetch('/api/website/branding', { credentials: 'include' })
     .then((r) => (r.ok ? r.json() : Promise.reject()))
     .then((data) => {
-      config = clone(data.saved || data.defaults);
-      baseline = serialize();
+      const draft = clone(data.draft || data.saved || data.defaults);
+      const published = clone(data.published || draft);
+      publishedConfig = { ...clone(colorDefaults), ...published };
       loaded = true;
+      writeCache(draft);
+      if (touched) { render(); return; } // the user already started editing — keep their work
+      config = draft;
       applyToControls();
-      writeCache(config);
-      updateSaveBar();
     })
     .catch(() => {
-      config = clone({ logo: null, primary: { color: '#255096', opacity: 100 }, secondary: { color: '#3D3F42', opacity: 100 }, action: { color: '#255096', opacity: 100 }, heading: { color: '#3D3F42', opacity: 100 }, body: { color: '#55585D', opacity: 100 } });
-      baseline = serialize();
       loaded = true;
+      if (touched) { render(); return; }
+      config = clone({ logo: null, primary: { color: '#255096', opacity: 100 }, secondary: { color: '#3D3F42', opacity: 100 }, action: { color: '#255096', opacity: 100 }, heading: { color: '#3D3F42', opacity: 100 }, body: { color: '#55585D', opacity: 100 } });
+      publishedConfig = clone(config);
       applyToControls();
     });
 })();

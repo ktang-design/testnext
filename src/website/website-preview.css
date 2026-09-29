@@ -99,16 +99,21 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 .wsprev__cta svg { flex: none; }
 .wsprev__section > .wsprev__cta { margin: 12px 0 0; }
 
-/* Section + element blocks. The selected block gets a pink/rose outline and its
-   grip/edit/trash toolbar; others reveal the toolbar on hover. */
+/* Section + element blocks. A selected SECTION gets a teal double focus-ring
+   (Figma 5944:65546) + its "Section" tag + its move-up/move-down/trash
+   toolbar; a selected ELEMENT keeps the pink outline, its affordance being
+   the toolbar rather than a fill. */
 /* Horizontal padding (48px) matches the header, search, and footer so every
    section lines up to the same left/right edge. */
 .wsprev__section { position: relative; padding: 24px 48px; }
 .wsprev__el { position: relative; padding: 12px 0; cursor: pointer; }
-/* Only a SECTION shows the pink highlight (selected) / grey hint (hover).
-   Elements are never highlighted/filled — their affordance is the toolbar. */
-.wsprev__section.is-selected,
 .wsprev__el.is-selected { outline: 2px solid #e0489b; outline-offset: -2px; border-radius: 4px; }
+/* Selected section: teal focus ring (Figma 5944:65546 — box-shadow, not outline,
+   so it doesn't fight the section's own background colour/image underneath). */
+.wsprev__section.is-selected {
+  box-shadow: 0 0 0 3px #00758d, 0 0 0 6px #e5f1f3;
+  border-radius: 4px;
+}
 /* Section-panel highlight: marks the preview element for the panel being edited
    (Header / Navigation / Search / Footer) with the same pink as a selected block. */
 .wsprev__hl { outline: 2px solid #e0489b; outline-offset: -2px; border-radius: 4px; }
@@ -126,12 +131,25 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
   border: 2px solid #e0489b;
   border-radius: 4px;
 }
-.wsprev__section:hover:not(.is-selected),
 .wsprev__el:hover:not(.is-selected) { outline: 1px dashed #cdd6e6; outline-offset: -1px; border-radius: 4px; }
+/* Hovered section (unselected): lagoon-tint fill (Figma 5944:65453 / 5957:70443),
+   same colour as the outer ring of the selected state so hover reads as a
+   "preview" of selecting. A pseudo-element, not `background-color` on the
+   section itself, because the section's own chosen background is painted as
+   an INLINE style (applySectionBg) which would otherwise always win over any
+   CSS rule regardless of specificity. `z-index: -1` paints it right after the
+   section's own background/border but still behind its (non-positioned)
+   content. */
+.wsprev__section::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 4px;
+  background-color: #e5f1f3; opacity: 0; pointer-events: none; transition: opacity 0.1s ease;
+}
+.wsprev__section:hover:not(.is-selected)::before { opacity: 1; }
 /* The read-only (published) view has no editing affordances. */
 .wsprev__body--published .wsprev__el { cursor: default; }
 .wsprev__body--published .wsprev__section:hover,
-.wsprev__body--published .wsprev__el:hover { outline: none; }
+.wsprev__body--published .wsprev__el:hover { outline: none; box-shadow: none; }
+.wsprev__body--published .wsprev__section:hover::before { opacity: 0; }
 
 /* An element that carries a chosen background/border is padded 16px (set inline
    by padForStyle) and grows 1rem outward, so its CONTENT stays on the page
@@ -348,6 +366,21 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 .wsprev__tbgrip { cursor: grab; }
 .wsprev__tbbtn:hover { background: var(--gray-100, #f5f5f5); }
 .wsprev__tbbtn svg { fill: none; }
+/* A move-up/move-down button disables at the first/last section (Figma
+   5944:65546 — the up arrow greys out for the first section). */
+.wsprev__tbbtn:disabled { color: var(--gray-200, #d7d8da); cursor: default; }
+.wsprev__tbbtn:disabled:hover { background: none; }
+
+/* "Section" tag (Figma 5944:65546) — pinned to the selected section's top-left
+   corner, straddling the outer edge of the teal focus ring. */
+.wsprev__sectag {
+  position: absolute; top: 0; left: 0; transform: translateY(-100%); z-index: 3;
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; background: #00758d; color: #fff;
+  font: 400 14px/21px "Noto Sans", Arial, sans-serif;
+  opacity: 0; visibility: hidden;
+}
+.wsprev__section.is-selected > .wsprev__sectag { opacity: 1; visibility: visible; }
 
 /* Footer */
 .wsprev__footer { background: #fff; padding: 24px 48px 20px; display: flex; flex-direction: column; gap: 20px; }

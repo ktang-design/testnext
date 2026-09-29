@@ -2,10 +2,11 @@
 // Logo/navigation placement + colours + header image, with a live preview.
 // Nav link text has no colour field of its own — it's auto-detected against
 // the Branding background at render time (see website-preview.js).
+// Edits auto-save as a DRAFT a couple of seconds after you stop typing; the
+// shared Page Builder pageactions bar (website-saveactions.js) is what
+// actually promotes drafts to published, across every section at once.
 (function () {
   const $ = (s) => document.querySelector(s);
-  const saveBtn = $('[data-action="save"]');
-  const statusEl = $('[data-save-status]');
   const navSecond = $('[data-nav-second]');
   const imgChoose = $('[data-img-choose]');
   const imgPreview = $('[data-img-preview]');
@@ -15,6 +16,7 @@
   const imgInput = $('[data-img-input]');
   const imgError = $('[data-img-error]');
   const IMAGE_MAX = 3 * 1024 * 1024; // 3 MB
+  const AUTO_SAVE_DELAY = 2000; // ms of idle time after the last edit before auto-saving
   const DEFAULTS = {
     logo: 'left', nav: 'left',
     siteName: { color: '#FFFFFF', opacity: 100 },
@@ -26,11 +28,13 @@
   const preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'), { highlight: 'header' });
 
   let config = null;
-  let baseline = '';
-  let loaded = false; // true once the saved config has loaded — no "dirty" before then
-  let saving = false;
-  let saveError = null;
-  let touched = false; // set once the user edits, so the revalidation fetch won't clobber it
+  let publishedConfig = null; // last-known published snapshot
+  let loaded = false; // true once the draft has loaded — no dirty check before then
+  let saving = false; // an auto-save PUT is in flight
+  let saveState = 'idle'; // 'idle' | 'pending' | 'saved'
+  let autoSaveTimer = null;
+  let bar = null;
+  let touched = false; // set once the user edits, so the boot revalidation fetch won't clobber it
 
   // Instant-load cache: paint the last-known config before the network
   // resolves, then revalidate. Avoids the flash of DEFAULTS on load.
@@ -41,7 +45,8 @@
   const show = (el) => { el.hidden = false; };
   const hide = (el) => { el.hidden = true; };
   const clone = (x) => JSON.parse(JSON.stringify(x));
-  const isDirty = () => loaded && JSON.stringify(config) !== baseline;
+  const serialize = (x) => JSON.stringify(x);
+  const isLocalDirty = () => loaded && serialize(config) !== serialize(publishedConfig);
 
   // ---------- segmented controls ----------
   function setupSeg(name, onSelect) {
@@ -69,8 +74,8 @@
     return { paint };
   }
 
-  const logoSeg = setupSeg('logo', (v) => { touched = true; config.logo = v; refresh(); });
-  const navSeg = setupSeg('nav', (v) => { touched = true; config.nav = v; refresh(); });
+  const logoSeg = setupSeg('logo', (v) => { config.logo = v; onEdit(); });
+  const navSeg = setupSeg('nav', (v) => { config.nav = v; onEdit(); });
 
   // ---------- colour rows ----------
   function setupColor(key) {
@@ -87,25 +92,23 @@
       if (config[key].opacity === 0) { config[key].opacity = 100; op.value = 100; }
     };
     swatch.addEventListener('input', () => {
-      touched = true;
       config[key].color = swatch.value.toUpperCase();
       hex.value = config[key].color;
       ensureVisible();
-      refresh();
+      onEdit();
     });
     hex.addEventListener('input', () => {
       let v = hex.value.trim();
       if (v && !v.startsWith('#')) v = '#' + v;
-      if (/^#[0-9a-fA-F]{6}$/.test(v)) { touched = true; config[key].color = v.toUpperCase(); swatch.value = config[key].color; ensureVisible(); refresh(); }
+      if (/^#[0-9a-fA-F]{6}$/.test(v)) { config[key].color = v.toUpperCase(); swatch.value = config[key].color; ensureVisible(); onEdit(); }
     });
     hex.addEventListener('blur', () => { hex.value = config[key].color; });
     op.addEventListener('input', () => {
       let n = parseInt(op.value, 10);
       if (Number.isNaN(n)) return;
       n = Math.max(0, Math.min(100, n));
-      touched = true;
       config[key].opacity = n;
-      refresh();
+      onEdit();
     });
     op.addEventListener('blur', () => { op.value = config[key].opacity; });
     return { set: () => { swatch.value = config[key].color; hex.value = config[key].color; op.value = config[key].opacity; } };
@@ -127,13 +130,13 @@
     hide(imgError);
     if (file.size > IMAGE_MAX) { imgError.textContent = 'Image must be 3 MB or smaller.'; show(imgError); return; }
     const reader = new FileReader();
-    reader.onload = () => { touched = true; config.headerImage = reader.result; renderImage(); refresh(); };
+    reader.onload = () => { config.headerImage = reader.result; renderImage(); onEdit(); };
     reader.onerror = () => { imgError.textContent = 'Couldn’t read that file. Try another.'; show(imgError); };
     reader.readAsDataURL(file);
   });
   imgChoose.addEventListener('click', pickImage);
   imgReplace.addEventListener('click', pickImage);
-  imgRemove.addEventListener('click', () => { touched = true; config.headerImage = null; hide(imgError); renderImage(); refresh(); });
+  imgRemove.addEventListener('click', () => { config.headerImage = null; hide(imgError); renderImage(); onEdit(); });
 
   // ---------- render ----------
   function applyToControls() {
@@ -150,80 +153,56 @@
     navSecond.textContent = config.logo === 'left' ? 'Horizontal' : 'Center';
     // The shared website preview reflects the live header config.
     if (preview) preview.update({ header: config });
-    updateSaveBar();
+    if (bar) bar.refresh(saveState);
   }
 
-  function updateSaveBar() {
-    const dirty = isDirty();
-    saveBtn.disabled = saving || !dirty;
-    saveBtn.classList.toggle('is-saving', saving);
-    if (saving) {
-      statusEl.hidden = false; statusEl.classList.remove('save-status--error'); statusEl.textContent = 'Saving…';
-    } else if (saveError) {
-      statusEl.hidden = false; statusEl.classList.add('save-status--error'); statusEl.textContent = saveError;
-    } else {
-      statusEl.hidden = !dirty; statusEl.classList.remove('save-status--error'); statusEl.textContent = 'Unsaved changes';
-    }
+  function onEdit() {
+    touched = true;
+    saveState = 'pending';
+    refresh();
+    scheduleAutoSave();
   }
 
-  // ---------- save ----------
-  async function save() {
-    if (saving || !isDirty()) return;
-    saving = true; saveError = null; updateSaveBar();
-    try {
-      const res = await fetch('/api/website/header', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(config),
-      });
-      if (!res.ok) {
-        let msg = 'Couldn’t save. Try again.';
-        try { const d = await res.json(); if (d.message) msg = d.message; } catch (_) {}
-        throw new Error(msg);
-      }
-      const data = await res.json();
-      config = data.saved;
-      baseline = JSON.stringify(config);
+  // ---------- auto-save (draft only) ----------
+  function scheduleAutoSave() {
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => { autoSaveTimer = null; autoSave(); }, AUTO_SAVE_DELAY);
+  }
+  function cancelPendingSave() {
+    if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
+  }
+  // Skips the debounce and saves right away — used before Publish, so it
+  // always promotes the latest edits rather than a stale draft.
+  function flushPendingSave() {
+    if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; return autoSave(); }
+    return Promise.resolve();
+  }
+  function autoSave() {
+    if (saving) return Promise.resolve();
+    saving = true;
+    return fetch('/api/website/header', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(config),
+    }).then((res) => {
+      if (!res.ok) return res.json().catch(() => ({})).then((d) => { throw new Error(d.message || 'We could not save your changes. Try again.'); });
+      return res.json();
+    }).then((data) => {
+      config = { ...clone(DEFAULTS), ...(data.saved || {}) };
       writeCache(config);
-      saving = false; saveError = null; touched = false;
+      saving = false;
+      saveState = 'saved';
       applyToControls();
-    } catch (err) {
-      saving = false; saveError = err.message || 'Couldn’t save. Try again.';
-      updateSaveBar();
-    }
-  }
-
-  // ---------- nav guard (unsaved changes) ----------
-  function setupNavGuard() {
-    const modal = $('[data-modal="unsaved"]');
-    let pendingHref = null;
-    let allowLeave = false;
-    const open = () => { modal.hidden = false; modal.querySelector('[data-modal-keep]').focus(); };
-    const close = () => { modal.hidden = true; pendingHref = null; };
-    modal.querySelector('[data-modal-close]').addEventListener('click', close);
-    modal.querySelector('[data-modal-keep]').addEventListener('click', close);
-    modal.querySelector('[data-modal-discard]').addEventListener('click', () => {
-      allowLeave = true; const href = pendingHref; close(); if (href) window.location.href = href;
-    });
-    document.addEventListener('click', (e) => {
-      const link = e.target.closest('a[href]');
-      if (!link || allowLeave || !isDirty()) return;
-      const href = link.getAttribute('href');
-      if (!href || href.startsWith('#') || link.target === '_blank') return;
-      const url = new URL(href, location.href);
-      if (url.origin === location.origin && url.pathname === location.pathname) return;
-      e.preventDefault(); pendingHref = url.href; open();
-    });
-    window.addEventListener('beforeunload', (e) => {
-      if (isDirty() && !allowLeave) { e.preventDefault(); e.returnValue = ''; }
+    }).catch((err) => {
+      saving = false;
+      saveState = 'idle';
+      refresh();
+      if (window.Toast) window.Toast.show(err.message || 'We could not save your changes. Try again.');
     });
   }
 
   // ---------- boot ----------
-  saveBtn.addEventListener('click', save);
-  setupNavGuard();
-
   // Initial paint from the local cache (instant), then hydrate/revalidate.
   // Merged over DEFAULTS (not used as-is) so a cache written before a field
   // existed (e.g. searchBackground/siteName/headerImage, all added after some
@@ -234,21 +213,59 @@
   const cached = readCache();
   if (cached) {
     config = { ...clone(DEFAULTS), ...clone(cached) };
-    baseline = JSON.stringify(config);
     loaded = true;
     applyToControls();
   }
+
+  bar = window.WebsiteSaveActions.init({
+    isLocalDirty,
+    flushLocalSave: flushPendingSave,
+    cancelLocalPending: cancelPendingSave,
+    onPublished: (published) => {
+      const p = published && published.header;
+      if (p) publishedConfig = { ...clone(DEFAULTS), ...p };
+      refresh();
+    },
+    onDiscarded: (draft) => {
+      const d = draft && draft.header;
+      if (d) {
+        config = { ...clone(DEFAULTS), ...d };
+        publishedConfig = clone(config);
+        writeCache(config);
+        applyToControls();
+      }
+    },
+  });
+
+  // Auto-save on a page-hide/unload so a rapid edit-then-leave within the
+  // debounce window isn't silently lost; best-effort, doesn't block leaving.
+  window.addEventListener('beforeunload', () => {
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = null;
+      try {
+        fetch('/api/website/header', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          keepalive: true,
+          body: JSON.stringify(config),
+        });
+      } catch (_) { /* best effort */ }
+    }
+  });
 
   fetch('/api/website/header', { credentials: 'include' })
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null)
     .then((hdr) => {
-      const serverConfig = clone((hdr && (hdr.saved || hdr.defaults)) || DEFAULTS);
-      baseline = JSON.stringify(serverConfig);
+      const draft = clone((hdr && (hdr.draft || hdr.defaults)) || DEFAULTS);
+      const published = clone((hdr && hdr.published) || draft);
+      publishedConfig = { ...clone(DEFAULTS), ...published };
       loaded = true;
-      writeCache(serverConfig);
-      if (touched) { updateSaveBar(); return; } // the user already started editing — keep their work
-      config = serverConfig;
+      writeCache(draft);
+      if (touched) { refresh(); return; } // the user already started editing — keep their work
+      config = { ...clone(DEFAULTS), ...draft };
       applyToControls();
     });
 })();

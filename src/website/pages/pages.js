@@ -15,18 +15,21 @@
   const treeSkeleton = document.querySelector('[data-tree-skeleton]');
   const emptyEl = document.querySelector('[data-empty]');
   const addBtn = document.querySelector('[data-add]');
-  const saveBtn = document.querySelector('[data-action="save"]');
   const backBtn = document.querySelector('[data-action="back"]');
   const publishBar = document.querySelector('[data-publish-bar]');
-  const statusEl = document.querySelector('[data-save-status]');
   if (!treeMount) return;
+
+  const AUTO_SAVE_DELAY = 2000; // ms of idle time after the last edit before auto-saving
 
   // ---- state ----
   let tree = null;          // list SortableTree
-  let baseline = '[]';
-  let loaded = false;       // true once pages have loaded — no "dirty" before then
-  let saving = false;
-  let saveError = null;
+  let publishedSerialized = '[]'; // last-known published snapshot, serialized
+  let loaded = false;       // true once the draft has loaded — no dirty check before then
+  let saving = false; // an auto-save PUT is in flight
+  let saveState = 'idle'; // 'idle' | 'pending' | 'saved'
+  let autoSaveTimer = null;
+  let touched = false; // set once the user edits, so the boot revalidation fetch won't clobber it
+  let bar = null;
   let limits = { title: 120, description: 160, sectionTitle: 120, elementTitle: 120, body: 20000, maxSections: 50, maxElements: 100 };
   let preview = null;
 
@@ -56,6 +59,10 @@
   };
 
   // ---- canonical persisted shape (content rides along per page) ----
+  // `strip` reads content from the live `contentById` map (the builder's
+  // in-memory draft content) — used for the tree's own items. `stripOwn`
+  // reads each item's own `.content` field instead — used for a fetched
+  // snapshot (e.g. the published pages) that isn't reflected in contentById.
   function strip(items) {
     return (items || []).map((p) => ({
       id: p.id,
@@ -66,9 +73,72 @@
       content: contentById[p.id] || { sections: [] },
     }));
   }
+  function stripOwn(items) {
+    return (items || []).map((p) => ({
+      id: p.id,
+      title: p.title,
+      description: p.description || '',
+      status: p.status || 'published',
+      isHomepage: !!p.isHomepage,
+      content: p.content || { sections: [] },
+    }));
+  }
   const serialize = () => JSON.stringify(strip(tree ? tree.getItems() : []));
-  const isDirty = () => loaded && serialize() !== baseline;
+  const isLocalDirty = () => loaded && serialize() !== publishedSerialized;
   function findById(items, id) { return items.find((p) => p.id === id) || null; }
+
+  // ---- auto-save (draft only) ----
+  function onEdit() {
+    touched = true;
+    saveState = 'pending';
+    scheduleAutoSave();
+  }
+  function scheduleAutoSave() {
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => { autoSaveTimer = null; autoSave(); }, AUTO_SAVE_DELAY);
+  }
+  function cancelPendingSave() {
+    if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
+  }
+  function flushPendingSave() {
+    if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; return autoSave(); }
+    return Promise.resolve();
+  }
+  function autoSave() {
+    if (saving) return Promise.resolve();
+    saving = true;
+    updateSaveBar();
+    return fetch('/api/website/pages', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ pages: strip(tree.getItems()) }),
+    }).then((res) => {
+      if (!res.ok) return res.json().catch(() => ({})).then((d) => { throw new Error(d.message || 'We could not save your changes. Try again.'); });
+      return res.json();
+    }).then((data) => {
+      saving = false;
+      saveState = 'saved';
+      const saved = data.saved || [];
+      Object.keys(contentById).forEach((k) => delete contentById[k]);
+      saved.forEach((p) => { contentById[p.id] = p.content || { sections: [] }; });
+      mountTree(saved);
+      // If the edited page/section/element vanished after normalization, fall back.
+      if (view === 'builder') {
+        if (!findById(saved, builderPageId)) { exitBuilder(); return; }
+        if (selectedSectionId && !findSection(selectedSectionId)) { selectedSectionId = null; selectedElementId = null; }
+        else if (selectedElementId && !findElement(selectedSectionId, selectedElementId)) { selectedElementId = null; }
+        renderAll();
+      } else {
+        pushPreview(); // reflect the saved content in the read-only preview
+      }
+    }).catch((err) => {
+      saving = false;
+      saveState = 'idle';
+      updateSaveBar();
+      if (window.Toast) window.Toast.show(err.message || 'We could not save your changes. Try again.');
+    });
+  }
 
   function svg(paths, opts) {
     const ns = 'http://www.w3.org/2000/svg';
@@ -158,7 +228,7 @@
       onChange: () => {
         const items2 = tree.getItems();
         if (items2.findIndex((p) => p.isHomepage) > 0) commit(items2);
-        else refreshList();
+        else { onEdit(); refreshList(); }
       },
     });
     refreshList();
@@ -173,7 +243,7 @@
 
   // ---- list mutations ----
   function commit(items) {
-    saveError = null;
+    onEdit();
     mountTree(pinHomepage(items));
   }
   function setHomepage(id) {
@@ -375,10 +445,10 @@
   function backToSection() { selectedElementId = null; selectedCardId = null; renderAll(); }
 
   // Re-render the panel + preview after a structural change.
-  function afterContentChange() { renderAll(); }
+  function afterContentChange() { onEdit(); renderAll(); }
   // Lighter: a field edit (typing) updates preview + save bar without rebuilding
   // the panel (which would steal focus from the input).
-  function afterFieldEdit() { updateSaveBar(); pushPreview(); syncUrl(true); }
+  function afterFieldEdit() { onEdit(); updateSaveBar(); pushPreview(); syncUrl(true); }
 
   function addSection() {
     const secs = getSections();
@@ -426,6 +496,18 @@
     getContent().sections = rest;
     afterFieldEdit();
   }
+  // Discrete move-up/move-down (Figma 5944:65546's toolbar) — swap with the
+  // adjacent section; a no-op at either end.
+  function moveSectionBy(id, delta) {
+    const secs = getSections();
+    const i = secs.findIndex((s) => s.id === id);
+    const j = i + delta;
+    if (i === -1 || j < 0 || j >= secs.length) return;
+    [secs[i], secs[j]] = [secs[j], secs[i]];
+    afterContentChange();
+  }
+  function moveSectionUp(id) { moveSectionBy(id, -1); }
+  function moveSectionDown(id) { moveSectionBy(id, 1); }
   // Placeholder richtext a new richtext element starts with — real content (not a
   // CSS hint), so it shows in the preview and in the WYSIWYG when re-editing.
   const PLACEHOLDER_RICHTEXT =
@@ -1599,6 +1681,8 @@
         onSelectElement: selectElement,
         onEditElement: (sid, elId) => editElement(sid, elId),
         onDeleteSection: deleteSection,
+        onMoveSectionUp: moveSectionUp,
+        onMoveSectionDown: moveSectionDown,
         onDeleteElement: deleteElement,
         onAddCard: (sid, elId) => addCard(sid, elId),
         onSelectCard: (sid, elId, cardId) => selectCard(sid, elId, cardId),
@@ -1613,22 +1697,7 @@
 
   // ---- save bar + view toggle ----
   function updateSaveBar() {
-    const dirty = isDirty();
-    saveBtn.disabled = saving || !dirty;
-    saveBtn.classList.toggle('is-saving', saving);
-    if (saving) {
-      statusEl.hidden = false;
-      statusEl.classList.remove('save-status--error');
-      statusEl.textContent = 'Saving…';
-    } else if (saveError) {
-      statusEl.hidden = false;
-      statusEl.classList.add('save-status--error');
-      statusEl.textContent = saveError;
-    } else {
-      statusEl.hidden = !dirty;
-      statusEl.classList.remove('save-status--error');
-      statusEl.textContent = 'Unsaved changes';
-    }
+    if (bar) bar.refresh(saveState);
   }
 
   function renderAll() {
@@ -1644,87 +1713,55 @@
     pushPreview();
   }
 
-  // ---- save ----
-  async function save() {
-    if (saving || !isDirty()) return;
-    saving = true;
-    updateSaveBar();
-    try {
-      const res = await fetch('/api/website/pages', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ pages: strip(tree.getItems()) }),
-      });
-      if (!res.ok) {
-        let msg = 'Couldn’t save. Try again.';
-        try { const d = await res.json(); if (d.message) msg = d.message; } catch (_) {}
-        throw new Error(msg);
-      }
-      const data = await res.json();
-      saving = false;
-      saveError = null;
-      const saved = data.saved || [];
-      Object.keys(contentById).forEach((k) => delete contentById[k]);
-      saved.forEach((p) => { contentById[p.id] = p.content || { sections: [] }; });
-      baseline = JSON.stringify(strip(saved));
-      mountTree(saved);
-      // If the edited page/section/element vanished after normalization, fall back.
-      if (view === 'builder') {
-        if (!findById(saved, builderPageId)) { exitBuilder(); return; }
-        if (selectedSectionId && !findSection(selectedSectionId)) { selectedSectionId = null; selectedElementId = null; }
-        else if (selectedElementId && !findElement(selectedSectionId, selectedElementId)) { selectedElementId = null; }
-        renderAll();
-      } else {
-        pushPreview(); // reflect the saved content in the read-only preview
-      }
-    } catch (err) {
-      saving = false;
-      saveError = err.message || 'Couldn’t save. Try again.';
-      updateSaveBar();
-    }
-  }
-
-  // ---- navigation guard (unsaved changes) ----
-  function setupNavGuard() {
-    const modal = document.querySelector('[data-modal="unsaved"]');
-    let pendingHref = null;
-    let allowLeave = false;
-    const open = () => { modal.hidden = false; modal.querySelector('[data-modal-keep]').focus(); };
-    const close = () => { modal.hidden = true; pendingHref = null; };
-    modal.querySelector('[data-modal-close]').addEventListener('click', close);
-    modal.querySelector('[data-modal-keep]').addEventListener('click', close);
-    modal.querySelector('[data-modal-discard]').addEventListener('click', () => {
-      allowLeave = true; const href = pendingHref; close(); if (href) window.location.href = href;
-    });
-    document.addEventListener('click', (e) => {
-      const link = e.target.closest('a[href]');
-      if (!link || allowLeave || !isDirty()) return;
-      const href = link.getAttribute('href');
-      if (!href || href.startsWith('#') || link.target === '_blank') return;
-      const url = new URL(href, location.href);
-      if (url.origin === location.origin && url.pathname === location.pathname) return;
-      e.preventDefault();
-      pendingHref = url.href;
-      open();
-    });
-    window.addEventListener('beforeunload', (e) => {
-      if (isDirty() && !allowLeave) { e.preventDefault(); e.returnValue = ''; }
-    });
-  }
-
   // ---- boot ----
   preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'), { highlight: 'body' });
-  saveBtn.addEventListener('click', save);
   addBtn.addEventListener('click', openAdd);
   backBtn.addEventListener('click', exitBuilder);
+
+  bar = window.WebsiteSaveActions.init({
+    isLocalDirty,
+    flushLocalSave: flushPendingSave,
+    cancelLocalPending: cancelPendingSave,
+    onPublished: (published) => {
+      const p = published && published.pages;
+      if (Array.isArray(p)) publishedSerialized = JSON.stringify(stripOwn(p));
+      updateSaveBar();
+    },
+    onDiscarded: (draft) => {
+      const d = draft && draft.pages;
+      if (Array.isArray(d)) {
+        Object.keys(contentById).forEach((k) => delete contentById[k]);
+        d.forEach((p) => { contentById[p.id] = p.content || { sections: [] }; });
+        mountTree(d);
+        publishedSerialized = JSON.stringify(stripOwn(d));
+        if (view === 'builder' && !findById(d, builderPageId)) exitBuilder();
+        else renderAll();
+      }
+    },
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = null;
+      try {
+        fetch('/api/website/pages', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          keepalive: true,
+          body: JSON.stringify({ pages: strip(tree ? tree.getItems() : []) }),
+        });
+      } catch (_) { /* best effort */ }
+    }
+  });
 
   fetch('/api/website/pages', { credentials: 'include' })
     .then((r) => (r.ok ? r.json() : Promise.reject()))
     .then((data) => {
       if (data.limits) limits = data.limits;
       (data.pages || []).forEach((p) => { contentById[p.id] = p.content || { sections: [] }; });
-      baseline = JSON.stringify(strip(data.pages || []));
+      publishedSerialized = JSON.stringify(stripOwn(data.published || []));
       loaded = true;
       mountTree(data.pages || []);
       pushPreview(); // give the read-only preview the loaded pages + content
@@ -1742,7 +1779,6 @@
       emptyEl.textContent = 'Couldn’t load pages. Refresh to try again.';
     });
 
-  setupNavGuard();
   // Back/Forward: re-derive state from the URL the browser just navigated to,
   // then render once. `lastPath` is set first so renderAll()'s own syncUrl()
   // sees no change and does not push a competing history entry.
