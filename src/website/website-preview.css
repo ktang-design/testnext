@@ -119,12 +119,12 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
   border-radius: 4px;
 }
 /* Section-panel highlight: marks the preview element for the panel being edited
-   (Header / Navigation / Search / Footer) with the same pink as a selected block. */
-.wsprev__hl { outline: 2px solid #e0489b; outline-offset: -2px; border-radius: 4px; }
+   (Header / Navigation / Search / Footer), teal like a selected block. */
+.wsprev__hl { outline: 2px solid #00758d; outline-offset: -2px; border-radius: 4px; }
 
 /* The page-body "build area" highlight (Pages). A plain outline gets scaled
    down to ~1px by the preview's fit-zoom and hides against page content, so draw
-   the pink border as an on-top overlay (::after) instead. pointer-events:none
+   the teal border as an on-top overlay (::after) instead. pointer-events:none
    keeps the builder's section clicks working. */
 .wsprev__body.wsprev__hl { outline: none; }
 .wsprev__body.wsprev__hl::after {
@@ -132,7 +132,7 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
   position: absolute;
   inset: 0;
   pointer-events: none;
-  border: 2px solid #e0489b;
+  border: 2px solid #00758d;
   border-radius: 4px;
 }
 /* Hovered section (unselected): lagoon-tint fill (Figma 5944:65453 / 5957:70443);
@@ -330,11 +330,11 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 /* Authored links inside a description are inert here too (clicks are swallowed
    in JS); keep them looking like links without inviting a click. */
 .wsprev__cards:not(.wsprev__cards--edit) .wsprev__carddesc a { cursor: default; }
-/* In the builder each card is wrapped so it becomes its own click target: pink
+/* In the builder each card is wrapped so it becomes its own click target: blue
    outline when picked, dashed hint on hover, and a grip/edit/trash toolbar. The
    wrapper carries these so the card keeps clipping its image to the corners. */
 .wsprev__cardwrap { position: relative; cursor: pointer; border-radius: 4px; }
-.wsprev__cardwrap.is-selected { outline: 2px solid #e0489b; outline-offset: 2px; }
+.wsprev__cardwrap.is-selected { outline: 2px solid #3e75cf; outline-offset: 2px; }
 .wsprev__cardwrap:hover:not(.is-selected) { outline: 1px dashed #cdd6e6; outline-offset: 2px; }
 .wsprev__cardwrap.is-selected > .wsprev__toolbar { opacity: 1; visibility: visible; }
 .wsprev__cardwrap.is-dragging { opacity: 0.5; }
