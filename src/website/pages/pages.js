@@ -17,7 +17,6 @@
   const emptyEl = document.querySelector('[data-empty]');
   const addBtn = document.querySelector('[data-add]');
   const backBtn = document.querySelector('[data-action="back"]');
-  const publishBar = document.querySelector('[data-publish-bar]');
   if (!treeMount) return;
 
   const AUTO_SAVE_DELAY = 2000; // ms of idle time after the last edit before auto-saving
@@ -481,22 +480,6 @@
     getContent().sections = orderedIds.map((id) => map[id]).filter(Boolean);
     afterFieldEdit();
   }
-  // Drag-reorder a section from the preview canvas. beforeId is the section to
-  // drop in front of (null = move to the end). Mirrors moveElement.
-  function moveSection(draggedId, beforeId) {
-    const secs = getSections();
-    const dragged = secs.find((s) => s.id === draggedId);
-    if (!dragged || draggedId === beforeId) return;
-    const rest = secs.filter((s) => s.id !== draggedId);
-    if (beforeId == null) {
-      rest.push(dragged);
-    } else {
-      const idx = rest.findIndex((s) => s.id === beforeId);
-      rest.splice(idx < 0 ? rest.length : idx, 0, dragged);
-    }
-    getContent().sections = rest;
-    afterFieldEdit();
-  }
   // Discrete move-up/move-down (Figma 5944:65546's toolbar) — swap with the
   // adjacent section; a no-op at either end.
   function moveSectionBy(id, delta) {
@@ -851,26 +834,6 @@
     if (!sec) return;
     const map = Object.fromEntries(sec.elements.map((e) => [e.id, e]));
     sec.elements = orderedIds.map((id) => map[id]).filter(Boolean);
-    afterFieldEdit();
-  }
-  // Drag-reorder an element within its section. In a 50/50 section it can also
-  // move to the other column (targetColumn). beforeId is the element to drop in
-  // front of within the target column (null = append to the end of that column).
-  function moveElement(secId, draggedId, targetColumn, beforeId) {
-    const sec = findSection(secId);
-    if (!sec) return;
-    const elc = sec.elements.find((e) => e.id === draggedId);
-    if (!elc || draggedId === beforeId) return;
-    sec.elements = sec.elements.filter((e) => e.id !== draggedId);
-    elc.column = sec.columns === 2 ? (Number(targetColumn) === 1 ? 1 : 0) : 0;
-    // The flat array's relative order drives each column's visual order (render
-    // filters by column), so inserting before beforeId positions it correctly.
-    if (beforeId == null) {
-      sec.elements.push(elc);
-    } else {
-      const idx = sec.elements.findIndex((e) => e.id === beforeId);
-      sec.elements.splice(idx < 0 ? sec.elements.length : idx, 0, elc);
-    }
     afterFieldEdit();
   }
   // Discrete move-up/move-down (Figma 7391:83069's toolbar), scoped to the
@@ -1714,8 +1677,6 @@
         onEditCard: (sid, elId, cardId) => openCardModal(sid, elId, cardId),
         onDeleteCard: (sid, elId, cardId) => deleteCard(sid, elId, cardId),
         onReorderCard: (sid, elId, draggedId, beforeId) => moveCard(sid, elId, draggedId, beforeId),
-        onReorderElement: (sid, draggedId, col, beforeId) => moveElement(sid, draggedId, col, beforeId),
-        onReorderSection: (draggedId, beforeId) => moveSection(draggedId, beforeId),
       },
     });
   }
@@ -1731,8 +1692,6 @@
     listView.hidden = builderMode;
     builderView.hidden = !builderMode;
     backBtn.hidden = !builderMode;
-    // The Publish action lives above the preview and is shown only while building.
-    if (publishBar) publishBar.hidden = !builderMode;
     if (builderMode) renderBuilderPanel();
     updateSaveBar();
     pushPreview();
