@@ -4,7 +4,8 @@
 // page's title opens the BUILDER for that page: sections, each containing
 // elements (Richtext / Code). Section/element settings show in the panel; the
 // grey canvas keeps the shared website preview (nav+footer) and gains the
-// editing overlays (blue Add CTAs + the rendered content + a pink selection).
+// editing overlays (blue Add CTAs + the rendered content + a teal/blue
+// section/element selection).
 //
 // Everything is local until Save (one PUT replaces the full ordered set, with
 // each page carrying its content). Deleting a page asks for confirmation.

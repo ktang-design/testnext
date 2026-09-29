@@ -342,7 +342,7 @@
 
   function create(container, opts) {
     const state = {
-      // Which preview element to mark with the pink highlight (matches the section
+      // Which preview element to mark with the teal highlight (matches the section
       // panel the user is on): 'header' | 'nav' | 'search' | 'footer' | null.
       highlight: (opts && opts.highlight) || null,
       navigation: [],
