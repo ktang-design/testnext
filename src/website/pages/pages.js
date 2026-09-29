@@ -16,7 +16,6 @@
   const treeSkeleton = document.querySelector('[data-tree-skeleton]');
   const emptyEl = document.querySelector('[data-empty]');
   const addBtn = document.querySelector('[data-add]');
-  const backBtn = document.querySelector('[data-action="back"]');
   if (!treeMount) return;
 
   const AUTO_SAVE_DELAY = 2000; // ms of idle time after the last edit before auto-saving
@@ -1691,7 +1690,6 @@
     const builderMode = view === 'builder';
     listView.hidden = builderMode;
     builderView.hidden = !builderMode;
-    backBtn.hidden = !builderMode;
     if (builderMode) renderBuilderPanel();
     updateSaveBar();
     pushPreview();
@@ -1700,7 +1698,6 @@
   // ---- boot ----
   preview = window.WebsitePreview.create(document.querySelector('[data-website-preview]'), { highlight: 'body' });
   addBtn.addEventListener('click', openAdd);
-  backBtn.addEventListener('click', exitBuilder);
 
   bar = window.WebsiteSaveActions.init({
     isLocalDirty,
