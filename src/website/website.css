@@ -286,6 +286,15 @@ img { display: block; }
 .pageactions__inner { display: flex; align-items: center; justify-content: flex-end; gap: 16px; }
 .pageactions [data-save-status] { margin-right: auto; }
 .pageactions__buttons { display: flex; align-items: center; gap: 8px; }
+/* "Discard changes" here is an actual button, matching Tools & Services >
+   Bento's (bento.css) — not the plain-text-link treatment the base
+   `.btn--link` rule gives its other, lighter-weight uses (e.g. Pages'
+   "Remove" links). */
+.pageactions__buttons .btn--link {
+  padding: 7px 16px 8px; border-radius: var(--radius-sm, 4px);
+  font-weight: 600; font-size: 14px; line-height: 21px;
+}
+.pageactions__buttons .btn--link:hover { background: var(--blue-50); text-decoration: none; }
 .save-status { font-size: 14px; line-height: 21px; color: var(--gray-600); white-space: nowrap; }
 .save-status--error { color: var(--error); }
 .save-status[hidden] { display: none; }
