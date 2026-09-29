@@ -225,9 +225,15 @@
   setupNavGuard();
 
   // Initial paint from the local cache (instant), then hydrate/revalidate.
+  // Merged over DEFAULTS (not used as-is) so a cache written before a field
+  // existed (e.g. searchBackground/siteName/headerImage, all added after some
+  // browsers already had a cached header) doesn't leave that field undefined
+  // — setupColor's .set() would then throw reading config[key].color, which
+  // (being uncaught, synchronous, top-level) aborts the rest of this script,
+  // including the fetch below that would otherwise have self-corrected it.
   const cached = readCache();
   if (cached) {
-    config = clone(cached);
+    config = { ...clone(DEFAULTS), ...clone(cached) };
     baseline = JSON.stringify(config);
     loaded = true;
     applyToControls();

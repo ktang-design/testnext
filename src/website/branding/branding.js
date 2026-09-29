@@ -22,6 +22,14 @@
     { key: 'heading', label: 'Heading', def: '#3D3F42', tip: 'Applied to headings and section titles across your site.' },
     { key: 'body', label: 'Body', def: '#55585D', tip: 'Applied to body and paragraph text.' },
   ];
+  // Defaults derived from COLORS, used to backfill a cached config from
+  // before a colour existed (the set has changed more than once this
+  // session) — without this, config[key].color below would throw on the
+  // missing key, aborting the rest of this script before the fetch that
+  // would otherwise have self-corrected it.
+  const colorDefaults = { logo: null };
+  COLORS.forEach((c) => { colorDefaults[c.key] = { color: c.def, opacity: 100 }; });
+
   // Last-saved config, cached so the swatches show the real colours instantly on
   // load (no flash of black/defaults while the network resolves).
   const CACHE_KEY = 'ws-branding-cache';
@@ -276,7 +284,7 @@
 
   // Paint the last-saved colours immediately from cache (revalidated by the fetch).
   const cached = readCache();
-  if (cached) { config = clone(cached); applyToControls(); }
+  if (cached) { config = { ...clone(colorDefaults), ...clone(cached) }; applyToControls(); }
 
   fetch('/api/website/branding', { credentials: 'include' })
     .then((r) => (r.ok ? r.json() : Promise.reject()))
