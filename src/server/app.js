@@ -67,6 +67,8 @@ app.use('/api/website/pages', jsonLarge, require('./routes/pages'));
 // Header now carries a header-image data URL too → large parser.
 app.use('/api/website', jsonLarge, require('./routes/website'));
 app.use('/api/features', jsonSmall, require('./routes/features'));
+// Databases entries carry an image data URL -> large parser, unlike Bento.
+app.use('/api/features', jsonLarge, require('./routes/databases'));
 
 // ---- Page protection ------------------------------------------------------
 // The HTML entry points for these sections require a session. Their CSS/JS/
@@ -75,7 +77,7 @@ const PROTECTED_SECTIONS = new Set([
   '/site-details', '/branding', '/access',
   '/language-region', '/analytics', '/eds', '/administrators', '/users', '/activity-log',
   '/website/pages', '/website/navigation', '/website/header', '/website/header-menu', '/website/footer', '/website/typography', '/website/branding', '/website/search',
-  '/features/bento',
+  '/features/bento', '/features/databases',
 ]);
 // The bare Page Builder landing page ("/website/") — an exact match only, not
 // a prefix base. Shared assets live right alongside it at that same level

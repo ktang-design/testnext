@@ -34,16 +34,14 @@
   <meta name="robots" content="noindex, nofollow" />
   <link rel="icon" type="image/png" href="/favicon.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bento — StacksNext</title>
+  <title>Create database — StacksNext</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/components/navigation/navigation.css" />
   <link rel="stylesheet" href="/site-details/site-details.css" />
-  <link rel="stylesheet" href="/shared/sortable-tree.css" />
   <link rel="stylesheet" href="/shared/app-shell.css" />
-  <link rel="stylesheet" href="bento.css" />
-  <!-- Pre-paint: apply the collapsed sidenav state before first paint so navigating between pages doesn’t flash the expanded rail (see app-shell.js). -->
+  <link rel="stylesheet" href="../databases.css" />
   <script>try{if(localStorage.getItem('sn.sidenav')==='collapsed')document.documentElement.classList.add('is-nav-collapsed');}catch(e){}</script>
 </head>
 <body>
@@ -51,7 +49,6 @@
     <p class="sysmsg__text">This product is currently in alpha and under active development. The functionality and designs presented are for demonstration purposes only and may change as the product evolves.</p>
   </div>
 
-  <!-- ============ Top navigation (Tools & Services layer active) ============ -->
   <header class="topnav">
     <div class="topnav__left">
       <a class="topnav__logo" href="#" aria-label="Stratum home">
@@ -79,18 +76,17 @@
   </header>
 
   <div class="layout">
-    <!-- ============ Tools & Services sidenav ============ -->
     <aside class="sidenav" aria-label="Tools & Services">
       <nav aria-label="Tools & Services">
         <ul class="sidenav__list">
           <li>
-            <a class="nav-item nav-item--interactive is-active" href="/features/bento/" aria-current="page">
+            <a class="nav-item nav-item--interactive" href="/features/bento/">
               <span class="nav-item__icon"><svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><rect x="1.6" y="1.6" width="5.4" height="5.4" rx="1.2"/><rect x="9" y="1.6" width="5.4" height="5.4" rx="1.2"/><rect x="1.6" y="9" width="5.4" height="5.4" rx="1.2"/><rect x="9" y="9" width="5.4" height="5.4" rx="1.2"/></svg></span>
               <span class="nav-item__label">Bento</span>
             </a>
           </li>
           <li>
-            <a class="nav-item nav-item--interactive" href="/features/databases/">
+            <a class="nav-item nav-item--interactive is-active" href="/features/databases/" aria-current="page">
               <span class="nav-item__icon"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="8" cy="3.4" rx="5.6" ry="1.8"/><path d="M2.4 3.4v3.2c0 1 2.5 1.8 5.6 1.8s5.6-.8 5.6-1.8V3.4"/><path d="M2.4 6.6v3.2c0 1 2.5 1.8 5.6 1.8s5.6-.8 5.6-1.8V6.6"/><path d="M2.4 9.8v2.2c0 1 2.5 1.8 5.6 1.8s5.6-.8 5.6-1.8V9.8"/></svg></span>
               <span class="nav-item__label">Databases</span>
             </a>
@@ -99,59 +95,72 @@
       </nav>
     </aside>
 
-    <!-- ============ Content ============ -->
     <div class="content">
-      <main class="platform-page bento">
+      <main class="platform-page databases">
+        <nav class="pgb__crumbs" aria-label="Breadcrumb">
+          <a class="pgb__crumb pgb__crumb--link" href="../">Databases</a>
+          <span class="pgb__crumbsep" aria-hidden="true">›</span>
+          <span class="pgb__crumb" data-crumb-current>Create database</span>
+        </nav>
         <div class="section-heading">
           <div class="section-heading__text">
-            <h1 class="section-heading__title">Bento</h1>
-            <p class="section-heading__desc">
-              Create a unified search experience by displaying results from multiple sources in a single search.
-              Configure and organize search blocks to help users quickly explore different types of content.
-              Navigate to <a href="/eds/">System Settings &gt; Integrations</a> to configure search connections and settings.
-            </p>
+            <h1 class="section-heading__title" data-title>Create database</h1>
+            <p class="section-heading__desc">Using your configured database structure and creation form, you can update these settings later as your needs change.</p>
           </div>
         </div>
 
-        <!-- Loading: shown until the integration/blocks fetch resolves, then
-             swapped for whichever of the two states below actually applies. -->
-        <div class="bento-skeleton" data-state="loading">
-          <span class="skeleton bento-skeleton__bar" style="max-width: 320px; height: 36px; border-radius: 6px;"></span>
-          <span class="skeleton bento-skeleton__bar" style="max-width: 100%; height: 88px; border-radius: 6px;"></span>
-          <span class="skeleton bento-skeleton__bar" style="max-width: 100%; height: 88px; border-radius: 6px;"></span>
-        </div>
-
-        <!-- No search integration configured -->
-        <div class="bento-notice" data-state="no-integration" hidden>
-          <span class="bento-notice__icon" aria-hidden="true">
-            <svg viewBox="0 0 16 16" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2.2v3.2M10 2.2v3.2M4.4 5.4h7.2v2a3.6 3.6 0 0 1-7.2 0v-2ZM8 11v2.8"/></svg>
-          </span>
-          <div class="bento-notice__text">
-            <p class="bento-notice__title">No search integration configured</p>
-            <p class="bento-notice__desc">
-              <a href="/eds/">Set up a search integration</a> before creating a bento search.
-              Once an integration has been configured, you will be able to add and manage search blocks.
-            </p>
+        <form class="db-entryform" data-form novalidate>
+          <div class="field">
+            <label class="field__label" for="dbe-title">Title</label>
+            <div class="field__control"><input class="input" id="dbe-title" type="text" maxlength="120" data-field="title" required /></div>
           </div>
-        </div>
-
-        <!-- Integration configured: create + (optional) block list -->
-        <div class="bento-configured" data-state="configured" hidden>
-          <button type="button" class="btn btn--secondary bento-create" data-create>Create bento block</button>
-          <p class="bento-hint" data-list-hint hidden>The first item appears first on the page. Drag items to reorder.</p>
-          <div class="bento-list" data-tree hidden></div>
-        </div>
+          <div class="field">
+            <label class="field__label" for="dbe-url">URL</label>
+            <p class="field__hint">Enter the URL that the title will link to</p>
+            <div class="field__control"><input class="input" id="dbe-url" type="url" maxlength="2048" data-field="url" /></div>
+          </div>
+          <div class="field">
+            <label class="field__label" for="dbe-alias">URL alias</label>
+            <p class="field__hint">Enter a shorter, user-friendly version of the URL for easier sharing and recognition</p>
+            <div class="field__control"><input class="input" id="dbe-alias" type="text" maxlength="120" data-field="urlAlias" /></div>
+          </div>
+          <div class="field">
+            <label class="field__label" for="dbe-desc">Description</label>
+            <div class="field__control"><textarea class="input input--textarea" id="dbe-desc" maxlength="2000" rows="4" data-field="description"></textarea></div>
+          </div>
+          <div class="field">
+            <span class="field__label">Image</span>
+            <div style="padding-top:8px;">
+              <button type="button" class="btn btn--secondary" data-img-choose>Choose an image</button>
+              <div class="db-imgpreview" data-img-preview hidden>
+                <img data-img-el alt="Database image preview" />
+                <button type="button" class="btn btn--secondary" data-img-replace>Replace image</button>
+                <button type="button" class="btn--link" data-img-remove>Remove</button>
+              </div>
+              <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-img-input hidden />
+              <p class="field__error" data-img-error role="alert" hidden></p>
+            </div>
+          </div>
+          <div class="field">
+            <span class="field__label">Categories</span>
+            <p class="field__hint">Select the categories that apply to this database</p>
+            <div class="db-checkgroup" data-categories style="padding-top:8px;"></div>
+          </div>
+          <label class="checkbox">
+            <input type="checkbox" data-field="featured" />
+            <span class="checkbox__box" aria-hidden="true"></span>
+            <span class="checkbox__label">Display as a featured database</span>
+          </label>
+        </form>
       </main>
 
-      <!-- Publish bar: auto-save status, Discard changes, Publish -->
       <footer class="pageactions">
         <div class="pageactions__inner">
           <span class="save-status" data-save-status role="status" aria-live="polite" hidden></span>
           <div class="pageactions__buttons">
-            <button type="button" class="btn--link" data-action="discard" hidden>Discard changes</button>
-            <button type="button" class="btn btn--primary" data-action="publish" disabled>
+            <button type="button" class="btn btn--primary" data-action="submit">
               <span class="btn__spinner" aria-hidden="true"></span>
-              <span class="btn__label">Publish</span>
+              <span class="btn__label" data-submit-label>Create database</span>
             </button>
           </div>
         </div>
@@ -161,9 +170,7 @@
 
   <script src="/shared/app-shell.js"></script>
   <script src="/shared/auth-client.js"></script>
-  <script src="/shared/popover.js"></script>
-  <script src="/shared/modal.js"></script>
-  <script src="/shared/sortable-tree.js"></script>
-  <script src="bento.js"></script>
+  <script src="../databases-shared.js"></script>
+  <script src="entry.js"></script>
 </body>
 </html>

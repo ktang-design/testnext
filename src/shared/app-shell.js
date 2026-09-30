@@ -218,6 +218,7 @@
       footer: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="2.6" width="12.4" height="10.8" rx="1.5"/><path d="M1.8 9.8h12.4"/></svg>',
       typography: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.2h10M8 4.2v8.6"/></svg>',
       grid: '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><rect x="1.6" y="1.6" width="5.4" height="5.4" rx="1.2"/><rect x="9" y="1.6" width="5.4" height="5.4" rx="1.2"/><rect x="1.6" y="9" width="5.4" height="5.4" rx="1.2"/><rect x="9" y="9" width="5.4" height="5.4" rx="1.2"/></svg>',
+      database: '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="8" cy="3.4" rx="5.6" ry="1.8"/><path d="M2.4 3.4v3.2c0 1 2.5 1.8 5.6 1.8s5.6-.8 5.6-1.8V3.4"/><path d="M2.4 6.6v3.2c0 1 2.5 1.8 5.6 1.8s5.6-.8 5.6-1.8V6.6"/><path d="M2.4 9.8v2.2c0 1 2.5 1.8 5.6 1.8s5.6-.8 5.6-1.8V9.8"/></svg>',
     };
     const MODEL = [
       { key: 'platform', label: 'System Settings', items: [
@@ -253,6 +254,7 @@
       ] },
       { key: 'features', label: 'Tools & Services', items: [
         { icon: 'grid', label: 'Bento', href: '/features/bento/' },
+        { icon: 'database', label: 'Databases', href: '/features/databases/' },
       ] },
     ];
 
