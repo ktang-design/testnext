@@ -251,6 +251,7 @@
 
   window.DatabasesResource.load().then(function (data) {
     draft = clone(data.draft || data.defaults || DEFAULTS);
+    if (draft.configured) saveContinueBtn.querySelector('.btn__label').textContent = 'Save changes';
     if (!draft.categories.length) draft.categories.push({ id: uid('cat'), name: '', terms: [''] });
     openCategoryId = draft.categories[0].id;
     bindDisplay();
