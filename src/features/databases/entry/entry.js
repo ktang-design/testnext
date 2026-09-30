@@ -162,6 +162,14 @@
     form.querySelector('[data-hint="urlAlias"]').textContent = 'Enter a shorter, user-friendly version of the ' + url + ' for easier sharing and recognition';
   }
 
+  function markOptionalFields() {
+    form.querySelectorAll('.field').forEach(function (block) {
+      if (block.dataset.fieldblock === 'title') return;
+      var label = block.querySelector('.field__label');
+      if (label) label.textContent += ' (Optional)';
+    });
+  }
+
   // Lowercase a label for mid-sentence use, but leave acronyms like "URL" alone.
   function inSentence(label) {
     return label.length > 1 && label[1] === label[1].toLowerCase() ? label[0].toLowerCase() + label.slice(1) : label;
@@ -225,6 +233,7 @@
     }
     setMode(!!editId && !!entry.id);
     applyFieldLabels();
+    if (data.markOptional) markOptionalFields();
     populateForm();
   });
 })();
