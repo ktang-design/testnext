@@ -1,7 +1,7 @@
-// Features > Databases > Settings — display options, categories (one
-// expanded at a time), and field labels. Auto-saves/Publishes/Discards the
-// same shared draft blob as the other 2 Databases pages via
-// databases-shared.js.
+// Features > Databases > Create database (Settings step) — display options,
+// categories (one expanded at a time), and field labels. Per Figma 7587:64672
+// this page has no auto-save and no Discard/Publish pair — just one "Save and
+// continue" action that saves the draft and moves on to the entry form.
 (function () {
   var DEFAULTS = { entries: [], categories: [], display: { azIndex: false, filters: false, sortOrder: 'title', groupBy: 'none', resultsPerPage: 25 }, fieldLabels: [] };
   var MAX_CATEGORIES = 3;
@@ -9,25 +9,16 @@
   var categoriesEl = document.querySelector('[data-categories]');
   var fieldLabelsEl = document.querySelector('[data-fieldlabels]');
   var addCategoryBtn = document.querySelector('[data-action="add-category"]');
-  var publishBtn = document.querySelector('[data-action="publish"]');
-  var discardBtn = document.querySelector('[data-action="discard"]');
   var saveContinueBtn = document.querySelector('[data-action="save-continue"]');
-  var descEl = document.querySelector('[data-desc]');
 
   var draft = clone(DEFAULTS);
-  var published = clone(DEFAULTS);
-  var bar = null;
   var openCategoryId = null;
-  var isFirstRun = new URLSearchParams(window.location.search).get('next') === 'entry';
 
   function clone(x) { return JSON.parse(JSON.stringify(x)); }
   var uid = function (prefix) { return prefix + '_' + Math.random().toString(36).slice(2, 10); };
-
-  function markDirty() { if (bar) bar.markDirty(); }
+  function toast(message) { if (window.Toast) window.Toast.show(message); }
 
   // ---------- display options ----------
-  // Listeners are bound once at boot; applyDisplayValues() just re-paints the
-  // controls from `draft.display` (used after Discard) without re-binding.
   function applyDisplayValues() {
     document.querySelectorAll('[data-opt]').forEach(function (el) {
       var key = el.dataset.opt;
@@ -39,11 +30,10 @@
     document.querySelectorAll('[data-opt]').forEach(function (el) {
       var key = el.dataset.opt;
       if (el.type === 'checkbox') {
-        el.addEventListener('change', function () { draft.display[key] = el.checked; markDirty(); });
+        el.addEventListener('change', function () { draft.display[key] = el.checked; });
       } else {
         el.addEventListener('change', function () {
           draft.display[key] = key === 'resultsPerPage' ? Number(el.value) : el.value;
-          markDirty();
         });
       }
     });
@@ -93,7 +83,6 @@
       nameInput.addEventListener('input', function () {
         cat.name = nameInput.value;
         headLabel.textContent = cat.name || 'Category';
-        markDirty();
       });
       nameControl.appendChild(nameInput);
       nameField.appendChild(nameControl);
@@ -114,13 +103,13 @@
         termInput.maxLength = 60;
         termInput.value = term;
         termInput.setAttribute('aria-label', 'Term');
-        termInput.addEventListener('input', function () { cat.terms[ti] = termInput.value; markDirty(); });
+        termInput.addEventListener('input', function () { cat.terms[ti] = termInput.value; });
         const remove = document.createElement('button');
         remove.type = 'button';
         remove.className = 'db-term__remove';
         remove.setAttribute('aria-label', 'Remove term');
         remove.innerHTML = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>';
-        remove.addEventListener('click', function () { cat.terms.splice(ti, 1); renderCategories(); markDirty(); });
+        remove.addEventListener('click', function () { cat.terms.splice(ti, 1); renderCategories(); });
         row.appendChild(termInput);
         row.appendChild(remove);
         termsWrap.appendChild(row);
@@ -135,7 +124,6 @@
       addTerms.addEventListener('click', function () {
         cat.terms.push('');
         renderCategories();
-        markDirty();
         const inputs = categoriesEl.querySelectorAll('.db-term__label');
         if (inputs.length) inputs[inputs.length - 1].focus();
       });
@@ -150,7 +138,6 @@
         if (openCategoryId === cat.id) openCategoryId = null;
         renderCategories();
         updateAddCategoryBtn();
-        markDirty();
       });
       body.appendChild(removeCat);
 
@@ -170,7 +157,6 @@
     openCategoryId = cat.id; // newly added category opens, closing any other
     renderCategories();
     updateAddCategoryBtn();
-    markDirty();
   });
 
   // ---------- field labels (up/down + rename, no drag grip) ----------
@@ -219,7 +205,6 @@
     var arr = draft.fieldLabels;
     var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
     renderFieldLabels();
-    markDirty();
   }
   function renameField(i) {
     var f = draft.fieldLabels[i];
@@ -232,48 +217,27 @@
       if (!values) return;
       f.label = values.label.trim() || f.label;
       renderFieldLabels();
-      markDirty();
     });
   }
 
-  // ---------- "Save and continue" (first-run flow only) ----------
-  if (isFirstRun) {
-    descEl.textContent = 'Configure your database details and settings, then review your configuration before creating it. These settings will apply to all databases in your directory.';
-    publishBtn.hidden = true;
-    discardBtn.hidden = true;
-    saveContinueBtn.hidden = false;
-    saveContinueBtn.addEventListener('click', function () {
-      saveContinueBtn.disabled = true;
-      (bar ? bar.flushPendingSave() : Promise.resolve()).then(function () {
-        window.location.href = '../entry/';
-      });
+  // ---------- Save and continue (the one action on this page) ----------
+  saveContinueBtn.addEventListener('click', function () {
+    saveContinueBtn.disabled = true;
+    saveContinueBtn.classList.add('is-saving');
+    window.DatabasesResource.save(draft).then(function () {
+      window.location.href = '../entry/';
+    }).catch(function (err) {
+      saveContinueBtn.disabled = false;
+      saveContinueBtn.classList.remove('is-saving');
+      toast(err.message || 'We could not save your changes. Try again.');
     });
-  }
+  });
 
   window.DatabasesResource.load().then(function (data) {
     draft = clone(data.draft || data.defaults || DEFAULTS);
-    // Fall back to DEFAULTS, not `draft` — see the same note in databases.js.
-    published = clone(data.published || DEFAULTS);
     bindDisplay();
     renderCategories();
     updateAddCategoryBtn();
     renderFieldLabels();
-    bar = window.DatabasesResource.init({
-      getDraft: function () { return draft; },
-      getPublished: function () { return published; },
-      onAutoSaved: function (fresh) { if (fresh) draft = fresh; },
-      onDiscarded: function (fresh) {
-        if (fresh) {
-          draft = fresh;
-          published = clone(fresh);
-          applyDisplayValues();
-          openCategoryId = null;
-          renderCategories();
-          updateAddCategoryBtn();
-          renderFieldLabels();
-        }
-      },
-      onPublished: function (fresh) { if (fresh) published = fresh; },
-    });
   });
 })();

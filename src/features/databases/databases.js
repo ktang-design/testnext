@@ -112,7 +112,7 @@
   // entry can pick from real categories; otherwise it goes straight to the
   // entry form, same as "Add database" in the filled state.
   document.querySelector('[data-action="create-first"]').addEventListener('click', function () {
-    if (!draft.categories.length) window.location.href = 'settings/?next=entry';
+    if (!draft.categories.length) window.location.href = 'settings/';
     else window.location.href = 'entry/';
   });
   document.querySelector('[data-action="add"]').addEventListener('click', function () {
