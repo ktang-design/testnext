@@ -97,11 +97,6 @@
 
     <div class="content">
       <main class="platform-page databases">
-        <nav class="pgb__crumbs" aria-label="Breadcrumb">
-          <a class="pgb__crumb pgb__crumb--link" href="../">Databases</a>
-          <span class="pgb__crumbsep" aria-hidden="true">›</span>
-          <span class="pgb__crumb" data-crumb-current>Create database</span>
-        </nav>
         <div class="section-heading">
           <div class="section-heading__text">
             <h1 class="section-heading__title" data-title>Create database</h1>
@@ -110,26 +105,26 @@
         </div>
 
         <form class="db-entryform" data-form novalidate>
-          <div class="field">
-            <label class="field__label" for="dbe-title">Title</label>
+          <div class="field" data-fieldblock="title">
+            <label class="field__label" for="dbe-title" data-fieldlabel>Title</label>
             <div class="field__control"><input class="input" id="dbe-title" type="text" maxlength="120" data-field="title" required /></div>
           </div>
-          <div class="field">
-            <label class="field__label" for="dbe-url">URL</label>
+          <div class="field" data-fieldblock="url">
+            <label class="field__label" for="dbe-url" data-fieldlabel>URL</label>
             <p class="field__hint">Enter the URL that the title will link to</p>
             <div class="field__control"><input class="input" id="dbe-url" type="url" maxlength="2048" data-field="url" /></div>
           </div>
-          <div class="field">
+          <div class="field" data-fieldblock="urlAlias">
             <label class="field__label" for="dbe-alias">URL alias</label>
             <p class="field__hint">Enter a shorter, user-friendly version of the URL for easier sharing and recognition</p>
             <div class="field__control"><input class="input" id="dbe-alias" type="text" maxlength="120" data-field="urlAlias" /></div>
           </div>
-          <div class="field">
-            <label class="field__label" for="dbe-desc">Description</label>
+          <div class="field" data-fieldblock="description">
+            <label class="field__label" for="dbe-desc" data-fieldlabel>Description</label>
             <div class="field__control"><textarea class="input input--textarea" id="dbe-desc" maxlength="2000" rows="4" data-field="description"></textarea></div>
           </div>
-          <div class="field">
-            <span class="field__label">Image</span>
+          <div class="field" data-fieldblock="image">
+            <span class="field__label" data-fieldlabel>Image</span>
             <div style="padding-top:8px;">
               <button type="button" class="btn btn--secondary" data-img-choose>Choose an image</button>
               <div class="db-imgpreview" data-img-preview hidden>

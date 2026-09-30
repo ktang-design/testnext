@@ -23,15 +23,6 @@
 .platform-page.databases > .db-categories-section,
 .platform-page.databases > .db-fieldlabels-section { margin-top: 3.5rem; }
 
-/* Breadcrumb (cloned from website.css's .pgb__crumbs — settings/entry are
-   sub-pages of the landing page). */
-.pgb__crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 0; }
-.pgb__crumb { font-size: 13px; color: var(--gray-600); }
-.pgb__crumb--link { background: none; border: 0; padding: 0; cursor: pointer; color: var(--blue-700, #255096); text-decoration: none; }
-.pgb__crumb--link:hover { text-decoration: underline; }
-.pgb__crumb--link:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); border-radius: 2px; }
-.pgb__crumbsep { color: var(--gray-400); font-size: 18px; line-height: 1; }
-
 /* ----- Loading skeleton ------------------------------------------------- */
 .db-skeleton { display: flex; flex-direction: column; gap: 12px; }
 .db-skeleton[hidden] { display: none; }
