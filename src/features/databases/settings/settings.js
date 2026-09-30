@@ -93,28 +93,42 @@
       const termsLabel = document.createElement('span');
       termsLabel.className = 'field__label';
       termsLabel.textContent = 'Terms';
-      body.appendChild(termsLabel);
+      termsWrap.appendChild(termsLabel);
       if (!cat.terms.length) cat.terms.push('');
-      cat.terms.forEach(function (term, ti) {
-        const row = document.createElement('div');
-        row.className = 'db-term';
-        const termInput = document.createElement('input');
-        termInput.className = 'db-term__label input';
-        termInput.type = 'text';
-        termInput.maxLength = 60;
-        termInput.value = term;
-        termInput.placeholder = 'Term';
-        termInput.setAttribute('aria-label', 'Term');
-        termInput.addEventListener('input', function () { cat.terms[ti] = termInput.value; });
-        const remove = document.createElement('button');
-        remove.type = 'button';
-        remove.className = 'db-term__remove';
-        remove.setAttribute('aria-label', 'Remove term');
-        remove.innerHTML = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>';
-        remove.addEventListener('click', function () { cat.terms.splice(ti, 1); renderCategories(); });
-        row.appendChild(termInput);
-        row.appendChild(remove);
-        termsWrap.appendChild(row);
+      const termsMount = document.createElement('div');
+      termsWrap.appendChild(termsMount);
+      const termsTree = window.SortableTree.create(termsMount, {
+        items: cat.terms.map(function (t, i) { return { id: 't' + i, label: t }; }),
+        maxDepth: 1,
+        ariaLabel: 'Terms for ' + (cat.name || 'Category'),
+        labelOf: function (t) { return t.label || 'Term'; },
+        renderContent: function (t) {
+          const termInput = document.createElement('input');
+          termInput.className = 'db-term__input';
+          termInput.type = 'text';
+          termInput.maxLength = 60;
+          termInput.value = t.label;
+          termInput.placeholder = 'Term';
+          termInput.setAttribute('aria-label', 'Term');
+          termInput.addEventListener('input', function () {
+            t.label = termInput.value;
+            cat.terms = termsTree.getItems().map(function (x) { return x.label; });
+          });
+          return termInput;
+        },
+        renderTrailing: function (t) {
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className = 'db-term__remove';
+          remove.setAttribute('aria-label', 'Remove term ' + (t.label || ''));
+          remove.innerHTML = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>';
+          remove.addEventListener('click', function () {
+            cat.terms = termsTree.getItems().filter(function (x) { return x.id !== t.id; }).map(function (x) { return x.label; });
+            renderCategories();
+          });
+          return remove;
+        },
+        onChange: function (items) { cat.terms = items.map(function (x) { return x.label; }); },
       });
       body.appendChild(termsWrap);
 
@@ -125,14 +139,14 @@
       addTerms.addEventListener('click', function () {
         cat.terms.push('');
         renderCategories();
-        const inputs = categoriesEl.querySelectorAll('.db-term__label');
+        const inputs = categoriesEl.querySelectorAll('.db-term__input');
         if (inputs.length) inputs[inputs.length - 1].focus();
       });
       termsWrap.appendChild(addTerms);
 
       const removeCat = document.createElement('button');
       removeCat.type = 'button';
-      removeCat.className = 'btn btn--secondary';
+      removeCat.className = 'btn btn--secondary db-category__remove';
       removeCat.textContent = 'Remove category';
       removeCat.addEventListener('click', function () {
         draft.categories = draft.categories.filter(function (c) { return c.id !== cat.id; });
