@@ -96,6 +96,7 @@ function cleanConfig(b, current) {
   const entryIds = new Set();
   const categoryIds = new Set();
   return {
+    configured: typeof b.configured === 'boolean' ? b.configured : !!base.configured,
     entries: Array.isArray(b.entries)
       ? b.entries.slice(0, D.DATABASES_MAX.entries).map((e) => cleanEntry(e, entryIds))
       : base.entries,

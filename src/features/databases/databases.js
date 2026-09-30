@@ -5,12 +5,13 @@
 // primitives and the .toast component, same as Bento.
 (function () {
   var KEBAB = '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><circle cx="8" cy="3" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="13" r="1.4"/></svg>';
-  var DEFAULTS = { entries: [], categories: [], display: { azIndex: false, filters: false, sortOrder: 'title', groupBy: 'none', resultsPerPage: 25 }, fieldLabels: [] };
+  var DEFAULTS = { configured: false, entries: [], categories: [], display: { azIndex: false, filters: false, sortOrder: 'title', groupBy: 'none', resultsPerPage: 25 }, fieldLabels: [] };
 
   var loadingEl = document.querySelector('[data-state="loading"]');
   var emptyEl = document.querySelector('[data-state="empty"]');
   var filledEl = document.querySelector('[data-state="filled"]');
   var treeMount = document.querySelector('[data-tree]');
+  var listEmptyEl = document.querySelector('[data-list-empty]');
 
   var draft = clone(DEFAULTS);
   var published = clone(DEFAULTS);
@@ -33,9 +34,11 @@
   function renderStates() {
     loadingEl.hidden = true;
     var hasEntries = draft.entries.length > 0;
-    emptyEl.hidden = hasEntries;
-    filledEl.hidden = !hasEntries;
+    emptyEl.hidden = !!draft.configured;
+    filledEl.hidden = !draft.configured;
+    listEmptyEl.hidden = hasEntries;
     treeMount.hidden = !hasEntries;
+    if (bar) bar.refresh();
   }
 
   function rowKebab(entry) {
@@ -107,13 +110,10 @@
     });
   }
 
-  // "Create database" from the empty state goes to Settings first if
-  // nothing has been configured yet (no categories), so the very first
-  // entry can pick from real categories; otherwise it goes straight to the
-  // entry form, same as "Add database" in the filled state.
+  // Databases must be set up (Settings → "Save and continue") before any
+  // entry can be created.
   document.querySelector('[data-action="create-first"]').addEventListener('click', function () {
-    if (!draft.categories.length) window.location.href = 'settings/';
-    else window.location.href = 'entry/';
+    window.location.href = 'settings/';
   });
   document.querySelector('[data-action="add"]').addEventListener('click', function () {
     window.location.href = 'entry/';
@@ -132,6 +132,7 @@
       onAutoSaved: function (fresh) { if (fresh) { draft = fresh; syncTreeQuiet(); } },
       onDiscarded: function (fresh) { if (fresh) { draft = fresh; published = clone(fresh); syncTreeQuiet(); } },
       onPublished: function (fresh) { if (fresh) published = fresh; },
+      canDiscard: function () { return draft.entries.length > 0; },
     });
     if (draft.entries.length) mountTree();
     renderStates();

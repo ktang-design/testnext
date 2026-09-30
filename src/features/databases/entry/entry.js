@@ -135,6 +135,7 @@
 
   window.DatabasesResource.load().then(function (data) {
     draft = JSON.parse(JSON.stringify(data.draft || data.defaults || DEFAULTS));
+    if (!draft.configured) { window.location.replace('../settings/'); return; }
     if (editId) {
       var found = draft.entries.filter(function (e) { return e.id === editId; })[0];
       if (found) entry = JSON.parse(JSON.stringify(found));

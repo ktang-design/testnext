@@ -54,6 +54,12 @@
 .tip-wrap { display: inline-flex; }
 .tip-wrap .btn[disabled] { opacity: 0.6; cursor: not-allowed; }
 .db-list { width: 100%; }
+.db-list-empty {
+  width: 100%; margin: 0; padding: 16px; box-sizing: border-box;
+  border: 1px solid var(--gray-200); border-radius: 8px; background: var(--white);
+  font-size: 16px; line-height: 24px; color: var(--gray-600);
+}
+.db-list-empty[hidden] { display: none; }
 
 /* Entry rows (SortableTree) — same full-width bordered-card treatment as
    Bento's block list. */
@@ -149,7 +155,14 @@
 .db-term__label { flex: 1 0 0; font-size: 16px; line-height: 24px; color: var(--gray-700); }
 .db-term__remove { background: none; border: 0; color: var(--gray-600); cursor: pointer; padding: 8px; }
 .db-term__remove:hover { color: var(--gray-700); }
-.db-addcat { display: flex; align-items: center; }
+.db-addcat { display: flex; align-items: center; margin-top: 8px; }
+.db-textlink {
+  align-self: flex-start; padding: 0; background: none; border: 0; cursor: pointer;
+  font: 400 16px/24px var(--font); color: var(--blue-700, #255096); text-decoration: underline;
+}
+.db-textlink:hover { text-decoration-thickness: 2px; }
+.db-textlink:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); border-radius: 2px; }
+.db-textlink:disabled { color: var(--gray-400); cursor: not-allowed; }
 
 /* ----- Settings page: field labels (up/down + rename, no drag) ------------ */
 .db-fieldlabels { display: flex; flex-direction: column; gap: 8px; width: 100%; }
