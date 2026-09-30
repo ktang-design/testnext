@@ -37,9 +37,9 @@ class DatabasesRepository {
   }
 
   // Promote the current draft to be the published snapshot.
-  async publish(userId) {
+  async publish(userId, defaults = DATABASES_DEFAULTS) {
     const { draft } = await this.get(userId);
-    const config = draft || DATABASES_DEFAULTS;
+    const config = draft || defaults;
     await run(
       `INSERT INTO databases_settings (user_id, data, published_data, updated_at)
        VALUES (?, ?, ?, ?)
@@ -50,9 +50,9 @@ class DatabasesRepository {
   }
 
   // Revert the draft to whatever is currently published.
-  async discard(userId) {
+  async discard(userId, defaults = DATABASES_DEFAULTS) {
     const { published } = await this.get(userId);
-    const config = published || DATABASES_DEFAULTS;
+    const config = published || defaults;
     await run(
       `INSERT INTO databases_settings (user_id, data, updated_at)
        VALUES (?, ?, ?)

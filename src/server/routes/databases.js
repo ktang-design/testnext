@@ -13,7 +13,8 @@
 
 const express = require('express');
 const crypto = require('crypto');
-const { requireApiAuth } = require('../auth/authGuard');
+const { requireApiAuth, RESEARCH_PARTICIPANT } = require('../auth/authGuard');
+const { userRepository } = require('../auth/repository');
 const { databasesRepository: repo } = require('../features/DatabasesRepository');
 const { logActivity } = require('../platform/activity');
 const D = require('../features/defaults');
@@ -98,7 +99,7 @@ function cleanFieldLabels(raw) {
 }
 
 function cleanConfig(b, current) {
-  const base = current || D.DATABASES_DEFAULTS;
+  const base = current;
   const entryIds = new Set();
   const categoryIds = new Set();
   return {
@@ -114,22 +115,29 @@ function cleanConfig(b, current) {
   };
 }
 
+// Research participant accounts start from sample content (until they save
+// their own); every other role starts empty.
+async function defaultsFor(req) {
+  const user = await userRepository.findById(req.session.userId);
+  return user && user.role === RESEARCH_PARTICIPANT ? D.RESEARCH_PARTICIPANT_DATABASES_DEFAULTS : D.DATABASES_DEFAULTS;
+}
+
 router.get('/databases', requireApiAuth, ah(async (req, res) => {
   const { draft, published } = await repo.get(req.session.userId);
-  res.json({ defaults: D.DATABASES_DEFAULTS, options: D.DATABASES_OPTIONS, draft, published });
+  res.json({ defaults: await defaultsFor(req), options: D.DATABASES_OPTIONS, draft, published });
 }));
 
 // Auto-save only — no activity log entry here, or editing would spam the log
 // roughly every 2 seconds. The meaningful, logged action is Publish below.
 router.put('/databases', requireApiAuth, ah(async (req, res) => {
   const { draft: current } = await repo.get(req.session.userId);
-  const config = cleanConfig(req.body || {}, current);
+  const config = cleanConfig(req.body || {}, current || await defaultsFor(req));
   const draft = await repo.saveDraft(req.session.userId, config);
   res.json({ draft });
 }));
 
 router.post('/databases/publish', requireApiAuth, ah(async (req, res) => {
-  const published = await repo.publish(req.session.userId);
+  const published = await repo.publish(req.session.userId, await defaultsFor(req));
   await logActivity(req.session.userId, {
     pre: 'Published ', linkLabel: 'Databases', linkHref: '/features/databases/', post: '.',
   });
@@ -137,7 +145,7 @@ router.post('/databases/publish', requireApiAuth, ah(async (req, res) => {
 }));
 
 router.post('/databases/discard', requireApiAuth, ah(async (req, res) => {
-  const draft = await repo.discard(req.session.userId);
+  const draft = await repo.discard(req.session.userId, await defaultsFor(req));
   res.json({ draft });
 }));
 

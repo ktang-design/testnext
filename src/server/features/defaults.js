@@ -47,3 +47,37 @@ module.exports = {
     entries: 200, categories: 3, termsPerCategory: 20,
   },
 };
+
+// Research participant accounts start with Databases already set up and two
+// sample databases, so usability-test participants aren't shown an empty page.
+module.exports.RESEARCH_PARTICIPANT_DATABASES_DEFAULTS = {
+  configured: true,
+  entries: [
+    {
+      id: 'dbe_proquest_one_psychology',
+      title: 'ProQuest One Psychology',
+      url: 'https://about.proquest.com/en/products-services/proquest-one-psychology',
+      urlAlias: '',
+      description: 'ProQuest One Psychology provides scholarly and multimedia resources for psychology and counseling research, teaching, and learning. Content includes journals, ebooks, dissertations, therapy videos, counseling transcripts, research methods, tests and measures, and materials covering psychological conditions and therapeutic approaches.',
+      image: null,
+      terms: [],
+      featured: false,
+    },
+    {
+      id: 'dbe_cinahl',
+      title: 'CINAHL',
+      url: 'https://about.ebsco.com/products/research-databases/cinahl-database',
+      urlAlias: '',
+      description: 'CINAHL provides comprehensive coverage of nursing and allied health literature, including journal articles, evidence-based resources, research reports, and clinical information. It supports research across nursing, rehabilitation, nutrition, health education, and other healthcare disciplines.',
+      image: null,
+      terms: [],
+      featured: false,
+    },
+  ],
+  categories: [
+    { id: 'cat_subject', name: 'Subject', terms: ['Health & Medicine', 'Psychology', 'Nursing', 'Social Sciences', 'Health & Wellness'] },
+    { id: 'cat_database_type', name: 'Database type', terms: ['Research database', 'Reference database', 'Index & abstracts'] },
+  ],
+  display: { azIndex: true, filters: true, sortOrder: 'title', groupBy: 'none', resultsPerPage: 25 },
+  fieldLabels: module.exports.DATABASES_DEFAULTS.fieldLabels,
+};
