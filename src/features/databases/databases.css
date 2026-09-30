@@ -194,7 +194,27 @@
 
 /* ----- Entry form page ----------------------------------------------------- */
 .db-entryform { display: flex; flex-direction: column; gap: 32px; width: 100%; }
-.db-checkgroup { display: flex; flex-direction: column; gap: 8px; }
+/* Categories multi-select: .select-styled trigger + dropdown of grouped term checkboxes. */
+.db-multiselect { position: relative; }
+.db-multiselect__trigger {
+  display: block; max-width: none; text-align: left;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.db-multiselect__trigger[hidden] { display: none; }
+.db-multiselect__trigger.is-placeholder { color: var(--gray-600); }
+.db-multiselect__panel {
+  position: absolute; z-index: 20; top: calc(100% + 4px); left: 0; right: 0;
+  max-height: 320px; overflow-y: auto; padding: 8px 12px;
+  background: var(--white); border: 1px solid var(--gray-200); border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+.db-multiselect__panel[hidden] { display: none; }
+.db-multiselect__group { margin: 0; padding: 8px 0; border: 0; min-width: 0; }
+.db-multiselect__group + .db-multiselect__group { border-top: 1px solid var(--gray-200); }
+/* Floated so the fieldset's top divider doesn't run through the legend. */
+.db-multiselect__legend { float: left; width: 100%; padding: 0; margin-bottom: 4px; font-weight: 600; font-size: 14px; line-height: 21px; color: var(--gray-600); }
+.db-multiselect__option { clear: both; padding: 4px 0; }
+.db-multiselect__option .checkbox__label { color: var(--gray-700); }
 .db-imgpreview { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
 .db-imgpreview[hidden] { display: none; }
 .db-imgpreview img { width: 64px; height: 64px; object-fit: cover; border-radius: var(--radius-sm, 4px); border: 1px solid var(--gray-200); }

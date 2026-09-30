@@ -23,7 +23,7 @@
 
   var editId = new URLSearchParams(window.location.search).get('id');
   var draft = null;
-  var entry = { id: null, title: '', url: '', urlAlias: '', description: '', image: null, categoryIds: [], featured: false };
+  var entry = { id: null, title: '', url: '', urlAlias: '', description: '', image: null, terms: [], featured: false };
   var saving = false;
 
   function toast(message) { if (window.Toast) window.Toast.show(message); }
@@ -51,36 +51,94 @@
   imgReplace.addEventListener('click', pickImage);
   imgRemove.addEventListener('click', function () { entry.image = null; hide(imgError); renderImage(); });
 
-  function renderCategories() {
-    categoriesEl.innerHTML = '';
-    if (!draft.categories.length) {
-      var p = document.createElement('p');
-      p.className = 'field__hint';
-      p.textContent = 'No categories yet — add some from Databases > Settings.';
-      categoriesEl.appendChild(p);
-      return;
-    }
-    draft.categories.forEach(function (cat) {
-      var label = document.createElement('label');
-      label.className = 'checkbox';
-      var input = document.createElement('input');
-      input.type = 'checkbox';
-      input.checked = entry.categoryIds.indexOf(cat.id) !== -1;
-      input.addEventListener('change', function () {
-        if (input.checked) { if (entry.categoryIds.indexOf(cat.id) === -1) entry.categoryIds.push(cat.id); }
-        else entry.categoryIds = entry.categoryIds.filter(function (id) { return id !== cat.id; });
-      });
-      var box = document.createElement('span');
-      box.className = 'checkbox__box';
-      box.setAttribute('aria-hidden', 'true');
-      var text = document.createElement('span');
-      text.className = 'checkbox__label';
-      text.textContent = cat.name || 'Category';
-      label.appendChild(input);
-      label.appendChild(box);
-      label.appendChild(text);
-      categoriesEl.appendChild(label);
+  // ---------- Categories: multi-select dropdown of every category's terms ----------
+  var catTrigger = categoriesEl.querySelector('.db-multiselect__trigger');
+  var catValue = categoriesEl.querySelector('.db-multiselect__value');
+  var catPanel = categoriesEl.querySelector('.db-multiselect__panel');
+  var catEmpty = categoriesEl.querySelector('[data-categories-empty]');
+
+  function isSelected(catId, term) {
+    return entry.terms.some(function (t) { return t.categoryId === catId && t.term === term; });
+  }
+  function updateCatValue() {
+    var names = [];
+    draft.categories.forEach(function (c) {
+      c.terms.forEach(function (term) { if (isSelected(c.id, term)) names.push(term); });
     });
+    catValue.textContent = names.length ? names.join(', ') : 'Select an option';
+    catTrigger.classList.toggle('is-placeholder', !names.length);
+  }
+  function openCatPanel() {
+    catPanel.hidden = false;
+    catTrigger.setAttribute('aria-expanded', 'true');
+    var first = catPanel.querySelector('input');
+    if (first) first.focus();
+  }
+  function closeCatPanel(restoreFocus) {
+    if (catPanel.hidden) return;
+    catPanel.hidden = true;
+    catTrigger.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) catTrigger.focus();
+  }
+  catTrigger.addEventListener('click', function () {
+    if (catPanel.hidden) openCatPanel(); else closeCatPanel(false);
+  });
+  catTrigger.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowDown' && catPanel.hidden) { e.preventDefault(); openCatPanel(); }
+  });
+  categoriesEl.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !catPanel.hidden) { e.preventDefault(); closeCatPanel(true); }
+  });
+  // Tabbing out closes; a null relatedTarget (e.g. clicking an option's label
+  // text) is left to the document click handler below.
+  categoriesEl.addEventListener('focusout', function (e) {
+    if (e.relatedTarget && !categoriesEl.contains(e.relatedTarget)) closeCatPanel(false);
+  });
+  document.addEventListener('click', function (e) {
+    if (!categoriesEl.contains(e.target)) closeCatPanel(false);
+  });
+
+  function renderCategories() {
+    var groups = draft.categories.filter(function (c) { return c.terms.length; });
+    // Drop selections whose term was renamed or removed in Settings.
+    entry.terms = entry.terms.filter(function (t) {
+      return groups.some(function (c) { return c.id === t.categoryId && c.terms.indexOf(t.term) !== -1; });
+    });
+    catTrigger.hidden = !groups.length;
+    catEmpty.hidden = !!groups.length;
+    catPanel.innerHTML = '';
+    groups.forEach(function (cat) {
+      var fs = document.createElement('fieldset');
+      fs.className = 'db-multiselect__group';
+      var legend = document.createElement('legend');
+      legend.className = 'db-multiselect__legend';
+      legend.textContent = cat.name || 'Category';
+      fs.appendChild(legend);
+      cat.terms.forEach(function (term) {
+        var label = document.createElement('label');
+        label.className = 'checkbox db-multiselect__option';
+        var input = document.createElement('input');
+        input.type = 'checkbox';
+        input.checked = isSelected(cat.id, term);
+        input.addEventListener('change', function () {
+          if (input.checked) { if (!isSelected(cat.id, term)) entry.terms.push({ categoryId: cat.id, term: term }); }
+          else entry.terms = entry.terms.filter(function (t) { return !(t.categoryId === cat.id && t.term === term); });
+          updateCatValue();
+        });
+        var box = document.createElement('span');
+        box.className = 'checkbox__box';
+        box.setAttribute('aria-hidden', 'true');
+        var text = document.createElement('span');
+        text.className = 'checkbox__label';
+        text.textContent = term;
+        label.appendChild(input);
+        label.appendChild(box);
+        label.appendChild(text);
+        fs.appendChild(label);
+      });
+      catPanel.appendChild(fs);
+    });
+    updateCatValue();
   }
 
   function labelFor(key) {
@@ -155,6 +213,7 @@
     if (editId) {
       var found = draft.entries.filter(function (e) { return e.id === editId; })[0];
       if (found) entry = JSON.parse(JSON.stringify(found));
+      if (!Array.isArray(entry.terms)) entry.terms = [];
     }
     setMode(!!editId && !!entry.id);
     applyFieldLabels();
