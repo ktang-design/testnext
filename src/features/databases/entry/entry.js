@@ -10,7 +10,6 @@
 
   var form = document.querySelector('[data-form]');
   var titleEl = document.querySelector('[data-title]');
-  var crumbEl = document.querySelector('[data-crumb-current]');
   var submitBtn = document.querySelector('[data-action="submit"]');
   var submitLabel = document.querySelector('[data-submit-label]');
   var categoriesEl = document.querySelector('[data-categories]');
@@ -84,6 +83,24 @@
     });
   }
 
+  function labelFor(key) {
+    var f = draft.fieldLabels.filter(function (x) { return x.key === key; })[0];
+    return (f && f.label) || key;
+  }
+
+  // Field names and their order are set only on the Settings page. URL alias
+  // isn't configurable and stays directly after URL.
+  function applyFieldLabels() {
+    var tail = categoriesEl.closest('.field');
+    draft.fieldLabels.forEach(function (f) {
+      var block = form.querySelector('[data-fieldblock="' + f.key + '"]');
+      if (!block) return;
+      block.querySelector('[data-fieldlabel]').textContent = f.label;
+      form.insertBefore(block, tail);
+      if (f.key === 'url') form.insertBefore(form.querySelector('[data-fieldblock="urlAlias"]'), tail);
+    });
+  }
+
   function populateForm() {
     form.querySelector('[data-field="title"]').value = entry.title;
     form.querySelector('[data-field="url"]').value = entry.url;
@@ -104,7 +121,6 @@
 
   function setMode(isEdit) {
     titleEl.textContent = isEdit ? 'Edit database' : 'Create database';
-    crumbEl.textContent = isEdit ? 'Edit database' : 'Create database';
     submitLabel.textContent = isEdit ? 'Save changes' : 'Create database';
   }
 
@@ -112,7 +128,7 @@
     readForm();
     if (!entry.title) {
       form.querySelector('[data-field="title"]').focus();
-      toast('Title is required.');
+      toast(labelFor('title') + ' is required.');
       return;
     }
     if (saving) return;
@@ -141,6 +157,7 @@
       if (found) entry = JSON.parse(JSON.stringify(found));
     }
     setMode(!!editId && !!entry.id);
+    applyFieldLabels();
     populateForm();
   });
 })();
