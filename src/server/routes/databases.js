@@ -39,7 +39,13 @@ function cleanEntry(raw, usedIds) {
     urlAlias: str(b.urlAlias, D.DATABASES_MAX.urlAlias),
     description: str(b.description, D.DATABASES_MAX.description),
     image: validImage(b.image) ? (b.image || null) : null,
-    categoryIds: Array.isArray(b.categoryIds) ? b.categoryIds.filter((id2) => typeof id2 === 'string').slice(0, D.DATABASES_MAX.categories) : [],
+    terms: Array.isArray(b.terms)
+      ? b.terms
+        .filter((t) => t && typeof t === 'object')
+        .map((t) => ({ categoryId: str(t.categoryId, 40), term: str(t.term, D.DATABASES_MAX.term) }))
+        .filter((t) => t.categoryId && t.term)
+        .slice(0, D.DATABASES_MAX.categories * D.DATABASES_MAX.termsPerCategory)
+      : [],
     featured: !!b.featured,
   };
 }
