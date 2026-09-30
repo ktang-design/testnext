@@ -148,19 +148,35 @@
 .db-category__body { display: flex; flex-direction: column; gap: 24px; padding: 16px 16px 24px 48px; }
 .db-category__body[hidden] { display: none; }
 .db-terms { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-.db-term {
-  display: flex; align-items: center; gap: 8px; padding: 12px 8px;
-  border: 1px solid var(--gray-200); border-radius: var(--radius-sm, 4px); background: var(--white);
+/* Terms reuse SortableTree; each row is a bordered card with inline-editable text. */
+.db-terms .navtree__item { margin: 0; }
+.db-terms .navtree__item + .navtree__item { margin-top: 8px; }
+.db-terms .navtree__row {
+  gap: 8px; padding: 12px 8px; background: var(--white);
+  border: 1px solid var(--gray-200); border-radius: var(--radius-sm, 4px);
 }
-.db-term__label { flex: 1 0 0; font-size: 16px; line-height: 24px; color: var(--gray-700); }
-.db-term__remove { background: none; border: 0; color: var(--gray-600); cursor: pointer; padding: 8px; }
-.db-term__remove:hover { color: var(--gray-700); }
+.db-terms .navtree__row:hover { background: var(--white); }
+.db-terms .navtree__row:focus-within { border-color: var(--blue-500); }
+.db-terms .navtree__handle { width: 32px; height: 32px; color: var(--gray-600); }
+.db-term__input {
+  width: 100%; padding: 0; border: 0; background: transparent; outline: none;
+  font: 600 16px/24px var(--font); color: var(--gray-700);
+}
+.db-term__input::placeholder { color: var(--gray-500); opacity: 1; }
+.db-term__remove {
+  display: inline-flex; padding: 8px; background: none; border: 0; border-radius: var(--radius-sm, 4px);
+  color: var(--gray-600); cursor: pointer;
+}
+.db-term__remove:hover { background: var(--gray-100); }
+.db-term__remove:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); }
+.db-category__remove { align-self: flex-end; }
 .db-addcat { display: flex; align-items: center; margin-top: 8px; }
 .db-textlink {
   align-self: flex-start; padding: 0; background: none; border: 0; cursor: pointer;
-  font: 400 16px/24px var(--font); color: var(--blue-700, #255096); text-decoration: underline;
+  font: 400 16px/24px var(--font); color: var(--blue-600, #2d62b7);
+  text-decoration: underline dotted; text-decoration-thickness: 8%; text-decoration-skip-ink: none;
 }
-.db-textlink:hover { text-decoration-thickness: 2px; }
+.db-textlink:hover { text-decoration-style: solid; }
 .db-textlink:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); border-radius: 2px; }
 .db-textlink:disabled { color: var(--gray-400); cursor: not-allowed; }
 
