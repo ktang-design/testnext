@@ -135,29 +135,42 @@
 .db-option__title { font-weight: 600; font-size: 16px; line-height: 24px; color: var(--gray-700); }
 .db-option__desc { font-size: 16px; line-height: 24px; color: var(--gray-600); }
 
-/* ----- Settings page: categories accordion (one open at a time) ----------- */
-.db-categories { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+/* ----- Settings page: reorderable rows (categories, terms, field labels) ----
+   All three reuse SortableTree and share one row box: 12px 8px padding, a
+   32px grip, then content, then a 32px trailing icon button. */
+.db-category > .navtree__row,
+.db-terms .navtree__row,
+.db-fieldlabels .navtree__row { gap: 8px; padding: 12px 8px; background: var(--white); }
+.db-category > .navtree__row:hover,
+.db-terms .navtree__row:hover,
+.db-fieldlabels .navtree__row:hover { background: var(--white); }
+.db-categories .navtree__handle,
+.db-fieldlabels .navtree__handle { width: 32px; height: 32px; color: var(--gray-600); }
+.db-categories .navtree__item,
+.db-fieldlabels .navtree__item { margin: 0; }
+.db-categories .navtree__item + .navtree__item,
+.db-fieldlabels .navtree__item + .navtree__item { margin-top: 8px; }
+
+/* ----- Categories accordion (one open at a time) -------------------------- */
+.db-categories { width: 100%; }
 .db-category { border: 1px solid var(--gray-200); border-radius: var(--radius-sm, 4px); overflow: hidden; background: var(--white); }
+.db-category > .navtree__row > .navtree__actions { display: none; }
+.db-category.is-dragging > .db-category__body { visibility: hidden; }
 .db-category__head {
-  display: flex; align-items: center; gap: 8px; width: 100%; padding: 12px 8px;
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 0;
   background: none; border: 0; cursor: pointer; font: 600 16px/24px var(--font); color: var(--gray-700); text-align: left;
 }
-.db-category__head-label { flex: 1 0 0; }
-.db-category__chevron { transition: transform 0.15s ease; color: var(--gray-600); }
+.db-category__head:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); border-radius: var(--radius-sm, 4px); }
+.db-category__head-label { flex: 1 0 0; min-width: 0; }
+.db-category__chevron { display: inline-flex; padding: 8px; transition: transform 0.15s ease; color: var(--gray-600); }
 .db-category.is-open .db-category__chevron { transform: rotate(180deg); }
 .db-category__body { display: flex; flex-direction: column; gap: 24px; padding: 16px 16px 24px 48px; }
 .db-category__body[hidden] { display: none; }
 .db-terms { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 /* Terms reuse SortableTree; each row is a bordered card with inline-editable text. */
-.db-terms .navtree__item { margin: 0; }
-.db-terms .navtree__item + .navtree__item { margin-top: 8px; }
-.db-terms .navtree__row {
-  gap: 8px; padding: 12px 8px; background: var(--white);
-  border: 1px solid var(--gray-200); border-radius: var(--radius-sm, 4px);
-}
-.db-terms .navtree__row:hover { background: var(--white); }
+/* Term text is typed directly into the row (no inner input box). */
+.db-terms .navtree__row { border: 1px solid var(--gray-200); border-radius: var(--radius-sm, 4px); }
 .db-terms .navtree__row:focus-within { border-color: var(--blue-500); }
-.db-terms .navtree__handle { width: 32px; height: 32px; color: var(--gray-600); }
 .db-term__input {
   width: 100%; padding: 0; border: 0; background: transparent; outline: none;
   font: 600 16px/24px var(--font); color: var(--gray-700);
@@ -180,17 +193,13 @@
 .db-textlink:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); border-radius: 2px; }
 .db-textlink:disabled { color: var(--gray-400); cursor: not-allowed; }
 
-/* ----- Settings page: field labels (up/down + rename, no drag) ------------ */
-.db-fieldlabels { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-.db-fieldrow {
-  display: flex; align-items: center; gap: 8px; padding: 12px 16px;
-  border: 1px solid var(--gray-200); border-radius: var(--radius-sm, 4px); background: var(--white);
-}
-.db-fieldrow__label { flex: 1 0 0; font-weight: 600; font-size: 16px; line-height: 24px; color: var(--gray-600); }
-.db-fieldrow__btn { background: none; border: 0; color: var(--gray-600); cursor: pointer; padding: 8px; border-radius: var(--radius-sm, 4px); }
+/* ----- Field labels -------------------------------------------------------- */
+.db-fieldlabels { width: 100%; }
+.db-fieldlabels .navtree__row { border: 1px solid var(--gray-200); border-radius: var(--radius-sm, 4px); }
+.db-fieldrow__label { font-weight: 600; font-size: 16px; line-height: 24px; color: var(--gray-600); }
+.db-fieldrow__btn { display: inline-flex; background: none; border: 0; color: var(--gray-600); cursor: pointer; padding: 8px; border-radius: var(--radius-sm, 4px); }
 .db-fieldrow__btn:hover { background: var(--gray-100); }
-.db-fieldrow__btn:disabled { color: var(--gray-200); cursor: default; }
-.db-fieldrow__btn:disabled:hover { background: none; }
+.db-fieldrow__btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); }
 
 /* ----- Entry form page ----------------------------------------------------- */
 .db-entryform { display: flex; flex-direction: column; gap: 32px; width: 100%; }

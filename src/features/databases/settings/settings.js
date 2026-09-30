@@ -1,7 +1,7 @@
 // Features > Databases > Create database (Settings step) — display options,
 // categories (one expanded at a time), and field labels. Per Figma 7587:64672
 // this page has no auto-save and no Discard/Publish pair — just one "Save and
-// continue" action that saves the draft and moves on to the entry form.
+// continue" action that saves the draft and returns to the Databases page.
 (function () {
   var DEFAULTS = { entries: [], categories: [], display: { azIndex: false, filters: false, sortOrder: 'title', groupBy: 'none', resultsPerPage: 25 }, fieldLabels: [] };
   var MAX_CATEGORIES = 3;
@@ -40,125 +40,141 @@
     applyDisplayValues();
   }
 
-  // ---------- categories (accordion, one open at a time) ----------
+  // ---------- categories (reorderable accordion, one open at a time) ----------
+  function catById(id) { return draft.categories.filter(function (c) { return c.id === id; })[0]; }
+
   function renderCategories() {
     categoriesEl.innerHTML = '';
-    draft.categories.forEach(function (cat) {
-      const isOpen = cat.id === openCategoryId;
-      const item = document.createElement('div');
-      item.className = 'db-category' + (isOpen ? ' is-open' : '');
-
-      const head = document.createElement('button');
-      head.type = 'button';
-      head.className = 'db-category__head';
-      head.setAttribute('aria-expanded', String(isOpen));
-      const headLabel = document.createElement('span');
-      headLabel.className = 'db-category__head-label';
-      headLabel.textContent = cat.name || 'Category';
-      const chevron = document.createElement('span');
-      chevron.className = 'db-category__chevron';
-      chevron.innerHTML = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>';
-      head.appendChild(headLabel);
-      head.appendChild(chevron);
-      head.addEventListener('click', function () {
-        openCategoryId = isOpen ? null : cat.id;
-        renderCategories();
-      });
-      item.appendChild(head);
-
-      const body = document.createElement('div');
-      body.className = 'db-category__body';
-      body.hidden = !isOpen;
-
-      const nameField = document.createElement('div');
-      nameField.className = 'field';
-      nameField.innerHTML = '<label class="field__label">Category name</label>';
-      const nameControl = document.createElement('div');
-      nameControl.className = 'field__control';
-      const nameInput = document.createElement('input');
-      nameInput.className = 'input';
-      nameInput.type = 'text';
-      nameInput.maxLength = 60;
-      nameInput.value = cat.name || '';
-      nameInput.addEventListener('input', function () {
-        cat.name = nameInput.value;
-        headLabel.textContent = cat.name || 'Category';
-      });
-      nameControl.appendChild(nameInput);
-      nameField.appendChild(nameControl);
-      body.appendChild(nameField);
-
-      const termsWrap = document.createElement('div');
-      termsWrap.className = 'db-terms';
-      const termsLabel = document.createElement('span');
-      termsLabel.className = 'field__label';
-      termsLabel.textContent = 'Terms';
-      termsWrap.appendChild(termsLabel);
-      if (!cat.terms.length) cat.terms.push('');
-      const termsMount = document.createElement('div');
-      termsWrap.appendChild(termsMount);
-      const termsTree = window.SortableTree.create(termsMount, {
-        items: cat.terms.map(function (t, i) { return { id: 't' + i, label: t }; }),
-        maxDepth: 1,
-        ariaLabel: 'Terms for ' + (cat.name || 'Category'),
-        labelOf: function (t) { return t.label || 'Term'; },
-        renderContent: function (t) {
-          const termInput = document.createElement('input');
-          termInput.className = 'db-term__input';
-          termInput.type = 'text';
-          termInput.maxLength = 60;
-          termInput.value = t.label;
-          termInput.placeholder = 'Term';
-          termInput.setAttribute('aria-label', 'Term');
-          termInput.addEventListener('input', function () {
-            t.label = termInput.value;
-            cat.terms = termsTree.getItems().map(function (x) { return x.label; });
-          });
-          return termInput;
-        },
-        renderTrailing: function (t) {
-          const remove = document.createElement('button');
-          remove.type = 'button';
-          remove.className = 'db-term__remove';
-          remove.setAttribute('aria-label', 'Remove term ' + (t.label || ''));
-          remove.innerHTML = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>';
-          remove.addEventListener('click', function () {
-            cat.terms = termsTree.getItems().filter(function (x) { return x.id !== t.id; }).map(function (x) { return x.label; });
-            renderCategories();
-          });
-          return remove;
-        },
-        onChange: function (items) { cat.terms = items.map(function (x) { return x.label; }); },
-      });
-      body.appendChild(termsWrap);
-
-      const addTerms = document.createElement('button');
-      addTerms.type = 'button';
-      addTerms.className = 'db-textlink';
-      addTerms.textContent = 'Add terms';
-      addTerms.addEventListener('click', function () {
-        cat.terms.push('');
-        renderCategories();
-        const inputs = categoriesEl.querySelectorAll('.db-term__input');
-        if (inputs.length) inputs[inputs.length - 1].focus();
-      });
-      termsWrap.appendChild(addTerms);
-
-      const removeCat = document.createElement('button');
-      removeCat.type = 'button';
-      removeCat.className = 'btn btn--secondary db-category__remove';
-      removeCat.textContent = 'Remove category';
-      removeCat.addEventListener('click', function () {
-        draft.categories = draft.categories.filter(function (c) { return c.id !== cat.id; });
-        if (openCategoryId === cat.id) openCategoryId = null;
-        renderCategories();
-        updateAddCategoryBtn();
-      });
-      body.appendChild(removeCat);
-
-      item.appendChild(body);
-      categoriesEl.appendChild(item);
+    var bodies = {};
+    window.SortableTree.create(categoriesEl, {
+      items: draft.categories.map(function (c) { return { id: c.id }; }),
+      maxDepth: 1,
+      ariaLabel: 'Categories',
+      labelOf: function (it) { var c = catById(it.id); return (c && c.name) || 'Category'; },
+      itemAttrs: function (it) { return { className: 'db-category' + (it.id === openCategoryId ? ' is-open' : '') }; },
+      renderContent: function (it) {
+        var parts = buildCategory(catById(it.id));
+        bodies[it.id] = parts.body;
+        return parts.head;
+      },
+      renderBelow: function (it) { return bodies[it.id]; },
+      onChange: function (items) { draft.categories = items.map(function (it) { return catById(it.id); }); },
     });
+  }
+
+  function buildCategory(cat) {
+    const isOpen = cat.id === openCategoryId;
+
+    const head = document.createElement('button');
+    head.type = 'button';
+    head.className = 'db-category__head';
+    head.setAttribute('aria-expanded', String(isOpen));
+    const headLabel = document.createElement('span');
+    headLabel.className = 'db-category__head-label';
+    headLabel.textContent = cat.name || 'Category';
+    const chevron = document.createElement('span');
+    chevron.className = 'db-category__chevron';
+    chevron.innerHTML = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>';
+    head.appendChild(headLabel);
+    head.appendChild(chevron);
+    head.addEventListener('click', function () {
+      openCategoryId = isOpen ? null : cat.id;
+      renderCategories();
+    });
+
+    const body = document.createElement('div');
+    body.className = 'db-category__body';
+    body.id = 'dbcat-body-' + cat.id;
+    body.hidden = !isOpen;
+    head.setAttribute('aria-controls', body.id);
+
+    const nameField = document.createElement('div');
+    nameField.className = 'field';
+    nameField.innerHTML = '<label class="field__label">Category name</label>';
+    const nameControl = document.createElement('div');
+    nameControl.className = 'field__control';
+    const nameInput = document.createElement('input');
+    nameInput.className = 'input';
+    nameInput.type = 'text';
+    nameInput.maxLength = 60;
+    nameInput.value = cat.name || '';
+    nameInput.addEventListener('input', function () {
+      cat.name = nameInput.value;
+      headLabel.textContent = cat.name || 'Category';
+    });
+    nameControl.appendChild(nameInput);
+    nameField.appendChild(nameControl);
+    body.appendChild(nameField);
+
+    const termsWrap = document.createElement('div');
+    termsWrap.className = 'db-terms';
+    const termsLabel = document.createElement('span');
+    termsLabel.className = 'field__label';
+    termsLabel.textContent = 'Terms';
+    termsWrap.appendChild(termsLabel);
+    if (!cat.terms.length) cat.terms.push('');
+    const termsMount = document.createElement('div');
+    termsWrap.appendChild(termsMount);
+    const termsTree = window.SortableTree.create(termsMount, {
+      items: cat.terms.map(function (t, i) { return { id: 't' + i, label: t }; }),
+      maxDepth: 1,
+      ariaLabel: 'Terms for ' + (cat.name || 'Category'),
+      labelOf: function (t) { return t.label || 'Term'; },
+      renderContent: function (t) {
+        const termInput = document.createElement('input');
+        termInput.className = 'db-term__input';
+        termInput.type = 'text';
+        termInput.maxLength = 60;
+        termInput.value = t.label;
+        termInput.placeholder = 'Term';
+        termInput.setAttribute('aria-label', 'Term');
+        termInput.addEventListener('input', function () {
+          t.label = termInput.value;
+          cat.terms = termsTree.getItems().map(function (x) { return x.label; });
+        });
+        return termInput;
+      },
+      renderTrailing: function (t) {
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'db-term__remove';
+        remove.setAttribute('aria-label', 'Remove term ' + (t.label || ''));
+        remove.innerHTML = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>';
+        remove.addEventListener('click', function () {
+          cat.terms = termsTree.getItems().filter(function (x) { return x.id !== t.id; }).map(function (x) { return x.label; });
+          renderCategories();
+        });
+        return remove;
+      },
+      onChange: function (items) { cat.terms = items.map(function (x) { return x.label; }); },
+    });
+    body.appendChild(termsWrap);
+
+    const addTerms = document.createElement('button');
+    addTerms.type = 'button';
+    addTerms.className = 'db-textlink';
+    addTerms.textContent = 'Add terms';
+    addTerms.addEventListener('click', function () {
+      cat.terms.push('');
+      renderCategories();
+      const inputs = categoriesEl.querySelectorAll('.db-term__input');
+      if (inputs.length) inputs[inputs.length - 1].focus();
+    });
+    termsWrap.appendChild(addTerms);
+
+    const removeCat = document.createElement('button');
+    removeCat.type = 'button';
+    removeCat.className = 'btn btn--secondary db-category__remove';
+    removeCat.textContent = 'Remove category';
+    removeCat.addEventListener('click', function () {
+      draft.categories = draft.categories.filter(function (c) { return c.id !== cat.id; });
+      if (openCategoryId === cat.id) openCategoryId = null;
+      renderCategories();
+      updateAddCategoryBtn();
+    });
+    body.appendChild(removeCat);
+
+    return { head: head, body: body };
   }
 
   function updateAddCategoryBtn() {
@@ -174,55 +190,36 @@
     updateAddCategoryBtn();
   });
 
-  // ---------- field labels (up/down + rename, no drag grip) ----------
+  // ---------- field labels (reorderable, rename via modal) ----------
+  var EDIT_ICON = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 9.5V13a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 2 13V5a1.5 1.5 0 0 1 1.5-1.5H7"/><path d="M11.6 1.9a1.3 1.3 0 0 1 1.9 1.9L8 9.3 5.5 10l.7-2.5z"/></svg>';
+
   function renderFieldLabels() {
     fieldLabelsEl.innerHTML = '';
-    draft.fieldLabels.forEach(function (f, i) {
-      const row = document.createElement('div');
-      row.className = 'db-fieldrow';
-      const label = document.createElement('span');
-      label.className = 'db-fieldrow__label';
-      label.textContent = f.label;
-      row.appendChild(label);
-
-      const up = document.createElement('button');
-      up.type = 'button';
-      up.className = 'db-fieldrow__btn';
-      up.setAttribute('aria-label', 'Move ' + f.label + ' up');
-      up.disabled = i === 0;
-      up.innerHTML = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V3M4 6.5 8 3l4 3.5"/></svg>';
-      up.addEventListener('click', function () { moveField(i, -1); });
-
-      const down = document.createElement('button');
-      down.type = 'button';
-      down.className = 'db-fieldrow__btn';
-      down.setAttribute('aria-label', 'Move ' + f.label + ' down');
-      down.disabled = i === draft.fieldLabels.length - 1;
-      down.innerHTML = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v10M4 9.5 8 13l4-3.5"/></svg>';
-      down.addEventListener('click', function () { moveField(i, 1); });
-
-      const edit = document.createElement('button');
-      edit.type = 'button';
-      edit.className = 'db-fieldrow__btn';
-      edit.setAttribute('aria-label', 'Rename ' + f.label);
-      edit.innerHTML = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M10.8 2.6 13.4 5.2 5.4 13.2H2.8v-2.6z"/></svg>';
-      edit.addEventListener('click', function () { renameField(i); });
-
-      row.appendChild(up);
-      row.appendChild(down);
-      row.appendChild(edit);
-      fieldLabelsEl.appendChild(row);
+    window.SortableTree.create(fieldLabelsEl, {
+      items: draft.fieldLabels.map(function (f) { return { id: f.key, key: f.key, label: f.label }; }),
+      maxDepth: 1,
+      ariaLabel: 'Field labels',
+      labelOf: function (f) { return f.label; },
+      renderContent: function (f) {
+        const label = document.createElement('span');
+        label.className = 'db-fieldrow__label';
+        label.textContent = f.label;
+        return label;
+      },
+      renderTrailing: function (f) {
+        const edit = document.createElement('button');
+        edit.type = 'button';
+        edit.className = 'db-fieldrow__btn';
+        edit.setAttribute('aria-label', 'Rename ' + f.label);
+        edit.innerHTML = EDIT_ICON;
+        edit.addEventListener('click', function () { renameField(f.key); });
+        return edit;
+      },
+      onChange: function (items) { draft.fieldLabels = items.map(function (f) { return { key: f.key, label: f.label }; }); },
     });
   }
-  function moveField(i, delta) {
-    var j = i + delta;
-    if (j < 0 || j >= draft.fieldLabels.length) return;
-    var arr = draft.fieldLabels;
-    var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
-    renderFieldLabels();
-  }
-  function renameField(i) {
-    var f = draft.fieldLabels[i];
+  function renameField(key) {
+    var f = draft.fieldLabels.filter(function (x) { return x.key === key; })[0];
     window.Modal.form({
       title: 'Rename field label',
       submitLabel: 'Save',

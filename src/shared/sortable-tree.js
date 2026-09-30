@@ -5,6 +5,7 @@
 //     maxDepth: 2,           // parent + one level of subpages
 //     renderContent(item),   // -> Node   (the label area)
 //     renderTrailing(item),  // -> Node|null (e.g. a kebab menu button)
+//     renderBelow(item),     // -> Node|null, placed under the row (e.g. an accordion body)
 //     itemAttrs(item),       // -> { className?, disabled?, draggable? }  (optional)
 //     labelOf(item),         // -> string  (used in announcements / aria-labels)
 //     onChange(items),       // called after any reorder / nesting change
@@ -432,6 +433,8 @@
       row.appendChild(actions);
 
       li.appendChild(row);
+      const below = opts.renderBelow && opts.renderBelow(item);
+      if (below) li.appendChild(below);
 
       if (item.children && item.children.length && depth + 1 < maxDepth) {
         const ul = document.createElement('ul');
