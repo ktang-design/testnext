@@ -55,12 +55,14 @@
 
       var saving = false;
       var publishing = false;
-      var saveState = 'idle'; // 'idle' | 'pending' | 'saved'
       var autoSaveTimer = null;
 
       function isDirty() {
         return JSON.stringify(opts.getDraft()) !== JSON.stringify(opts.getPublished());
       }
+      // Edits made on the entry/settings pages were already saved to the draft,
+      // so arriving here with unpublished changes shows "Changes saved!".
+      var saveState = isDirty() ? 'saved' : 'idle'; // 'idle' | 'pending' | 'saved'
 
       function render() {
         var dirty = isDirty();

@@ -121,11 +121,9 @@
 
   window.DatabasesResource.load().then(function (data) {
     draft = clone(data.draft || data.defaults || DEFAULTS);
-    // Fall back to DEFAULTS, not `draft` — an account that's never published
-    // has nothing published yet, which must compare as different from any
-    // non-empty draft (falling back to draft here would make isDirty() always
-    // false, silently disabling Publish).
-    published = clone(data.published || DEFAULTS);
+    // Never-published accounts compare against the server defaults (not `draft`,
+    // which would make isDirty() always false and silently disable Publish).
+    published = clone(data.published || data.defaults || DEFAULTS);
     bar = window.DatabasesResource.init({
       getDraft: function () { return draft; },
       getPublished: function () { return published; },
