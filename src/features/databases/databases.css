@@ -1,0 +1,161 @@
+/* ===========================================================================
+   Features > Databases (all 3 pages: list, settings, entry form). Builds on
+   the shared foundation from site-details.css (tokens, topnav, layout,
+   content, section-heading, buttons, pageactions, save-status, toast,
+   .field/.field__*/.input) + sortable-tree.css (the entries list) +
+   app-shell.css, same as bento.css. Shared across the 3 Databases pages
+   (unlike Bento, a single-page feature) since they're sub-pages of one
+   workflow; still duplicates small shared pieces (.popover, .checkbox,
+   .select) rather than pulling in website.css, matching bento.css's own
+   documented convention.
+   =========================================================================== */
+
+.platform-page.databases {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+.platform-page.databases > * { width: 100%; max-width: 960px; }
+
+/* Breadcrumb (cloned from website.css's .pgb__crumbs — settings/entry are
+   sub-pages of the landing page). */
+.pgb__crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 0; }
+.pgb__crumb { font-size: 13px; color: var(--gray-600); }
+.pgb__crumb--link { background: none; border: 0; padding: 0; cursor: pointer; color: var(--blue-700, #255096); text-decoration: none; }
+.pgb__crumb--link:hover { text-decoration: underline; }
+.pgb__crumb--link:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); border-radius: 2px; }
+.pgb__crumbsep { color: var(--gray-400); font-size: 18px; line-height: 1; }
+
+/* ----- Loading skeleton ------------------------------------------------- */
+.db-skeleton { display: flex; flex-direction: column; gap: 12px; }
+.db-skeleton[hidden] { display: none; }
+.db-skeleton__bar { width: 100%; }
+
+/* ----- Empty state -------------------------------------------------------- */
+.db-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 64px 0; text-align: center; }
+.db-empty[hidden] { display: none; }
+.db-empty__icon { color: var(--blue-500, #3e75cf); font-size: 24px; }
+.db-empty__title { margin: 0; font-weight: 600; font-size: 16px; line-height: 24px; color: var(--gray-700); }
+.db-empty__desc { margin: 0; font-size: 16px; line-height: 24px; color: var(--gray-700); }
+.db-empty__actions { display: flex; gap: 8px; margin-top: 8px; }
+
+/* ----- Filled state -------------------------------------------------------- */
+.db-filled { display: flex; flex-direction: column; gap: 16px; align-items: flex-start; }
+.db-filled[hidden] { display: none; }
+.db-actions { display: flex; gap: 8px; align-items: center; }
+/* Wrapper for a disabled button's tooltip (disabled elements don't receive
+   hover/focus events, so the tooltip anchors to this wrapper instead). */
+.tip-wrap { display: inline-flex; }
+.tip-wrap .btn[disabled] { opacity: 0.6; cursor: not-allowed; }
+.db-list { width: 100%; }
+
+/* Entry rows (SortableTree) — same full-width bordered-card treatment as
+   Bento's block list. */
+.db-list .navtree__row { padding: 16px; border: 1px solid var(--gray-200); border-radius: 8px; background: var(--white); }
+.db-list .navtree__item { margin: 0 0 12px; }
+.db-list .navtree__label { font-weight: 600; font-size: 16px; line-height: 24px; color: var(--gray-700); }
+.db-list .navtree__kebab { opacity: 1; }
+
+/* Popover menu (shared/popover.js) — duplicated here for the same reason
+   bento.css duplicates it: these pages don't link website.css. */
+.popover {
+  position: absolute; z-index: 1000; min-width: 160px;
+  padding: 4px; background: #fff;
+  border: 1px solid var(--gray-200); border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+.popover__item {
+  display: block; width: 100%; text-align: left;
+  padding: 8px 12px; background: none; border: 0; border-radius: 4px;
+  font: 400 14px/21px var(--font); color: var(--gray-700); cursor: pointer;
+}
+.popover__item:hover,
+.popover__item:focus-visible { background: var(--gray-100); outline: none; }
+.popover__item[aria-disabled="true"] { color: var(--gray-400); cursor: default; }
+.popover__item--danger { color: var(--error); }
+.popover__item--danger:hover, .popover__item--danger:focus-visible { background: #fdecec; }
+
+/* ----- Publish bar: status text + "Discard changes" text-link + Publish --- */
+.pageactions__inner { justify-content: flex-end; }
+.pageactions [data-save-status] { margin-right: auto; }
+.pageactions__buttons { display: flex; align-items: center; gap: 8px; }
+.btn--link {
+  padding: 7px 16px 8px; background: none; border: 0; border-radius: var(--radius-sm, 4px);
+  font-weight: 600; font-size: 14px; line-height: 21px; color: #2d62b7; cursor: pointer;
+}
+.btn--link:hover { background: var(--blue-50, #e9effa); }
+.btn--link:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500, #3e75cf); }
+.btn--link:disabled { color: var(--gray-400); cursor: not-allowed; }
+.btn--link:disabled:hover { background: none; }
+
+/* ----- Custom checkbox (cloned from branding.css) -------------------------- */
+.checkbox { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
+.checkbox input { position: absolute; opacity: 0; width: 0; height: 0; }
+.checkbox__box {
+  flex-shrink: 0; width: 16px; height: 16px; margin-top: 3px;
+  border: 1.5px solid var(--gray-400); border-radius: 3px; background: var(--white); position: relative;
+}
+.checkbox input:checked + .checkbox__box { background: var(--blue-500); border-color: var(--blue-500); }
+.checkbox input:checked + .checkbox__box::after {
+  content: ""; position: absolute; left: 3.5px; top: 0.7px; width: 4px; height: 8px;
+  border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
+.checkbox input:focus-visible + .checkbox__box { outline: 2px solid var(--blue-500); outline-offset: 2px; }
+.checkbox__label { font-size: 14px; line-height: 21px; color: var(--gray-600); }
+
+/* ----- Native select (cloned from language-region's convention) ----------- */
+.select {
+  width: 100%; max-width: 220px; padding: 6px 8px; border: 1px solid var(--gray-400);
+  border-radius: var(--radius-sm, 4px); background: var(--white); font: 400 16px/24px var(--font); color: var(--gray-700);
+}
+.select:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); }
+
+/* ----- Settings page: display options ------------------------------------- */
+.db-display { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.db-option { display: flex; align-items: center; gap: 48px; padding: 16px; border: 1px solid var(--gray-200); border-radius: var(--radius-sm, 4px); background: var(--white); }
+.db-option__text { flex: 1 0 0; display: flex; flex-direction: column; gap: 2px; }
+.db-option__title { font-weight: 600; font-size: 16px; line-height: 24px; color: var(--gray-700); }
+.db-option__desc { font-size: 16px; line-height: 24px; color: var(--gray-600); }
+
+/* ----- Settings page: categories accordion (one open at a time) ----------- */
+.db-categories { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.db-category { border: 1px solid var(--gray-200); border-radius: var(--radius-sm, 4px); overflow: hidden; background: var(--white); }
+.db-category__head {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 12px 8px;
+  background: none; border: 0; cursor: pointer; font: 600 16px/24px var(--font); color: var(--gray-700); text-align: left;
+}
+.db-category__head-label { flex: 1 0 0; }
+.db-category__chevron { transition: transform 0.15s ease; color: var(--gray-600); }
+.db-category.is-open .db-category__chevron { transform: rotate(180deg); }
+.db-category__body { display: flex; flex-direction: column; gap: 24px; padding: 16px 16px 24px 48px; }
+.db-category__body[hidden] { display: none; }
+.db-terms { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.db-term {
+  display: flex; align-items: center; gap: 8px; padding: 12px 8px;
+  border: 1px solid var(--gray-200); border-radius: var(--radius-sm, 4px); background: var(--white);
+}
+.db-term__label { flex: 1 0 0; font-size: 16px; line-height: 24px; color: var(--gray-700); }
+.db-term__remove { background: none; border: 0; color: var(--gray-600); cursor: pointer; padding: 8px; }
+.db-term__remove:hover { color: var(--gray-700); }
+.db-addcat { display: flex; align-items: center; }
+
+/* ----- Settings page: field labels (up/down + rename, no drag) ------------ */
+.db-fieldlabels { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.db-fieldrow {
+  display: flex; align-items: center; gap: 8px; padding: 12px 16px;
+  border: 1px solid var(--gray-200); border-radius: var(--radius-sm, 4px); background: var(--white);
+}
+.db-fieldrow__label { flex: 1 0 0; font-weight: 600; font-size: 16px; line-height: 24px; color: var(--gray-600); }
+.db-fieldrow__btn { background: none; border: 0; color: var(--gray-600); cursor: pointer; padding: 8px; border-radius: var(--radius-sm, 4px); }
+.db-fieldrow__btn:hover { background: var(--gray-100); }
+.db-fieldrow__btn:disabled { color: var(--gray-200); cursor: default; }
+.db-fieldrow__btn:disabled:hover { background: none; }
+
+/* ----- Entry form page ----------------------------------------------------- */
+.db-entryform { display: flex; flex-direction: column; gap: 32px; width: 100%; }
+.db-checkgroup { display: flex; flex-direction: column; gap: 8px; }
+.db-imgpreview { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.db-imgpreview[hidden] { display: none; }
+.db-imgpreview img { width: 64px; height: 64px; object-fit: cover; border-radius: var(--radius-sm, 4px); border: 1px solid var(--gray-200); }

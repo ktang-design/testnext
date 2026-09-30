@@ -157,6 +157,14 @@ const SCHEMA = [
     published_data TEXT,
     updated_at    TEXT NOT NULL
   )`,
+  // Features > Databases: one JSON doc per user holding entries + categories
+  // + display settings + field labels. Same draft/published split as Bento.
+  `CREATE TABLE IF NOT EXISTS databases_settings (
+    user_id       TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    data          TEXT NOT NULL,
+    published_data TEXT,
+    updated_at    TEXT NOT NULL
+  )`,
   // Activity log entries (one row per tracked action). Scoped per account.
   `CREATE TABLE IF NOT EXISTS activity_events (
     id          TEXT PRIMARY KEY,
