@@ -60,7 +60,11 @@ module.exports.RESEARCH_PARTICIPANT_DATABASES_DEFAULTS = {
       urlAlias: '',
       description: 'ProQuest One Psychology provides scholarly and multimedia resources for psychology and counseling research, teaching, and learning. Content includes journals, ebooks, dissertations, therapy videos, counseling transcripts, research methods, tests and measures, and materials covering psychological conditions and therapeutic approaches.',
       image: null,
-      terms: [],
+      terms: [
+        { categoryId: 'cat_subject', term: 'Psychology' },
+        { categoryId: 'cat_subject', term: 'Social Sciences' },
+        { categoryId: 'cat_database_type', term: 'Research database' },
+      ],
       featured: false,
     },
     {
@@ -70,7 +74,12 @@ module.exports.RESEARCH_PARTICIPANT_DATABASES_DEFAULTS = {
       urlAlias: '',
       description: 'CINAHL provides comprehensive coverage of nursing and allied health literature, including journal articles, evidence-based resources, research reports, and clinical information. It supports research across nursing, rehabilitation, nutrition, health education, and other healthcare disciplines.',
       image: null,
-      terms: [],
+      terms: [
+        { categoryId: 'cat_subject', term: 'Nursing' },
+        { categoryId: 'cat_subject', term: 'Health & Medicine' },
+        { categoryId: 'cat_database_type', term: 'Research database' },
+        { categoryId: 'cat_database_type', term: 'Index & abstracts' },
+      ],
       featured: false,
     },
   ],
