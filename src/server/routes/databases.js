@@ -1,6 +1,6 @@
 'use strict';
 // Features > Databases API (per authenticated user):
-//   GET  /api/features/databases          -> { defaults, options, draft, published }
+//   GET  /api/features/databases          -> { defaults, options, draft, published, markOptional }
 //   PUT  /api/features/databases          -> { draft }      (auto-save; stores the whole config as a draft)
 //   POST /api/features/databases/publish  -> { published }  (promotes the current draft to published)
 //   POST /api/features/databases/discard  -> { draft }      (reverts the draft to the current published state)
@@ -117,14 +117,22 @@ function cleanConfig(b, current) {
 
 // Research participant accounts start from sample content (until they save
 // their own); every other role starts empty.
-async function defaultsFor(req) {
+async function isResearchParticipant(req) {
   const user = await userRepository.findById(req.session.userId);
-  return user && user.role === RESEARCH_PARTICIPANT ? D.RESEARCH_PARTICIPANT_DATABASES_DEFAULTS : D.DATABASES_DEFAULTS;
+  return !!user && user.role === RESEARCH_PARTICIPANT;
+}
+async function defaultsFor(req) {
+  return (await isResearchParticipant(req)) ? D.RESEARCH_PARTICIPANT_DATABASES_DEFAULTS : D.DATABASES_DEFAULTS;
 }
 
+// markOptional: Research participant forms label every field but Title "(Optional)".
 router.get('/databases', requireApiAuth, ah(async (req, res) => {
   const { draft, published } = await repo.get(req.session.userId);
-  res.json({ defaults: await defaultsFor(req), options: D.DATABASES_OPTIONS, draft, published });
+  const participant = await isResearchParticipant(req);
+  res.json({
+    defaults: participant ? D.RESEARCH_PARTICIPANT_DATABASES_DEFAULTS : D.DATABASES_DEFAULTS,
+    options: D.DATABASES_OPTIONS, draft, published, markOptional: participant,
+  });
 }));
 
 // Auto-save only — no activity log entry here, or editing would spam the log
