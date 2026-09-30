@@ -1,7 +1,8 @@
 // Features > Databases > Create database (Settings step) — display options,
 // categories (one expanded at a time), and field labels. Per Figma 7587:64672
 // this page has no auto-save and no Discard/Publish pair — just one "Save and
-// continue" action that saves the draft and returns to the Databases page.
+// continue" action. First-time setup continues to the create-database form;
+// later saves ("Save changes") return to the Databases page.
 (function () {
   var DEFAULTS = { entries: [], categories: [], display: { azIndex: false, filters: false, sortOrder: 'title', groupBy: 'none', resultsPerPage: 25 }, fieldLabels: [] };
   var MAX_CATEGORIES = 3;
@@ -13,6 +14,7 @@
 
   var draft = clone(DEFAULTS);
   var openCategoryId = null;
+  var wasConfigured = false;
 
   function clone(x) { return JSON.parse(JSON.stringify(x)); }
   var uid = function (prefix) { return prefix + '_' + Math.random().toString(36).slice(2, 10); };
@@ -241,7 +243,7 @@
       return (c.name && c.name.trim()) || c.terms.some(function (t) { return t && t.trim(); });
     });
     window.DatabasesResource.save(draft).then(function () {
-      window.location.href = '../';
+      window.location.href = wasConfigured ? '../' : '../entry/';
     }).catch(function (err) {
       saveContinueBtn.disabled = false;
       saveContinueBtn.classList.remove('is-saving');
@@ -251,7 +253,8 @@
 
   window.DatabasesResource.load().then(function (data) {
     draft = clone(data.draft || data.defaults || DEFAULTS);
-    if (draft.configured) saveContinueBtn.querySelector('.btn__label').textContent = 'Save changes';
+    wasConfigured = !!draft.configured;
+    if (wasConfigured) saveContinueBtn.querySelector('.btn__label').textContent = 'Save changes';
     if (!draft.categories.length) draft.categories.push({ id: uid('cat'), name: '', terms: [''] });
     openCategoryId = draft.categories[0].id;
     bindDisplay();
