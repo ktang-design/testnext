@@ -45,17 +45,32 @@
 .db-list { width: 100%; }
 .db-list-empty {
   width: 100%; margin: 0; padding: 16px; box-sizing: border-box;
-  border: 1px solid var(--gray-200); border-radius: 8px; background: var(--white);
+  border: 1px solid var(--gray-200); border-radius: var(--radius-sm, 4px); background: var(--white);
   font-size: 16px; line-height: 24px; color: var(--gray-600);
 }
 .db-list-empty[hidden] { display: none; }
 
-/* Entry rows (SortableTree) — same full-width bordered-card treatment as
-   Bento's block list. */
-.db-list .navtree__row { padding: 16px; border: 1px solid var(--gray-200); border-radius: 8px; background: var(--white); }
-.db-list .navtree__item { margin: 0 0 12px; }
-.db-list .navtree__label { font-weight: 600; font-size: 16px; line-height: 24px; color: var(--gray-700); }
-.db-list .navtree__kebab { opacity: 1; }
+/* Entry rows (SortableTree): 56px bordered rows — grip, name, kebab. */
+.db-list .navtree__item { margin: 0; }
+.db-list .navtree__item + .navtree__item { margin-top: 8px; }
+.db-list .navtree__row {
+  gap: 8px; padding: 12px 8px; background: var(--white);
+  border: 1px solid var(--gray-200); border-radius: var(--radius-sm, 4px);
+}
+.db-list .navtree__row:hover { background: var(--white); }
+.db-list .navtree__handle { width: 32px; height: 32px; color: var(--gray-600); }
+.db-list .navtree__label { font-weight: 600; font-size: 16px; line-height: 24px; color: var(--gray-600); }
+.db-list .navtree__kebab { width: 32px; height: 32px; opacity: 1; }
+.db-list .navtree__kebab:hover { background: var(--gray-100); }
+
+/* Blue outline button (Add database, Import / Export). */
+.btn--outline {
+  padding: 7px 16px 8px; background: var(--white); color: var(--blue-600, #2d62b7);
+  border: 1px solid var(--blue-400, #6591d9); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+.btn--outline:hover { background: var(--blue-50, #e9effa); }
+.btn--outline:disabled:hover { background: var(--white); }
+.btn--outline:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); }
 
 /* Popover menu (shared/popover.js) — duplicated here for the same reason
    bento.css duplicates it: these pages don't link website.css. */
