@@ -120,8 +120,7 @@
 
       const addTerms = document.createElement('button');
       addTerms.type = 'button';
-      addTerms.className = 'btn--link';
-      addTerms.style.padding = '0';
+      addTerms.className = 'db-textlink';
       addTerms.textContent = 'Add terms';
       addTerms.addEventListener('click', function () {
         cat.terms.push('');
@@ -129,7 +128,7 @@
         const inputs = categoriesEl.querySelectorAll('.db-term__label');
         if (inputs.length) inputs[inputs.length - 1].focus();
       });
-      body.appendChild(addTerms);
+      termsWrap.appendChild(addTerms);
 
       const removeCat = document.createElement('button');
       removeCat.type = 'button';
@@ -226,8 +225,12 @@
   saveContinueBtn.addEventListener('click', function () {
     saveContinueBtn.disabled = true;
     saveContinueBtn.classList.add('is-saving');
+    draft.configured = true;
+    draft.categories = draft.categories.filter(function (c) {
+      return (c.name && c.name.trim()) || c.terms.some(function (t) { return t && t.trim(); });
+    });
     window.DatabasesResource.save(draft).then(function () {
-      window.location.href = '../entry/';
+      window.location.href = '../';
     }).catch(function (err) {
       saveContinueBtn.disabled = false;
       saveContinueBtn.classList.remove('is-saving');
@@ -237,6 +240,8 @@
 
   window.DatabasesResource.load().then(function (data) {
     draft = clone(data.draft || data.defaults || DEFAULTS);
+    if (!draft.categories.length) draft.categories.push({ id: uid('cat'), name: '', terms: [''] });
+    openCategoryId = draft.categories[0].id;
     bindDisplay();
     renderCategories();
     updateAddCategoryBtn();

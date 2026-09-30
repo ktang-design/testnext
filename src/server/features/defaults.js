@@ -23,6 +23,7 @@ module.exports = {
   // A fresh account has no entries/categories and the 4 fixed fields keep
   // their factory labels/order.
   DATABASES_DEFAULTS: {
+    configured: false,
     entries: [],
     categories: [],
     display: { azIndex: false, filters: false, sortOrder: 'title', groupBy: 'none', resultsPerPage: 25 },

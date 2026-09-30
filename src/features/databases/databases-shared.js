@@ -45,6 +45,7 @@
     //   opts.onAutoSaved(draft)     -> called with the server's echoed draft after a successful auto-save
     //   opts.onDiscarded(draft)     -> called with the reverted draft after Discard
     //   opts.onPublished(published) -> called with the published snapshot after Publish
+    //   opts.canDiscard()      -> optional; false hides Discard even when dirty
     // Returns { markDirty(), refresh(), flushPendingSave() }.
     init: function (opts) {
       var discardBtn = document.querySelector('[data-action="discard"]');
@@ -66,7 +67,7 @@
         publishBtn.disabled = publishing || !dirty;
         publishBtn.classList.toggle('is-saving', publishing);
         publishLabel.textContent = publishing ? 'Publishing' : 'Publish';
-        discardBtn.hidden = !dirty;
+        discardBtn.hidden = !dirty || (opts.canDiscard ? !opts.canDiscard() : false);
         if (saveState === 'pending') {
           statusEl.hidden = false;
           statusEl.textContent = 'Saving changes…';
