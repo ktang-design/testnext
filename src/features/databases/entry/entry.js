@@ -157,6 +157,14 @@
       form.insertBefore(block, tail);
       if (f.key === 'url') form.insertBefore(form.querySelector('[data-fieldblock="urlAlias"]'), tail);
     });
+    var url = inSentence(labelFor('url'));
+    form.querySelector('[data-hint="url"]').textContent = 'Enter the ' + url + ' that the ' + inSentence(labelFor('title')) + ' will link to';
+    form.querySelector('[data-hint="urlAlias"]').textContent = 'Enter a shorter, user-friendly version of the ' + url + ' for easier sharing and recognition';
+  }
+
+  // Lowercase a label for mid-sentence use, but leave acronyms like "URL" alone.
+  function inSentence(label) {
+    return label.length > 1 && label[1] === label[1].toLowerCase() ? label[0].toLowerCase() + label.slice(1) : label;
   }
 
   function populateForm() {
