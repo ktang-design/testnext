@@ -2,7 +2,7 @@
    Features > Databases (all 3 pages: list, settings, entry form). Builds on
    the shared foundation from site-details.css (tokens, topnav, layout,
    content, section-heading, buttons, pageactions, save-status, toast,
-   .field/.field__*/.input) + sortable-tree.css (the entries list) +
+   .field/.field__label/.input) + sortable-tree.css (the entries list) +
    app-shell.css, same as bento.css. Shared across the 3 Databases pages
    (unlike Bento, a single-page feature) since they're sub-pages of one
    workflow; still duplicates small shared pieces (.popover, .checkbox,
@@ -15,9 +15,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  padding: 48px 96px;
+  max-width: 1152px;
 }
 .platform-page.databases > * { width: 100%; max-width: 960px; }
+.platform-page.databases > * + * { margin-top: 24px; }
+.platform-page.databases > .db-categories-section,
+.platform-page.databases > .db-fieldlabels-section { margin-top: 3.5rem; }
 
 /* Breadcrumb (cloned from website.css's .pgb__crumbs — settings/entry are
    sub-pages of the landing page). */
@@ -107,8 +111,14 @@
 
 /* ----- Native select (cloned from language-region's convention) ----------- */
 .select {
-  width: 100%; max-width: 220px; padding: 6px 8px; border: 1px solid var(--gray-400);
-  border-radius: var(--radius-sm, 4px); background: var(--white); font: 400 16px/24px var(--font); color: var(--gray-700);
+  width: 100%; max-width: 220px; padding: 6px 40px 6px 8px; border: 1px solid var(--gray-400);
+  border-radius: var(--radius-sm, 4px); background-color: var(--white); font: 400 16px/24px var(--font); color: var(--gray-700);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%2355585D' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
 }
 .select:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); }
 

@@ -94,6 +94,7 @@
       termsLabel.className = 'field__label';
       termsLabel.textContent = 'Terms';
       body.appendChild(termsLabel);
+      if (!cat.terms.length) cat.terms.push('');
       cat.terms.forEach(function (term, ti) {
         const row = document.createElement('div');
         row.className = 'db-term';
@@ -102,6 +103,7 @@
         termInput.type = 'text';
         termInput.maxLength = 60;
         termInput.value = term;
+        termInput.placeholder = 'Term';
         termInput.setAttribute('aria-label', 'Term');
         termInput.addEventListener('input', function () { cat.terms[ti] = termInput.value; });
         const remove = document.createElement('button');
