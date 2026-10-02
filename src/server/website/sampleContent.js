@@ -63,7 +63,7 @@ const SAMPLE_HOMEPAGE_CONTENT = {
         'el-welcome',
         'Welcome',
         '<h2>Stratum Library</h2>' +
-        '<p>Your local public library for books, learning, community programs, quiet spaces, and discovering something new.</p>',
+        '<p class="rt-p1">Your local public library for books, learning, community programs, quiet spaces, and discovering something new.</p>',
         0,
         lightStyle()
       ),
