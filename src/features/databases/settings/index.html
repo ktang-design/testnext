@@ -120,9 +120,16 @@
           <label class="db-option">
             <div class="db-option__text">
               <span class="db-option__title">Filters</span>
-              <span class="db-option__desc">Display a filter for users to narrow databases by defined categories and terms</span>
+              <span class="db-option__desc">Display a filter for users to narrow databases by defined controlled vocabularies and terms</span>
             </div>
             <span class="checkbox" style="margin:0;"><input type="checkbox" data-opt="filters" /><span class="checkbox__box" aria-hidden="true"></span></span>
+          </label>
+          <label class="db-option">
+            <div class="db-option__text">
+              <span class="db-option__title">Filter counts</span>
+              <span class="db-option__desc">Display the number of databases that match each filter option.</span>
+            </div>
+            <span class="checkbox" style="margin:0;"><input type="checkbox" data-opt="filterCounts" /><span class="checkbox__box" aria-hidden="true"></span></span>
           </label>
           <div class="db-option">
             <div class="db-option__text">
@@ -141,7 +148,7 @@
             </div>
             <select class="select" data-opt="groupBy">
               <option value="none">None</option>
-              <option value="category">Category</option>
+              <option value="category">Controlled vocabulary</option>
             </select>
           </div>
           <div class="db-option">
@@ -160,12 +167,12 @@
 
         <div class="db-categories-section">
           <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:8px;">
-            <span class="field__label">Categories</span>
-            <p class="field__hint" style="margin:0;">Create up to 3 categories to organize databases and help users find relevant resources.</p>
+            <span class="field__label">Controlled vocabularies</span>
+            <p class="field__hint" style="margin:0;">Create up to 3 controlled vocabularies to organize databases and help users find relevant resources.</p>
           </div>
           <div class="db-categories" data-categories></div>
           <div class="db-addcat">
-            <button type="button" class="db-textlink" data-action="add-category">Add category</button>
+            <button type="button" class="db-textlink" data-action="add-category">Add controlled vocabulary</button>
           </div>
         </div>
 

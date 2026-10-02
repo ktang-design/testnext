@@ -4,7 +4,7 @@
 // continue" action. First-time setup continues to the create-database form;
 // later saves ("Save changes") return to the Databases page.
 (function () {
-  var DEFAULTS = { entries: [], categories: [], display: { azIndex: false, filters: false, sortOrder: 'title', groupBy: 'none', resultsPerPage: 25 }, fieldLabels: [] };
+  var DEFAULTS = { entries: [], categories: [], display: { azIndex: false, filters: false, filterCounts: false, sortOrder: 'title', groupBy: 'none', resultsPerPage: 25 }, fieldLabels: [] };
   var MAX_CATEGORIES = 3;
 
   var categoriesEl = document.querySelector('[data-categories]');
@@ -45,14 +45,21 @@
   // ---------- categories (reorderable accordion, one open at a time) ----------
   function catById(id) { return draft.categories.filter(function (c) { return c.id === id; })[0]; }
 
+  // Untitled vocabularies show as "Controlled vocabulary", "Controlled vocabulary 2", ...
+  function vocabName(cat) {
+    if (cat.name) return cat.name;
+    var i = draft.categories.indexOf(cat);
+    return i > 0 ? 'Controlled vocabulary ' + (i + 1) : 'Controlled vocabulary';
+  }
+
   function renderCategories() {
     categoriesEl.innerHTML = '';
     var bodies = {};
     window.SortableTree.create(categoriesEl, {
       items: draft.categories.map(function (c) { return { id: c.id }; }),
       maxDepth: 1,
-      ariaLabel: 'Categories',
-      labelOf: function (it) { var c = catById(it.id); return (c && c.name) || 'Category'; },
+      ariaLabel: 'Controlled vocabularies',
+      labelOf: function (it) { var c = catById(it.id); return c ? vocabName(c) : 'Controlled vocabulary'; },
       itemAttrs: function (it) { return { className: 'db-category' + (it.id === openCategoryId ? ' is-open' : '') }; },
       renderContent: function (it) {
         var parts = buildCategory(catById(it.id));
@@ -73,7 +80,7 @@
     head.setAttribute('aria-expanded', String(isOpen));
     const headLabel = document.createElement('span');
     headLabel.className = 'db-category__head-label';
-    headLabel.textContent = cat.name || 'Category';
+    headLabel.textContent = vocabName(cat);
     const chevron = document.createElement('span');
     chevron.className = 'db-category__chevron';
     chevron.innerHTML = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>';
@@ -102,7 +109,7 @@
     nameInput.value = cat.name || '';
     nameInput.addEventListener('input', function () {
       cat.name = nameInput.value;
-      headLabel.textContent = cat.name || 'Category';
+      headLabel.textContent = vocabName(cat);
     });
     nameControl.appendChild(nameInput);
     nameField.appendChild(nameControl);
@@ -120,7 +127,7 @@
     const termsTree = window.SortableTree.create(termsMount, {
       items: cat.terms.map(function (t, i) { return { id: 't' + i, label: t }; }),
       maxDepth: 1,
-      ariaLabel: 'Terms for ' + (cat.name || 'Category'),
+      ariaLabel: 'Terms for ' + vocabName(cat),
       labelOf: function (t) { return t.label || 'Term'; },
       renderContent: function (t) {
         const termInput = document.createElement('input');
@@ -167,7 +174,7 @@
     const removeCat = document.createElement('button');
     removeCat.type = 'button';
     removeCat.className = 'btn btn--secondary db-category__remove';
-    removeCat.textContent = 'Remove category';
+    removeCat.textContent = 'Remove list';
     removeCat.addEventListener('click', function () {
       draft.categories = draft.categories.filter(function (c) { return c.id !== cat.id; });
       if (openCategoryId === cat.id) openCategoryId = null;
@@ -195,6 +202,14 @@
   // ---------- field labels (reorderable, rename via modal) ----------
   var EDIT_ICON = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 9.5V13a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 2 13V5a1.5 1.5 0 0 1 1.5-1.5H7"/><path d="M11.6 1.9a1.3 1.3 0 0 1 1.9 1.9L8 9.3 5.5 10l.7-2.5z"/></svg>';
 
+  // Input type shown under each display label (matches the entry form's controls).
+  var FIELD_INPUT_TYPES = {
+    title: 'Text input',
+    url: 'URL input',
+    description: 'Text area input',
+    image: 'Image upload input',
+  };
+
   function renderFieldLabels() {
     fieldLabelsEl.innerHTML = '';
     window.SortableTree.create(fieldLabelsEl, {
@@ -203,10 +218,19 @@
       ariaLabel: 'Field labels',
       labelOf: function (f) { return f.label; },
       renderContent: function (f) {
+        const wrap = document.createElement('div');
+        wrap.className = 'db-fieldrow__text';
         const label = document.createElement('span');
         label.className = 'db-fieldrow__label';
         label.textContent = f.label;
-        return label;
+        wrap.appendChild(label);
+        if (FIELD_INPUT_TYPES[f.key]) {
+          const type = document.createElement('span');
+          type.className = 'db-fieldrow__type';
+          type.textContent = FIELD_INPUT_TYPES[f.key];
+          wrap.appendChild(type);
+        }
+        return wrap;
       },
       renderTrailing: function (f) {
         const edit = document.createElement('button');

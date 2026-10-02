@@ -137,14 +137,12 @@
             </div>
           </div>
           <div class="field">
-            <span class="field__label" id="dbe-cat-label">Categories</span>
-            <p class="field__hint">Select the categories that apply to this database</p>
+            <span class="field__label" id="dbe-cat-label">Controlled vocabularies</span>
+            <p class="field__hint">Select the controlled vocabularies that apply to this database</p>
             <div class="field__control db-multiselect" data-categories>
-              <button type="button" class="select db-multiselect__trigger" aria-haspopup="true" aria-expanded="false" aria-controls="dbe-cat-panel" aria-labelledby="dbe-cat-label dbe-cat-value">
-                <span class="db-multiselect__value" id="dbe-cat-value">Select an option</span>
-              </button>
+              <input type="text" class="select db-multiselect__trigger" role="combobox" aria-expanded="false" aria-controls="dbe-cat-panel" aria-autocomplete="list" aria-labelledby="dbe-cat-label" placeholder="Select an option" autocomplete="off" />
               <div class="db-multiselect__panel" id="dbe-cat-panel" role="group" aria-labelledby="dbe-cat-label" hidden></div>
-              <p class="field__hint" data-categories-empty hidden>No categories yet — add some from Databases &gt; Settings.</p>
+              <p class="field__hint" data-categories-empty hidden>No controlled vocabularies yet — add some from Databases &gt; Settings.</p>
             </div>
           </div>
           <label class="checkbox">

@@ -202,6 +202,8 @@ a.btn--link { display: inline-flex; text-decoration: none; }
 .db-fieldlabels { width: 100%; }
 .db-fieldlabels .navtree__row { border: 1px solid var(--gray-200); border-radius: var(--radius-sm, 4px); }
 .db-fieldrow__label { font-weight: 600; font-size: 16px; line-height: 24px; color: var(--gray-600); }
+.db-fieldrow__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.db-fieldrow__type { font-weight: 400; font-size: 14px; line-height: 21px; color: var(--gray-600); }
 .db-fieldrow__btn { display: inline-flex; background: none; border: 0; color: var(--gray-600); cursor: pointer; padding: 8px; border-radius: var(--radius-sm, 4px); }
 .db-fieldrow__btn:hover { background: var(--gray-100); }
 .db-fieldrow__btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--blue-500); }
@@ -211,11 +213,13 @@ a.btn--link { display: inline-flex; text-decoration: none; }
 /* Categories multi-select: .select-styled trigger + dropdown of grouped term checkboxes. */
 .db-multiselect { position: relative; }
 .db-multiselect__trigger {
-  display: block; max-width: none; text-align: left;
+  display: block; max-width: none; text-align: left; cursor: text;
   overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
 }
 .db-multiselect__trigger[hidden] { display: none; }
-.db-multiselect__trigger.is-placeholder { color: var(--gray-600); }
+.db-multiselect__trigger::placeholder { color: var(--gray-600); opacity: 1; }
+.db-multiselect__none { margin: 0; padding: 8px 0; font-size: 14px; line-height: 21px; color: var(--gray-600); }
+.db-multiselect__none[hidden], .db-multiselect__group[hidden], .db-multiselect__option[hidden] { display: none; }
 .db-multiselect__panel {
   position: absolute; z-index: 20; top: calc(100% + 4px); left: 0; right: 0;
   max-height: 320px; overflow-y: auto; padding: 8px 12px;
