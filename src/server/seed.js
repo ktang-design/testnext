@@ -7,9 +7,29 @@ const { hashPassword, verifyPassword } = require('./auth/passwords');
 const { userRepository } = require('./auth/repository');
 const { seedUser, seedPasswordGenerated, isProd } = require('./config');
 const { pagesRepository } = require('./website/PagesRepository');
+const { SAMPLE_HOMEPAGE_CONTENT } = require('./website/sampleContent');
+const { run } = require('./db/database');
 
 /* eslint-disable no-console */
+// Guest access accounts created before the starter Homepage existed have an
+// empty one. Fill those in (draft and published); a guest who already added
+// content keeps it. One idempotent UPDATE per table, so it's cheap on every boot.
+async function backfillGuestHomepages() {
+  const empty = JSON.stringify({ sections: [] });
+  const content = JSON.stringify(SAMPLE_HOMEPAGE_CONTENT);
+  const now = new Date().toISOString();
+  for (const table of ['pages', 'pages_published']) {
+    await run(
+      `UPDATE ${table} SET content = ?, updated_at = ?
+       WHERE is_homepage = 1 AND content = ?
+         AND user_id IN (SELECT id FROM users WHERE email LIKE '%@guest.stratum.app')`,
+      [content, now, empty]
+    );
+  }
+}
+
 async function seed() {
+  try { await backfillGuestHomepages(); } catch (err) { console.warn('[seed] guest homepage backfill failed:', err.message); }
   // Never auto-create the public demo account on a production/UAT deployment
   // unless explicitly opted in — it would be a known login on a real domain.
   if (isProd && process.env.SEED_DEMO_USER !== 'true') {
