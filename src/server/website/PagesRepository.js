@@ -101,7 +101,8 @@ class PagesRepository {
   // starts with a single starred Homepage, seeded into BOTH `pages` and
   // `pages_published` so a brand-new account starts clean (no "unpublished
   // changes" before the user has ever touched Page Builder).
-  async seedDefaults(userId) {
+  // `homepageContent`, when given, is the starter content for the Homepage.
+  async seedDefaults(userId, homepageContent) {
     if ((await this.count(userId)) > 0) return;
     const now = new Date().toISOString();
     const stmts = [];
@@ -109,7 +110,7 @@ class PagesRepository {
       DEFAULT_PAGES.forEach((p, i) => {
         stmts.push({
           sql: `INSERT INTO ${table} (id, user_id, title, slug, status, description, is_homepage, content, sort, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          args: [p.id, userId, p.title, p.slug, p.status, p.description || '', p.isHomepage ? 1 : 0, JSON.stringify(p.content || { sections: [] }), i, now],
+          args: [p.id, userId, p.title, p.slug, p.status, p.description || '', p.isHomepage ? 1 : 0, JSON.stringify((p.isHomepage && homepageContent) || p.content || { sections: [] }), i, now],
         });
       });
     });
