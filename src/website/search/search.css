@@ -22,7 +22,7 @@
 .pageitem__star svg { fill: currentColor; stroke: currentColor; stroke-width: 1.3; stroke-linejoin: round; }
 
 /* Add / edit search modal. */
-.modal.modal--search { width: min(560px, 94vw); }
+.modal.modal--search { width: min(800px, 94vw); }
 .modal--search .modal__body { display: flex; flex-direction: column; gap: 20px; }
 .ws-mfield { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 .ws-input {
@@ -34,6 +34,14 @@
 .ws-textarea { resize: vertical; min-height: 120px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
 .ws-addlabel { align-self: flex-start; padding: 0; font-size: 13px; }
 .ws-labelwrap { display: flex; flex-direction: column; gap: 6px; width: 100%; }
-.ws-term { align-self: flex-start; }
-.ws-check { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--gray-700); cursor: pointer; }
-.ws-check input { width: 16px; height: 16px; accent-color: #3e75cf; cursor: pointer; }
+.ws-help { margin: 0; font-size: 13px; line-height: 19.5px; color: var(--gray-600); }
+.ws-help a { color: var(--blue-600, #2d62b7); text-decoration: underline; }
+.ws-meta { display: flex; align-items: flex-start; justify-content: space-between; width: 100%; }
+.ws-count { margin-left: auto; font-size: 14px; line-height: 21px; color: var(--gray-600); }
+.ws-textarea.is-busy { background: var(--gray-100, #f5f5f5); color: var(--gray-500); cursor: progress; }
+.ws-status { display: flex; align-items: flex-start; gap: 4px; margin: 0; font: 600 13px/19.5px "Noto Sans", Arial, sans-serif; color: var(--gray-600); }
+.ws-status[hidden] { display: none; }
+.ws-status__icon { width: 13px; height: 13px; margin-top: 3px; flex: none; }
+.ws-status.is-success { color: #1d6732; }
+.ws-status.is-error { color: #d71818; }
+.modal--search .modal__btn--primary:disabled { background: var(--gray-100, #f5f5f5); border: 1px solid var(--gray-200); color: var(--gray-500); box-shadow: none; cursor: not-allowed; }
