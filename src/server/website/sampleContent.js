@@ -116,7 +116,7 @@ const SAMPLE_HOMEPAGE_CONTENT = {
       richtext(
         'el-connect',
         'Get a library card',
-        '<h3>Get a library card</h3>' +
+        '<h2>Get a library card</h2>' +
         '<p>Cards are free for residents and students. Bring a photo ID to any service desk to sign up, ' +
         'then borrow books, stream movies, and use our research databases from home.</p>',
         1
@@ -126,7 +126,7 @@ const SAMPLE_HOMEPAGE_CONTENT = {
       richtext(
         'el-hours',
         'Hours',
-        '<h3>Hours</h3>' +
+        '<h2>Hours</h2>' +
         '<ul><li>Monday to Thursday: 9 a.m. to 8 p.m.</li><li>Friday: 9 a.m. to 5 p.m.</li>' +
         '<li>Saturday: 10 a.m. to 4 p.m.</li><li>Sunday: 12 p.m. to 4 p.m.</li></ul>',
         0

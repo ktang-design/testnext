@@ -172,6 +172,7 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 /* Element layout within a section (Column layout: 100% vs 50% / 50%). In split
    mode each column holds its own elements + a 50%-wide Add element area. */
 .wsprev__elements--split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+.wsprev__elements--centered { align-items: center; }
 .wsprev__col { display: flex; flex-direction: column; }
 .wsprev__col > .wsprev__cta { margin: 8px 0 0; }
 
@@ -288,7 +289,8 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
    on the card's own 12px gap rather than the 4px in-block gap. */
 .wsprev__card > .wsprev__carddesc { flex: 1 1 auto; }
 .wsprev__cardtitle {
-  margin: 0; font-size: 20px; line-height: 30px; font-weight: 400;
+  margin: 0; font-size: var(--wsprev-heading-size, 24px); line-height: 1.25;
+  font-weight: var(--wsprev-heading-weight, 600);
   color: var(--wsprev-heading, #3d3f42);
 }
 /* No line clamp: descriptions run their full length, which is why cards in a
