@@ -70,6 +70,7 @@ const section = (id, title, elements, opts = {}) => ({
   columns: opts.columns || 1,
   background: opts.background || { color: '#FFFFFF', opacity: 100 },
   backgroundImage: opts.backgroundImage || null,
+  ...(opts.paddingY ? { paddingY: opts.paddingY } : {}),
   elements,
 });
 
@@ -110,7 +111,7 @@ const SAMPLE_HOMEPAGE_CONTENT = {
             imageDataUrl('adults.jpg'), 'adults.jpg'),
         ],
       },
-    ]),
+    ], { paddingY: 2 }),
     section('sec-card', 'Get a library card', [
       imageElement('el-library-card', 'library-card.jpg', 0),
       richtext(
