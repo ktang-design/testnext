@@ -71,7 +71,7 @@ function cleanDisplay(raw) {
   return {
     azIndex: !!b.azIndex,
     filters: !!b.filters,
-    filterCounts: !!b.filterCounts,
+    filterCounts: !!b.filters && !!b.filterCounts,
     sortOrder: opt(b.sortOrder, D.DATABASES_OPTIONS.sortOrder, def.sortOrder),
     groupBy: opt(b.groupBy, D.DATABASES_OPTIONS.groupBy, def.groupBy),
     resultsPerPage: D.DATABASES_OPTIONS.resultsPerPage.includes(resultsPerPage) ? resultsPerPage : def.resultsPerPage,

@@ -136,6 +136,7 @@ a.btn--link { display: inline-flex; text-decoration: none; }
 /* ----- Settings page: display options ------------------------------------- */
 .db-display { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .db-option { display: flex; align-items: center; gap: 48px; padding: 16px; border: 1px solid var(--gray-200); border-radius: var(--radius-sm, 4px); background: var(--white); }
+.db-option[hidden] { display: none; }
 .db-option__text { flex: 1 0 0; display: flex; flex-direction: column; gap: 2px; }
 .db-option__title { font-weight: 600; font-size: 16px; line-height: 24px; color: var(--gray-700); }
 .db-option__desc { font-size: 16px; line-height: 24px; color: var(--gray-600); }

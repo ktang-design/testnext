@@ -21,18 +21,24 @@
   function toast(message) { if (window.Toast) window.Toast.show(message); }
 
   // ---------- display options ----------
+  // Filter counts only apply when Filters is on, so its row appears only then.
+  function syncFilterCounts() {
+    var row = document.querySelector('[data-filtercounts-row]');
+    if (row) row.hidden = !draft.display.filters;
+  }
   function applyDisplayValues() {
     document.querySelectorAll('[data-opt]').forEach(function (el) {
       var key = el.dataset.opt;
       if (el.type === 'checkbox') el.checked = !!draft.display[key];
       else el.value = String(draft.display[key]);
     });
+    syncFilterCounts();
   }
   function bindDisplay() {
     document.querySelectorAll('[data-opt]').forEach(function (el) {
       var key = el.dataset.opt;
       if (el.type === 'checkbox') {
-        el.addEventListener('change', function () { draft.display[key] = el.checked; });
+        el.addEventListener('change', function () { draft.display[key] = el.checked; syncFilterCounts(); });
       } else {
         el.addEventListener('change', function () {
           draft.display[key] = key === 'resultsPerPage' ? Number(el.value) : el.value;
