@@ -67,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch('/api/auth/guest', { method: 'POST', credentials: 'include' });
       if (res.ok) {
         clearAccountCaches();
+        try { localStorage.setItem('sn.guest', '1'); } catch (_) { /* storage unavailable */ }
         window.location.assign(safeNext());
         return;
       }
