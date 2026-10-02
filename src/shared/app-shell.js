@@ -108,6 +108,9 @@
   // Also measures the sticky save bar's height (.pageactions, see app-shell.css),
   // which the content area uses as part of its viewport-tall floor so the bar
   // always starts already stuck to the bottom instead of floating short of it.
+  // Guest access sessions don't see the alpha notice. The flag is set at guest
+  // sign-in (login.js) and confirmed by auth-client.js, so it's gone before first paint.
+  try { if (localStorage.getItem('sn.guest') === '1') { const m = document.querySelector('.sysmsg'); if (m) m.remove(); } } catch (_) { /* storage unavailable */ }
   const sysmsg = document.querySelector('.sysmsg');
   function syncTopnavHeight() {
     document.documentElement.style.setProperty('--topnav-h', `${topnav.offsetHeight}px`);

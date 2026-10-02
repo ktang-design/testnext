@@ -87,6 +87,15 @@
       }
     } catch (_) { /* offline / dev-without-server: still allow the menu */ }
 
+    // Keep the guest flag in step with the real session, and drop the alpha
+    // notice for guests (app-shell.js does the same early from the flag).
+    const guest = isGuestEmail(email);
+    try { if (guest) localStorage.setItem('sn.guest', '1'); else if (email) localStorage.removeItem('sn.guest'); } catch (_) { /* storage unavailable */ }
+    if (guest) {
+      const banner = document.querySelector('.sysmsg');
+      if (banner) { banner.remove(); document.documentElement.style.setProperty('--sysmsg-h', '0px'); }
+    }
+
     const pop = buildMenu(email);
 
     function place() {
