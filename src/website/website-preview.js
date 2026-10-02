@@ -41,7 +41,7 @@
     headerImage: null,
   };
   const FOOTER_D = { showLogo: false, showNavigation: false, background: { color: '#FFFFFF', opacity: 100 }, text: { color: '#3D3F42', opacity: 100 }, link: { color: '#255096', opacity: 100 }, links: [] };
-  const TYPO_D = { fontFamily: 'Inter', headingSize: '36', headingWeight: '600', bodySize: '16', bodyWeight: '400' };
+  const TYPO_D = { fontFamily: 'Inter', headingSize: '24', headingWeight: '600', bodySize: '16', bodyWeight: '400' };
   // The Typography "Heading font size" ladder: Medium, Large, Extra large,
   // 2X large, 3X large. Heading levels are steps on this ladder rather than fixed
   // sizes, so choosing a heading size moves the whole scale and H3 can never end

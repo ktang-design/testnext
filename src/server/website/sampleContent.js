@@ -12,13 +12,14 @@ const PLACEHOLDER = '/website/assets/card-placeholder.jpg';
 
 // Bookshelf illustration behind the opening section (website/assets), inlined as
 // a data URL because section background images are stored that way.
-function svgDataUrl(file) {
+function imageDataUrl(file) {
   try {
-    const svg = fs.readFileSync(path.join(__dirname, '..', '..', 'website', 'assets', file));
-    return `data:image/svg+xml;base64,${svg.toString('base64')}`;
+    const bytes = fs.readFileSync(path.join(__dirname, '..', '..', 'website', 'assets', file));
+    const mime = file.endsWith('.svg') ? 'image/svg+xml' : 'image/jpeg';
+    return `data:${mime};base64,${bytes.toString('base64')}`;
   } catch (_) { return null; } // no image if the file is missing
 }
-const libraryBackground = svgDataUrl('library-background.svg');
+const libraryBackground = imageDataUrl('library-background.svg');
 
 const style = () => ({
   heading: { color: '#3D3F42', opacity: 100 },
@@ -62,7 +63,7 @@ const SAMPLE_HOMEPAGE_CONTENT = {
       richtext(
         'el-welcome',
         'Welcome',
-        '<h2>Stratum Library</h2>' +
+        '<h1>Stratum Library</h1>' +
         '<p class="rt-p1">Your local public library for books, learning, community programs,<br>quiet spaces, and discovering something new.</p>',
         0,
         lightStyle()
@@ -73,7 +74,7 @@ const SAMPLE_HOMEPAGE_CONTENT = {
         id: 'el-browse',
         type: 'cards',
         title: 'Something for every reader',
-        displayTitle: true,
+        displayTitle: false,
         column: 0,
         cardLayout: 'image-first',
         radius: 'small',
@@ -84,13 +85,13 @@ const SAMPLE_HOMEPAGE_CONTENT = {
         cards: [
           card('card-kids', 'Kids',
             'Storytimes, picture books, and hands-on activities that help children from babies to age 11 fall in love with reading. Visit the Children’s Room to find a new favorite.',
-            svgDataUrl('cards-kids.svg'), 'cards-kids.svg'),
+            imageDataUrl('card-kids.jpg'), 'kids.jpg'),
           card('card-teens', 'Teens',
             'A space of their own for ages 12 to 18, with graphic novels, homework help, gaming nights, and a maker lab for creative projects.',
-            svgDataUrl('cards-teens.svg'), 'cards-teens.svg'),
+            imageDataUrl('card-teens.jpg'), 'teens.jpg'),
           card('card-adults', 'Adults',
             'Bestsellers, research help, career resources, and classes, plus quiet reading corners for an afternoon with a good book.',
-            svgDataUrl('cards-adults.svg'), 'cards-adults.svg'),
+            imageDataUrl('card-adults.jpg'), 'adults.jpg'),
         ],
       },
     ]),
