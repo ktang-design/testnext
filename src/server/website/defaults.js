@@ -54,7 +54,7 @@ const FOOTER_DEFAULTS = {
 // 'default' or one of the explicit option values below.
 const TYPOGRAPHY_DEFAULTS = {
   fontFamily: 'Inter',
-  headingSize: '36',   // 2X large — headings (section + element titles, richtext H2)
+  headingSize: '24',   // Extra large — headings (section + element titles, richtext H2)
   headingWeight: '600', // Semi bold
   bodySize: '16',       // Medium
   bodyWeight: '400',    // Regular
