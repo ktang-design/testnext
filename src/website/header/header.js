@@ -19,8 +19,8 @@
   const AUTO_SAVE_DELAY = 2000; // ms of idle time after the last edit before auto-saving
   const DEFAULTS = {
     logo: 'left', nav: 'left',
-    siteName: { color: '#FFFFFF', opacity: 100 },
-    background: { color: '#002F56', opacity: 100 },
+    siteName: { color: '#3D3F42', opacity: 100 },
+    background: { color: '#FFFFFF', opacity: 100 },
     searchBackground: { color: '#002F56', opacity: 100 },
     headerImage: null,
   };
