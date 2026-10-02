@@ -112,6 +112,15 @@
     }
   }
 
+  // Extra vertical padding for a section (section.paddingY, in rem, on top of the 24px default).
+  function applySectionPad(elm, section) {
+    const extra = Number(section && section.paddingY);
+    if (extra > 0) {
+      elm.style.paddingTop = `calc(24px + ${extra}rem)`;
+      elm.style.paddingBottom = `calc(24px + ${extra}rem)`;
+    }
+  }
+
   function el(tag, cls, text) {
     const n = document.createElement(tag);
     if (cls) n.className = cls;
@@ -710,6 +719,7 @@
         // teal ring sits on top of it.
         const sectionSelected = section.id === blr.selectedSectionId && !blr.selectedElementId;
         applySectionBg(sec, section.background, section.backgroundImage);
+        applySectionPad(sec, section);
         if (sectionSelected) sec.classList.add('is-selected');
         // The "Add element" placeholder only shows on the active (selected)
         // section — selecting an element keeps its section active.
@@ -889,6 +899,7 @@
       (sections || []).forEach((section) => {
         const sec = el('div', 'wsprev__section');
         applySectionBg(sec, section.background, section.backgroundImage);
+        applySectionPad(sec, section);
         if (section.displayTitle && section.title) sec.appendChild(el('h2', 'wsprev__sectitle', section.title));
         const elements = section.elements || [];
         if (Number(section.columns) === 2) {

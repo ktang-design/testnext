@@ -184,6 +184,8 @@ function normalizeContent(raw) {
       columns: Number(s.columns) === 2 ? 2 : 1, // 100% (1) or 50% / 50% (2)
       background: cleanColor(s.background),
       backgroundImage: cleanImage(s.backgroundImage),
+      // Extra top/bottom padding in rem (0–8), on top of the default 24px.
+      ...(Number(s.paddingY) > 0 ? { paddingY: Math.min(8, Math.round(Number(s.paddingY) * 4) / 4) } : {}),
       elements,
     };
   });
