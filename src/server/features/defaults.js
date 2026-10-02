@@ -26,7 +26,7 @@ module.exports = {
     configured: false,
     entries: [],
     categories: [],
-    display: { azIndex: false, filters: false, sortOrder: 'title', groupBy: 'none', resultsPerPage: 25 },
+    display: { azIndex: false, filters: false, filterCounts: false, sortOrder: 'title', groupBy: 'none', resultsPerPage: 25 },
     fieldLabels: [
       { key: 'title', label: 'Title' },
       { key: 'url', label: 'URL' },
@@ -87,6 +87,6 @@ module.exports.RESEARCH_PARTICIPANT_DATABASES_DEFAULTS = {
     { id: 'cat_subject', name: 'Subject', terms: ['Health & Medicine', 'Psychology', 'Nursing', 'Social Sciences', 'Health & Wellness'] },
     { id: 'cat_database_type', name: 'Database type', terms: ['Research database', 'Reference database', 'Index & abstracts'] },
   ],
-  display: { azIndex: true, filters: true, sortOrder: 'title', groupBy: 'none', resultsPerPage: 25 },
+  display: { azIndex: true, filters: true, filterCounts: true, sortOrder: 'title', groupBy: 'none', resultsPerPage: 25 },
   fieldLabels: module.exports.DATABASES_DEFAULTS.fieldLabels,
 };

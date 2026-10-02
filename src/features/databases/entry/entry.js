@@ -51,11 +51,14 @@
   imgReplace.addEventListener('click', pickImage);
   imgRemove.addEventListener('click', function () { entry.image = null; hide(imgError); renderImage(); });
 
-  // ---------- Categories: multi-select dropdown of every category's terms ----------
+  // ---------- Controlled vocabularies: searchable multi-select of every vocabulary's terms ----------
+  // The field is a combobox: focusing/typing opens the panel and filters terms (or whole
+  // vocabularies, by name) as you type; when closed it shows the selected terms.
   var catTrigger = categoriesEl.querySelector('.db-multiselect__trigger');
-  var catValue = categoriesEl.querySelector('.db-multiselect__value');
   var catPanel = categoriesEl.querySelector('.db-multiselect__panel');
   var catEmpty = categoriesEl.querySelector('[data-categories-empty]');
+  var catSummary = '';
+  var catSearching = false;
 
   function isSelected(catId, term) {
     return entry.terms.some(function (t) { return t.categoryId === catId && t.term === term; });
@@ -65,26 +68,58 @@
     draft.categories.forEach(function (c) {
       c.terms.forEach(function (term) { if (isSelected(c.id, term)) names.push(term); });
     });
-    catValue.textContent = names.length ? names.join(', ') : 'Select an option';
-    catTrigger.classList.toggle('is-placeholder', !names.length);
+    catSummary = names.join(', ');
+    if (!catSearching) catTrigger.value = catSummary;
+  }
+  // Show only terms matching the query; a vocabulary whose name matches keeps all its terms.
+  function filterCatOptions() {
+    var q = catSearching ? catTrigger.value.trim().toLowerCase() : '';
+    var anyVisible = false;
+    catPanel.querySelectorAll('.db-multiselect__group').forEach(function (fs) {
+      var nameMatch = !q || fs.dataset.name.toLowerCase().indexOf(q) !== -1;
+      var groupVisible = false;
+      fs.querySelectorAll('.db-multiselect__option').forEach(function (opt) {
+        var show = nameMatch || opt.textContent.toLowerCase().indexOf(q) !== -1;
+        opt.hidden = !show;
+        if (show) groupVisible = true;
+      });
+      fs.hidden = !groupVisible;
+      if (groupVisible) anyVisible = true;
+    });
+    var none = catPanel.querySelector('.db-multiselect__none');
+    if (none) none.hidden = anyVisible;
+  }
+  function visibleCatOptions() {
+    return Array.prototype.filter.call(catPanel.querySelectorAll('.db-multiselect__option'), function (o) { return !o.hidden; });
   }
   function openCatPanel() {
+    if (!catSearching) { catSearching = true; catTrigger.value = ''; }
+    filterCatOptions();
     catPanel.hidden = false;
     catTrigger.setAttribute('aria-expanded', 'true');
-    var first = catPanel.querySelector('input');
-    if (first) first.focus();
   }
   function closeCatPanel(restoreFocus) {
     if (catPanel.hidden) return;
     catPanel.hidden = true;
+    catSearching = false;
+    catTrigger.value = catSummary;
+    filterCatOptions();
     catTrigger.setAttribute('aria-expanded', 'false');
     if (restoreFocus) catTrigger.focus();
   }
-  catTrigger.addEventListener('click', function () {
-    if (catPanel.hidden) openCatPanel(); else closeCatPanel(false);
-  });
+  catTrigger.addEventListener('click', function () { if (catPanel.hidden) openCatPanel(); });
+  catTrigger.addEventListener('input', function () { openCatPanel(); filterCatOptions(); });
   catTrigger.addEventListener('keydown', function (e) {
-    if (e.key === 'ArrowDown' && catPanel.hidden) { e.preventDefault(); openCatPanel(); }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (catPanel.hidden) { openCatPanel(); return; }
+      var first = visibleCatOptions()[0];
+      if (first) first.querySelector('input').focus();
+    } else if (e.key === 'Enter') {
+      e.preventDefault(); // never submit the form from the search box
+      var opts = visibleCatOptions();
+      if (!catPanel.hidden && catSearching && catTrigger.value.trim() && opts.length === 1) opts[0].querySelector('input').click();
+    }
   });
   categoriesEl.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && !catPanel.hidden) { e.preventDefault(); closeCatPanel(true); }
@@ -110,9 +145,10 @@
     groups.forEach(function (cat) {
       var fs = document.createElement('fieldset');
       fs.className = 'db-multiselect__group';
+      fs.dataset.name = cat.name || 'Controlled vocabulary';
       var legend = document.createElement('legend');
       legend.className = 'db-multiselect__legend';
-      legend.textContent = cat.name || 'Category';
+      legend.textContent = fs.dataset.name;
       fs.appendChild(legend);
       cat.terms.forEach(function (term) {
         var label = document.createElement('label');
@@ -138,7 +174,13 @@
       });
       catPanel.appendChild(fs);
     });
+    var none = document.createElement('p');
+    none.className = 'db-multiselect__none';
+    none.textContent = 'No matching controlled vocabularies or terms';
+    none.hidden = true;
+    catPanel.appendChild(none);
     updateCatValue();
+    filterCatOptions();
   }
 
   function labelFor(key) {
