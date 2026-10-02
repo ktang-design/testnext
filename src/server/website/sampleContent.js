@@ -47,6 +47,22 @@ const lightStyle = () => ({
   link: { color: '#FFFFFF', opacity: 100 },
 });
 
+// An image block: a Cards element with a single card that has just an image.
+const imageElement = (id, file, column) => ({
+  id,
+  type: 'cards',
+  title: file,
+  displayTitle: false,
+  column,
+  cardLayout: 'image-first',
+  radius: 'small',
+  imageMode: 'full',
+  imageSize: '4:3',
+  imageFit: 'cover',
+  style: style(),
+  cards: [{ id: `${id}-card`, image: imageDataUrl(file), imageName: file, title: '', description: '', href: '' }],
+});
+
 const section = (id, title, elements, opts = {}) => ({
   id,
   title,
@@ -95,32 +111,18 @@ const SAMPLE_HOMEPAGE_CONTENT = {
         ],
       },
     ]),
-    section('sec-featured', 'Featured this month', [
-      {
-        id: 'el-featured',
-        type: 'cards',
-        title: 'Events and new arrivals',
-        displayTitle: true,
-        column: 0,
-        cardLayout: 'image-first',
-        radius: 'small',
-        imageMode: 'full',
-        imageSize: '16:9',
-        imageFit: 'cover',
-        style: style(),
-        cards: [
-          card('card-author', 'Author talk: Our shared stories',
-            'Join local author Maria Alvarez on Thursday at 6 p.m. in the Reading Room for a conversation and book signing.'),
-          card('card-fiction', 'Staff picks: new fiction',
-            'Browse the newest novels and short story collections chosen by our librarians, then place a hold online or pick one up at the front desk.'),
-          card('card-storytime', 'Family storytime',
-            'Every Saturday at 10 a.m. Songs, stories, and simple crafts for children ages 3 to 7 and their caregivers.'),
-          card('card-research', 'Research help, one on one',
-            'Book a 30-minute session with a librarian to get started with databases, citations, and your next project.'),
-        ],
-      },
-    ], { background: { color: '#F5F5F5', opacity: 100 } }),
-    section('sec-visit', 'Visit us', [
+    section('sec-card', 'Get a library card', [
+      imageElement('el-library-card', 'library-card.jpg', 0),
+      richtext(
+        'el-connect',
+        'Get a library card',
+        '<h3>Get a library card</h3>' +
+        '<p>Cards are free for residents and students. Bring a photo ID to any service desk to sign up, ' +
+        'then borrow books, stream movies, and use our research databases from home.</p>',
+        1
+      ),
+    ], { columns: 2 }),
+    section('sec-hours', 'Hours and location', [
       richtext(
         'el-hours',
         'Hours',
@@ -129,14 +131,7 @@ const SAMPLE_HOMEPAGE_CONTENT = {
         '<li>Saturday: 10 a.m. to 4 p.m.</li><li>Sunday: 12 p.m. to 4 p.m.</li></ul>',
         0
       ),
-      richtext(
-        'el-connect',
-        'Connect',
-        '<h3>Get a library card</h3>' +
-        '<p>Cards are free for residents and students. Bring a photo ID to any service desk to sign up, ' +
-        'then borrow books, stream movies, and use our research databases from home.</p>',
-        1
-      ),
+      imageElement('el-hours-location', 'hours-location.jpg', 1),
     ], { columns: 2 }),
   ],
 };
