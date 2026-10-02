@@ -6,6 +6,7 @@ const express = require('express');
 const { login, register, createGuest, getUserById, AuthError } = require('../auth/authService');
 const { requireApiAuth } = require('../auth/authGuard');
 const { isProd } = require('../config');
+const { get, run } = require('../db/database');
 
 const router = express.Router();
 
@@ -74,28 +75,23 @@ router.post('/login', throttle, async (req, res) => {
 });
 
 // Guest access: one click creates a Research participant account and signs in.
-// Throttled harder than login (per IP) since each call creates an account.
-const GUEST_WINDOW_MS = 1000 * 60 * 60; // 1 hour
-const GUEST_MAX_PER_WINDOW = 30;
-const guestHits = new Map(); // ip -> { count, resetAt }
-function guestThrottle(req, res, next) {
-  const ip = req.ip || 'unknown';
-  const now = Date.now();
-  const rec = guestHits.get(ip);
-  if (!rec || rec.resetAt < now) {
-    guestHits.set(ip, { count: 1, resetAt: now + GUEST_WINDOW_MS });
-    return next();
-  }
-  rec.count += 1;
-  if (rec.count > GUEST_MAX_PER_WINDOW) {
-    return res.status(429).json({ error: 'TOO_MANY_REQUESTS', message: 'Too many attempts. Slow down.' });
-  }
-  return next();
-}
+// Each visitor (identified by a hash of their IP) gets GUEST_MAX_USES guest
+// sign-ins, ever. Uses are stored in the database so restarts don't reset them.
+const GUEST_MAX_USES = 10;
+const ipHash = (req) => crypto.createHash('sha256').update(String(req.ip || 'unknown')).digest('hex');
 
-router.post('/guest', guestThrottle, async (req, res) => {
+router.post('/guest', async (req, res) => {
   try {
+    const hash = ipHash(req);
+    const used = await get('SELECT COUNT(*) AS n FROM guest_access_log WHERE ip_hash = ?', [hash]);
+    if (used && Number(used.n) >= GUEST_MAX_USES) {
+      return res.status(429).json({
+        error: 'GUEST_LIMIT_REACHED',
+        message: 'Guest access limit reached. Sign in with your email and password.',
+      });
+    }
     const user = await createGuest();
+    await run('INSERT INTO guest_access_log (ip_hash, created_at) VALUES (?, ?)', [hash, new Date().toISOString()]);
     req.session.regenerate((err) => {
       if (err) {
         return res.status(500).json({ error: 'SERVER_ERROR', message: 'Could not start session.' });

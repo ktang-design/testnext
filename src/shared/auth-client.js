@@ -55,7 +55,12 @@
     window.location.assign('/login/');
   }
 
+  // Guest accounts (login "Guest access") use throwaway generated emails; the menu
+  // shows "Guest access" instead of that ID.
+  const isGuestEmail = (e) => /@guest\.stratum\.app$/i.test(e || '');
+
   function buildMenu(email) {
+    if (isGuestEmail(email)) email = 'Guest access';
     const pop = document.createElement('div');
     pop.className = 'sn-usermenu-pop';
     pop.hidden = true;

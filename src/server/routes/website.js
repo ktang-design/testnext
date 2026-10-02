@@ -152,13 +152,6 @@ function cleanColor(raw, fallback) {
   return { color, opacity };
 }
 
-// Header/footer background defaults to the brand Primary colour (Branding's
-// colour-mapping rule #1) until the user picks their own background.
-async function primaryColor(userId) {
-  const p = (await brandingRepository.get(userId)) || {};
-  return HEX.test(str(p.primaryColor)) ? p.primaryColor.toUpperCase() : BRANDING_DEFAULTS.primaryColor;
-}
-
 // ~3 MB raw → ~4.1 MB data URL, under the serverless request body limit.
 const HEADER_IMAGE_MAX = Math.ceil(3 * 1024 * 1024 * 1.4);
 
@@ -194,7 +187,7 @@ router.put('/header', requireApiAuth, ah(async (req, res) => {
 // Footer configuration
 // ---------------------------------------------------------------------------
 router.get('/footer', requireApiAuth, ah(async (req, res) => {
-  const defaults = { ...FOOTER_DEFAULTS, background: { color: await primaryColor(req.session.userId), opacity: 100 } };
+  const defaults = FOOTER_DEFAULTS; // white background until the user picks their own
   const { draft, published } = await footerRepository.get(req.session.userId);
   res.json({ defaults, saved: draft, draft, published });
 }));

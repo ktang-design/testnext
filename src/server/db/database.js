@@ -59,6 +59,14 @@ const SCHEMA = [
     expires INTEGER NOT NULL
   )`,
   `CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires)`,
+  // One row per Guest access sign-in, keyed by a hash of the visitor's IP, so the
+  // per-visitor limit survives restarts and deploys.
+  `CREATE TABLE IF NOT EXISTS guest_access_log (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip_hash    TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_guest_access_ip ON guest_access_log(ip_hash)`,
   `CREATE TABLE IF NOT EXISTS site_settings (
     user_id     TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     name        TEXT NOT NULL,
