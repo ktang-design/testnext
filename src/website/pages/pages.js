@@ -628,8 +628,8 @@
     return { wrap, editor };
   }
 
-  // Focused "Edit richtext" modal — a small WYSIWYG editor. Cannot be dismissed
-  // by clicking outside (only Cancel / Save / close / Escape).
+  // Focused "Edit richtext" modal — a small WYSIWYG editor. Clicking outside closes it
+  // (same as Cancel).
   function openRichtextModal(secId, elId) {
     const elc = findElement(secId, elId);
     if (!elc || elc.type !== 'richtext') return;
@@ -677,6 +677,7 @@
       if (prev && prev.focus) prev.focus();
     }
     modal.querySelector('.modal__close').addEventListener('click', close);
+    overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) close(); });
     footer.querySelector('.modal__btn--cancel').addEventListener('click', close);
     footer.querySelector('[data-save]').addEventListener('click', () => {
       const target = findElement(secId, elId);
@@ -789,6 +790,7 @@
       if (prev && prev.focus) prev.focus();
     }
     modal.querySelector('.modal__close').addEventListener('click', close);
+    overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) close(); });
     footer.querySelector('.modal__btn--cancel').addEventListener('click', close);
     footer.querySelector('[data-save]').addEventListener('click', () => {
       const target = findElement(secId, elId);
@@ -1358,6 +1360,7 @@
       if (prev && prev.focus) prev.focus();
     }
     modal.querySelector('.modal__close').addEventListener('click', close);
+    overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) close(); });
     footer.querySelector('.modal__btn--cancel').addEventListener('click', close);
     footer.querySelector('[data-save]').addEventListener('click', () => {
       if (findElement(secId, elId)) {

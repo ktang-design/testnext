@@ -142,6 +142,38 @@ body {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* Divider + Guest access: the secondary (outline) button used across the product. */
+.auth-divider { height: 1px; margin: 4px 0; background: var(--gray-200); }
+.auth-guest {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 7px 12px 8px;
+  background: var(--white);
+  border: 1px solid var(--gray-400);
+  border-radius: var(--radius-sm);
+  color: var(--gray-600);
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 21px;
+  cursor: pointer;
+}
+.auth-guest:hover { background: #f4f5f7; }
+.auth-guest:disabled { opacity: 0.7; cursor: progress; }
+.auth-guest__spinner { display: none; }
+.auth-guest.is-loading .auth-guest__spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(85, 88, 93, 0.35);
+  border-top-color: var(--gray-600);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
 :where(input, button):focus-visible {
   outline: 2px solid var(--blue-500);
   outline-offset: 2px;

@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const email = document.getElementById('email');
   const password = document.getElementById('password');
   const submit = document.getElementById('submit');
+  const guest = document.getElementById('guest');
   const formError = document.getElementById('form-error');
 
   // Where to go after a successful login (?next=…), defaulting to Site details.
@@ -51,9 +52,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setLoading(loading) {
     submit.disabled = loading;
+    guest.disabled = loading;
     submit.classList.toggle('is-loading', loading);
     submit.querySelector('.auth-submit__label').textContent = loading ? 'Signing in…' : 'Sign in';
   }
+
+  // Guest access: the server creates a Research participant account and signs in.
+  guest.addEventListener('click', async () => {
+    clearFormError();
+    guest.disabled = true;
+    submit.disabled = true;
+    guest.classList.add('is-loading');
+    try {
+      const res = await fetch('/api/auth/guest', { method: 'POST', credentials: 'include' });
+      if (res.ok) {
+        clearAccountCaches();
+        window.location.assign(safeNext());
+        return;
+      }
+      showFormError(res.status === 429
+        ? 'Too many attempts. Please wait a moment and try again.'
+        : 'Something went wrong. Please try again.');
+    } catch (err) {
+      showFormError('Could not reach the server. Check your connection and try again.');
+    }
+    guest.disabled = false;
+    submit.disabled = false;
+    guest.classList.remove('is-loading');
+  });
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();

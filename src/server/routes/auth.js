@@ -3,7 +3,7 @@
 
 const crypto = require('crypto');
 const express = require('express');
-const { login, register, getUserById, AuthError } = require('../auth/authService');
+const { login, register, createGuest, getUserById, AuthError } = require('../auth/authService');
 const { requireApiAuth } = require('../auth/authGuard');
 const { isProd } = require('../config');
 
@@ -69,6 +69,44 @@ router.post('/login', throttle, async (req, res) => {
     }
     // eslint-disable-next-line no-console
     console.error('[auth] login error', err);
+    return res.status(500).json({ error: 'SERVER_ERROR', message: 'Something went wrong.' });
+  }
+});
+
+// Guest access: one click creates a Research participant account and signs in.
+// Throttled harder than login (per IP) since each call creates an account.
+const GUEST_WINDOW_MS = 1000 * 60 * 60; // 1 hour
+const GUEST_MAX_PER_WINDOW = 30;
+const guestHits = new Map(); // ip -> { count, resetAt }
+function guestThrottle(req, res, next) {
+  const ip = req.ip || 'unknown';
+  const now = Date.now();
+  const rec = guestHits.get(ip);
+  if (!rec || rec.resetAt < now) {
+    guestHits.set(ip, { count: 1, resetAt: now + GUEST_WINDOW_MS });
+    return next();
+  }
+  rec.count += 1;
+  if (rec.count > GUEST_MAX_PER_WINDOW) {
+    return res.status(429).json({ error: 'TOO_MANY_REQUESTS', message: 'Too many attempts. Slow down.' });
+  }
+  return next();
+}
+
+router.post('/guest', guestThrottle, async (req, res) => {
+  try {
+    const user = await createGuest();
+    req.session.regenerate((err) => {
+      if (err) {
+        return res.status(500).json({ error: 'SERVER_ERROR', message: 'Could not start session.' });
+      }
+      req.session.userId = user.id;
+      require('../auth/repository').userRepository.touchLastAccessed(user.id);
+      return res.status(201).json({ user });
+    });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('[auth] guest error', err);
     return res.status(500).json({ error: 'SERVER_ERROR', message: 'Something went wrong.' });
   }
 });
