@@ -12,11 +12,13 @@ const PLACEHOLDER = '/website/assets/card-placeholder.jpg';
 
 // Bookshelf illustration behind the opening section (website/assets), inlined as
 // a data URL because section background images are stored that way.
-let libraryBackground = null;
-try {
-  const svg = fs.readFileSync(path.join(__dirname, '..', '..', 'website', 'assets', 'library-background.svg'));
-  libraryBackground = `data:image/svg+xml;base64,${svg.toString('base64')}`;
-} catch (_) { /* no background if the file is missing */ }
+function svgDataUrl(file) {
+  try {
+    const svg = fs.readFileSync(path.join(__dirname, '..', '..', 'website', 'assets', file));
+    return `data:image/svg+xml;base64,${svg.toString('base64')}`;
+  } catch (_) { return null; } // no image if the file is missing
+}
+const libraryBackground = svgDataUrl('library-background.svg');
 
 const style = () => ({
   heading: { color: '#3D3F42', opacity: 100 },
@@ -28,8 +30,8 @@ const style = () => ({
   borderColor: { color: '#FFFFFF', opacity: 0 },
 });
 
-const card = (id, title, description) => ({
-  id, image: PLACEHOLDER, imageName: 'card-placeholder.jpg', title, description: `<p>${description}</p>`, href: '',
+const card = (id, title, description, image = PLACEHOLDER, imageName = 'card-placeholder.jpg') => ({
+  id, image, imageName, title, description: `<p>${description}</p>`, href: '',
 });
 
 const richtext = (id, title, body, column = 0, textStyle) => ({
@@ -66,6 +68,32 @@ const SAMPLE_HOMEPAGE_CONTENT = {
         lightStyle()
       ),
     ], { background: { color: '#2B1D13', opacity: 100 }, backgroundImage: libraryBackground }),
+    section('sec-browse', 'Find your next read', [
+      {
+        id: 'el-browse',
+        type: 'cards',
+        title: 'Something for every reader',
+        displayTitle: true,
+        column: 0,
+        cardLayout: 'image-first',
+        radius: 'small',
+        imageMode: 'full',
+        imageSize: '16:9',
+        imageFit: 'cover',
+        style: style(),
+        cards: [
+          card('card-kids', 'Kids',
+            'Storytimes, picture books, and hands-on activities that help children from babies to age 11 fall in love with reading. Visit the Children’s Room to find a new favorite.',
+            svgDataUrl('cards-kids.svg'), 'cards-kids.svg'),
+          card('card-teens', 'Teens',
+            'A space of their own for ages 12 to 18, with graphic novels, homework help, gaming nights, and a maker lab for creative projects.',
+            svgDataUrl('cards-teens.svg'), 'cards-teens.svg'),
+          card('card-adults', 'Adults',
+            'Bestsellers, research help, career resources, and classes, plus quiet reading corners for an afternoon with a good book.',
+            svgDataUrl('cards-adults.svg'), 'cards-adults.svg'),
+        ],
+      },
+    ]),
     section('sec-featured', 'Featured this month', [
       {
         id: 'el-featured',
