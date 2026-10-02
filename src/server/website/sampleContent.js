@@ -5,7 +5,18 @@
 // use the one bundled placeholder; the shape matches normalizeContent() in
 // routes/pages.js.
 
+const fs = require('fs');
+const path = require('path');
+
 const PLACEHOLDER = '/website/assets/card-placeholder.jpg';
+
+// Bookshelf illustration behind the opening section (website/assets), inlined as
+// a data URL because section background images are stored that way.
+let libraryBackground = null;
+try {
+  const svg = fs.readFileSync(path.join(__dirname, '..', '..', 'website', 'assets', 'library-background.svg'));
+  libraryBackground = `data:image/svg+xml;base64,${svg.toString('base64')}`;
+} catch (_) { /* no background if the file is missing */ }
 
 const style = () => ({
   heading: { color: '#3D3F42', opacity: 100 },
@@ -21,8 +32,16 @@ const card = (id, title, description) => ({
   id, image: PLACEHOLDER, imageName: 'card-placeholder.jpg', title, description: `<p>${description}</p>`, href: '',
 });
 
-const richtext = (id, title, body, column = 0) => ({
-  id, type: 'richtext', title, displayTitle: false, column, body, style: style(),
+const richtext = (id, title, body, column = 0, textStyle) => ({
+  id, type: 'richtext', title, displayTitle: false, column, body, style: textStyle || style(),
+});
+
+// Light heading + text for the dark library background.
+const lightStyle = () => ({
+  ...style(),
+  heading: { color: '#FFFFFF', opacity: 100 },
+  text: { color: '#FFFFFF', opacity: 100 },
+  link: { color: '#FFFFFF', opacity: 100 },
 });
 
 const section = (id, title, elements, opts = {}) => ({
@@ -31,7 +50,7 @@ const section = (id, title, elements, opts = {}) => ({
   displayTitle: false,
   columns: opts.columns || 1,
   background: opts.background || { color: '#FFFFFF', opacity: 100 },
-  backgroundImage: null,
+  backgroundImage: opts.backgroundImage || null,
   elements,
 });
 
@@ -41,11 +60,12 @@ const SAMPLE_HOMEPAGE_CONTENT = {
       richtext(
         'el-welcome',
         'Welcome',
-        '<h2>Welcome to the library</h2>' +
-        '<p>Your home for books, research, and community. Explore our collections, find a quiet place to study, ' +
-        'or join a program happening this week. Everyone is welcome, and our librarians are always happy to help.</p>'
+        '<h2>Stratum Library</h2>' +
+        '<p>Your local public library for books, learning, community programs, quiet spaces, and discovering something new.</p>',
+        0,
+        lightStyle()
       ),
-    ]),
+    ], { background: { color: '#2B1D13', opacity: 100 }, backgroundImage: libraryBackground }),
     section('sec-featured', 'Featured this month', [
       {
         id: 'el-featured',

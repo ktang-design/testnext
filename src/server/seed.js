@@ -9,21 +9,23 @@ const { seedUser, seedPasswordGenerated, isProd } = require('./config');
 const { pagesRepository } = require('./website/PagesRepository');
 const { SAMPLE_HOMEPAGE_CONTENT } = require('./website/sampleContent');
 const { run } = require('./db/database');
+const { LEGACY_SAMPLE_HOMEPAGE_JSON } = require('./website/sampleContentLegacy');
 
 /* eslint-disable no-console */
 // Guest access accounts created before the starter Homepage existed have an
-// empty one. Fill those in (draft and published); a guest who already added
-// content keeps it. One idempotent UPDATE per table, so it's cheap on every boot.
+// empty one, and earlier guests have an older starter. Fill in / upgrade both
+// (draft and published); a guest who edited their homepage no longer matches and
+// keeps it. One idempotent UPDATE per table, so it's cheap on every boot.
 async function backfillGuestHomepages() {
-  const empty = JSON.stringify({ sections: [] });
+  const stale = [JSON.stringify({ sections: [] }), ...LEGACY_SAMPLE_HOMEPAGE_JSON];
   const content = JSON.stringify(SAMPLE_HOMEPAGE_CONTENT);
   const now = new Date().toISOString();
   for (const table of ['pages', 'pages_published']) {
     await run(
       `UPDATE ${table} SET content = ?, updated_at = ?
-       WHERE is_homepage = 1 AND content = ?
+       WHERE is_homepage = 1 AND content IN (${stale.map(() => '?').join(', ')})
          AND user_id IN (SELECT id FROM users WHERE email LIKE '%@guest.stratum.app')`,
-      [content, now, empty]
+      [content, now, ...stale]
     );
   }
 }
