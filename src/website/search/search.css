@@ -25,13 +25,18 @@
 .modal.modal--search { width: min(800px, 94vw); }
 .modal--search .modal__body { display: flex; flex-direction: column; gap: 20px; }
 .ws-mfield { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+/* Labels match System settings (.field__label). */
+.ws-label { margin: 0; font-weight: 600; font-size: 14px; line-height: 21px; color: var(--gray-600); }
+/* Inputs match System settings (.input in site-details.css): same size, weight, colours and focus ring. */
 .ws-input {
-  width: 100%; box-sizing: border-box; padding: 8px 10px;
-  font: 400 14px/21px "Noto Sans", Arial, sans-serif; color: var(--gray-700);
-  background: #fff; border: 1px solid var(--gray-200); border-radius: 4px;
+  width: 100%; box-sizing: border-box; padding: 6px 8px;
+  font-family: var(--font); font-weight: 400; font-size: 16px; line-height: 24px;
+  color: var(--gray-700); background: var(--white);
+  border: 1px solid var(--gray-400); border-radius: var(--radius-sm);
 }
-.ws-input:focus-visible { outline: none; border-color: #3e75cf; box-shadow: 0 0 0 2px var(--blue-50, #e9effa); }
-.ws-textarea { resize: vertical; min-height: 120px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+.ws-input::placeholder { color: var(--gray-400); }
+.ws-input:focus { outline: none; border-color: var(--blue-500); box-shadow: 0 0 0 1px var(--blue-500); color: var(--gray-700); }
+.ws-textarea { display: block; resize: vertical; min-height: 132px; }
 .ws-addlabel { align-self: flex-start; padding: 0; font-size: 13px; }
 .ws-labelwrap { display: flex; flex-direction: column; gap: 6px; width: 100%; }
 .ws-help { margin: 0; font-size: 13px; line-height: 19.5px; color: var(--gray-600); }
