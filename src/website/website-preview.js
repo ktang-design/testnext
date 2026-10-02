@@ -893,11 +893,18 @@
         const elements = section.elements || [];
         if (Number(section.columns) === 2) {
           const grid = el('div', 'wsprev__elements wsprev__elements--split');
+          const inCol = (col) => elements.filter((e) => (Number(e.column) === 1 ? 1 : 0) === col);
           for (let col = 0; col < 2; col++) {
             const column = el('div', 'wsprev__col');
-            elements.filter((e) => (Number(e.column) === 1 ? 1 : 0) === col).forEach((element) => column.appendChild(buildEl(element)));
+            inCol(col).forEach((element) => column.appendChild(buildEl(element)));
             grid.appendChild(column);
           }
+          // Image beside text: when one column is only an image block (cards with no
+          // title or description), the other column's text is centred on the image
+          // instead of hanging from its top edge.
+          const imageOnly = (col) => inCol(col).length > 0 && inCol(col).every((e) => e.type === 'cards'
+            && (e.cards || []).length > 0 && e.cards.every((c) => !String(c.title || '').trim() && !String(c.description || '').replace(/<[^>]*>/g, '').trim()));
+          if (imageOnly(0) !== imageOnly(1)) grid.classList.add('wsprev__elements--centered');
           sec.appendChild(grid);
         } else {
           const wrap = el('div', 'wsprev__elements');
