@@ -34,8 +34,8 @@ const MAX_DEPTH = 2; // parent + one level of subpages
 const HEADER_DEFAULTS = {
   logo: 'left',
   nav: 'left',
-  siteName: { color: '#FFFFFF', opacity: 100 },
-  background: { color: '#002F56', opacity: 100 },
+  siteName: { color: '#3D3F42', opacity: 100 },
+  background: { color: '#FFFFFF', opacity: 100 },
   searchBackground: { color: '#002F56', opacity: 100 },
   headerImage: null, // data URL or null
 };

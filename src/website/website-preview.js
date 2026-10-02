@@ -35,7 +35,7 @@
 
   const HEADER_D = {
     logo: 'left', nav: 'left',
-    siteName: { color: '#FFFFFF', opacity: 100 },
+    siteName: { color: '#3D3F42', opacity: 100 },
     background: { color: '#FFFFFF', opacity: 100 },
     searchBackground: { color: '#FFFFFF', opacity: 100 },
     headerImage: null,
