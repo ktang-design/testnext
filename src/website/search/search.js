@@ -13,8 +13,8 @@
   const listEl = $('[data-search-list]');
   const listSkeleton = $('[data-search-skeleton]');
 
-  const NAME_MAX = 120;
-  const LABEL_MAX = 120;
+  const NAME_MAX = 40;
+  const LABEL_MAX = 40;
   const MAX_SEARCHES = 20;
   const AUTO_SAVE_DELAY = 2000; // ms of idle time after the last edit before auto-saving
 
@@ -277,6 +277,29 @@
     openSearchModal('custom');
   });
 
+  // ---------- search-term detection ----------
+  // Query-string parameter names that conventionally carry the user's search text.
+  const TERM_PARAMS = ['q', 'query', 'search', 'searchterm', 'search_term', 'searchtext', 'search_text', 'searchquery', 'search_query',
+    'searchfor', 'keyword', 'keywords', 'kw', 'term', 'terms', 'text', 'k', 's', 'qs', 'find', 'lookfor', 'queryterm', 'bquery', 'searchstring'];
+  // Returns the URL with the search-term value replaced by SEARCH_TERM, or null when the
+  // input isn't a valid http(s) URL or no known search parameter holds a value.
+  function replaceSearchTerm(raw) {
+    let parsed;
+    try { parsed = new URL(raw); } catch (e) { return null; }
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
+    let replaced = false;
+    // Edit the raw string (not URLSearchParams) so the rest of the URL keeps its exact encoding.
+    const next = raw.replace(/([?&;])([^=&#;]+)=([^&#;]*)/g, (m, sep, name, value) => {
+      if (replaced || !value) return m;
+      let key = name;
+      try { key = decodeURIComponent(name); } catch (e) { /* keep raw */ }
+      if (!TERM_PARAMS.includes(key.toLowerCase())) return m;
+      replaced = true;
+      return sep + name + '=SEARCH_TERM';
+    });
+    return replaced ? next : null;
+  }
+
   // ---------- add / edit search modal ----------
   function openSearchModal(type, editId) {
     const existing = editId ? config.searches.find((s) => s.id === editId) : null;
@@ -302,19 +325,23 @@
         '<div class="ws-mfield">' +
           '<label class="ws-label" for="ws-name">Search name</label>' +
           '<input type="text" class="ws-input" id="ws-name" maxlength="' + NAME_MAX + '" />' +
-          '<button type="button" class="btn--link ws-addlabel" data-addlabel hidden>Create display label</button>' +
+          '<div class="ws-meta">' +
+            '<button type="button" class="btn--link ws-addlabel" data-addlabel hidden>Create display label</button>' +
+            '<span class="ws-count" data-name-count></span>' +
+          '</div>' +
           '<div class="ws-labelwrap" data-labelwrap hidden>' +
-            '<label class="ws-label" for="ws-label">Display label</label>' +
+            '<label class="ws-label" for="ws-label">Display label (optional)</label>' +
+            '<p class="ws-help">Adjusts the administrative label that displays on the website within the dropdown.</p>' +
             '<input type="text" class="ws-input" id="ws-label" maxlength="' + LABEL_MAX + '" />' +
+            '<div class="ws-meta"><span class="ws-count" data-label-count></span></div>' +
           '</div>' +
         '</div>' +
         '<div class="ws-mfield">' +
           '<label class="ws-label" for="ws-url">URL</label>' +
-          '<p class="ws-help">Add SEARCH_TERM to the URL to represent the user’s search query. When a search is performed, every occurrence of SEARCH_TERM will be replaced with the entered search term.</p>' +
-          '<textarea class="ws-input ws-textarea" id="ws-url" spellcheck="false"></textarea>' +
-          '<button type="button" class="btn btn--secondary ws-term" data-term>Add SEARCH_TERM</button>' +
+          '<p class="ws-help" id="ws-url-help">Enter a search URL. Existing search terms will be replaced with SEARCH_TERM automatically. If needed, add SEARCH_TERM manually as the placeholder for user searches. For more help, <a href="https://connect.ebsco.com" target="_blank" rel="noopener">visit EBSCO Connect</a>.</p>' +
+          '<textarea class="ws-input ws-textarea" id="ws-url" spellcheck="false" aria-describedby="ws-url-help ws-url-status"></textarea>' +
+          '<p class="ws-status" id="ws-url-status" role="status" hidden><img class="ws-status__icon" src="" alt="" width="13" height="13" /><span data-status-text></span></p>' +
         '</div>' +
-        '<label class="ws-check"><input type="checkbox" data-urlencode /> <span>urlencode the user’s search term</span></label>' +
       '</div>' +
       '<div class="modal__footer">' +
         '<button type="button" class="modal__btn modal__btn--cancel" data-cancel>Cancel</button>' +
@@ -329,24 +356,74 @@
     const labelWrap = modal.querySelector('[data-labelwrap]');
     const labelI = modal.querySelector('#ws-label');
     const urlI = modal.querySelector('#ws-url');
-    const encI = modal.querySelector('[data-urlencode]');
+    const statusEl = modal.querySelector('#ws-url-status');
+    const statusIcon = statusEl.querySelector('img');
+    const statusText = statusEl.querySelector('[data-status-text]');
+    const confirmBtn = modal.querySelector('[data-confirm]');
+    const nameCount = modal.querySelector('[data-name-count]');
+    const labelCount = modal.querySelector('[data-label-count]');
 
     nameI.value = draft.name;
     labelI.value = draft.displayLabel;
     urlI.value = draft.url;
-    encI.checked = !!draft.urlencode;
     // Show the display-label field when one already exists; otherwise offer the link.
     if (draft.displayLabel) { show(labelWrap); hide(labelBtn); } else { show(labelBtn); hide(labelWrap); }
 
+    const updateCounts = () => {
+      nameCount.textContent = nameI.value.length + '/' + NAME_MAX;
+      labelCount.textContent = labelI.value.length + '/' + LABEL_MAX;
+    };
+    nameI.addEventListener('input', updateCounts);
+    labelI.addEventListener('input', updateCounts);
+    updateCounts();
     labelBtn.addEventListener('click', () => { hide(labelBtn); show(labelWrap); labelI.focus(); });
-    modal.querySelector('[data-term]').addEventListener('click', () => {
-      const start = urlI.selectionStart, end = urlI.selectionEnd, v = urlI.value;
-      urlI.value = v.slice(0, start) + 'SEARCH_TERM' + v.slice(end);
-      const pos = start + 'SEARCH_TERM'.length;
-      urlI.focus(); urlI.setSelectionRange(pos, pos);
+
+    // ----- URL: detect the search term in a pasted/entered URL and swap in SEARCH_TERM -----
+    const STATUS = {
+      updating: { icon: '/shared/cog.svg', text: 'Updating the URL automatically...', cls: '' },
+      success: { icon: '/shared/check-circle.svg', text: 'The URL has been updated automatically. Review it to ensure SEARCH_TERM is used in the appropriate location.', cls: 'is-success' },
+      error: { icon: '/shared/error.svg', text: 'We couldn’t update the URL automatically. Please add SEARCH_TERM manually in the appropriate location.', cls: 'is-error' },
+    };
+    let detectTimer = null;
+    function setStatus(kind) {
+      if (!kind) { hide(statusEl); return; }
+      const st = STATUS[kind];
+      statusIcon.src = st.icon;
+      statusText.textContent = st.text;
+      statusEl.className = 'ws-status ' + st.cls;
+      show(statusEl);
+    }
+    // Add is blocked while a URL is present but has no SEARCH_TERM to substitute.
+    function syncConfirm() {
+      const v = urlI.value.trim();
+      confirmBtn.disabled = !!v && !v.includes('SEARCH_TERM');
+    }
+    function runDetection() {
+      const v = urlI.value.trim();
+      if (!v || v.includes('SEARCH_TERM')) { setStatus(null); syncConfirm(); return; }
+      setStatus('updating');
+      urlI.readOnly = true;
+      urlI.classList.add('is-busy');
+      detectTimer = setTimeout(() => {
+        detectTimer = null;
+        urlI.readOnly = false;
+        urlI.classList.remove('is-busy');
+        const next = replaceSearchTerm(v);
+        if (next) { urlI.value = next; setStatus('success'); } else { setStatus('error'); }
+        syncConfirm();
+      }, 700);
+    }
+    urlI.addEventListener('input', () => {
+      // Typing never rewrites the URL; it only clears stale messages and re-checks Add.
+      if (!urlI.value.trim() || urlI.value.includes('SEARCH_TERM')) setStatus(null);
+      syncConfirm();
     });
+    urlI.addEventListener('paste', () => setTimeout(runDetection, 0));
+    urlI.addEventListener('change', () => { if (!detectTimer) runDetection(); });
+    syncConfirm();
 
     function close() {
+      clearTimeout(detectTimer);
       document.removeEventListener('keydown', onKey, true);
       overlay.remove();
       document.body.classList.remove('is-locked');
@@ -358,7 +435,6 @@
       draft.name = name;
       draft.displayLabel = labelWrap.hidden ? '' : labelI.value.trim();
       draft.url = urlI.value.trim();
-      draft.urlencode = encI.checked;
       draft.buttonLabel = draft.buttonLabel || 'Search'; // no longer user-set; keep a sensible default
       if (existing) {
         const i = config.searches.findIndex((s) => s.id === existing.id);
