@@ -3,11 +3,34 @@
 // Talks to the UserRepository interface and the password module only.
 
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const { userRepository } = require('./repository');
 const { hashPassword, verifyPassword, wasteTime } = require('./passwords');
 const { validateEmail, validatePassword, validateName } = require('./validators');
 const { maxFailedAttempts, lockoutMs } = require('../config');
 const { pagesRepository } = require('../website/PagesRepository');
+const { brandingRepository } = require('../settings/BrandingRepository');
+const { BRANDING_DEFAULTS } = require('../settings/defaults');
+
+// New and guest accounts start with the logo the website canvas already shows,
+// saved into Branding (System settings + Page builder share it), and with the
+// site name shown beside it.
+const DEFAULT_LOGO_FILE = path.join(__dirname, '..', '..', 'website', 'assets', 'stratum-logo.png');
+let defaultLogoDataUrl = null;
+function getDefaultLogo() {
+  if (defaultLogoDataUrl === null) {
+    try {
+      defaultLogoDataUrl = `data:image/png;base64,${fs.readFileSync(DEFAULT_LOGO_FILE).toString('base64')}`;
+    } catch (_) { defaultLogoDataUrl = ''; }
+  }
+  return defaultLogoDataUrl;
+}
+async function seedDefaultBranding(userId) {
+  const logo = getDefaultLogo();
+  if (!logo) return;
+  await brandingRepository.save(userId, { ...BRANDING_DEFAULTS, logo, showSiteName: true, altText: 'Stratum' });
+}
 
 // A typed error so the HTTP layer can map codes -> status + message.
 class AuthError extends Error {
@@ -97,6 +120,7 @@ async function register({ name, email, password }) {
     const user = await createUser({ name: name.trim(), email, password });
     // Every new account starts with a single starred Homepage.
     await pagesRepository.seedDefaults(user.id);
+    await seedDefaultBranding(user.id);
     return toPublicUser(user);
   } catch (err) {
     // Guard against a race between the check above and insert.
@@ -122,6 +146,7 @@ async function createGuest() {
   });
   await userRepository.update(user.id, { role: 'Research participant' });
   await pagesRepository.seedDefaults(user.id);
+  await seedDefaultBranding(user.id);
   return toPublicUser({ ...user, role: 'Research participant' });
 }
 

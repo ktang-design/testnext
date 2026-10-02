@@ -1016,7 +1016,8 @@
         hNav.style.alignSelf = h.nav === 'aligned' ? 'center' : 'flex-start';
       }
       header.appendChild(hLogo);
-      header.appendChild(hNav);
+      // No navigation yet → no empty nav block, so the header has no spare gap/space.
+      if (navItems.length) header.appendChild(hNav);
 
       // ---- Search section (below the navigation). Shown when a search is
       // configured. ----

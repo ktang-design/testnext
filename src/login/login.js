@@ -70,8 +70,10 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.assign(safeNext());
         return;
       }
-      showFormError(res.status === 429
-        ? 'Too many attempts. Please wait a moment and try again.'
+      let data = {};
+      try { data = await res.json(); } catch (_) { /* non-JSON */ }
+      showFormError(data.error === 'GUEST_LIMIT_REACHED'
+        ? 'You’ve reached the limit for Guest access. Sign in with your email and password.'
         : 'Something went wrong. Please try again.');
     } catch (err) {
       showFormError('Could not reach the server. Check your connection and try again.');
