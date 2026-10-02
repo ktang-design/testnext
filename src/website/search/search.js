@@ -445,6 +445,7 @@
       renderList(); onEdit(); close();
     }
     modal.querySelector('.modal__close').addEventListener('click', close);
+    overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) close(); });
     modal.querySelector('[data-cancel]').addEventListener('click', close);
     modal.querySelector('[data-confirm]').addEventListener('click', confirm);
     function onKey(e) {

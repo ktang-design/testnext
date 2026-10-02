@@ -2,6 +2,7 @@
 // authService — authentication business logic, independent of HTTP and storage.
 // Talks to the UserRepository interface and the password module only.
 
+const crypto = require('crypto');
 const { userRepository } = require('./repository');
 const { hashPassword, verifyPassword, wasteTime } = require('./passwords');
 const { validateEmail, validatePassword, validateName } = require('./validators');
@@ -106,9 +107,27 @@ async function register({ name, email, password }) {
   }
 }
 
+/**
+ * Create a throwaway "Guest access" account. Every guest is a Research
+ * participant with their own account (and so their own data), so concurrent
+ * guests never see each other's work. The random password is never shown —
+ * the caller signs the guest straight in.
+ */
+async function createGuest() {
+  const suffix = crypto.randomBytes(6).toString('hex');
+  const user = await createUser({
+    name: 'Guest',
+    email: `guest-${suffix}@guest.stratum.app`,
+    password: crypto.randomBytes(24).toString('base64url'),
+  });
+  await userRepository.update(user.id, { role: 'Research participant' });
+  await pagesRepository.seedDefaults(user.id);
+  return toPublicUser({ ...user, role: 'Research participant' });
+}
+
 async function getUserById(id) {
   const user = await userRepository.findById(id);
   return user ? toPublicUser(user) : null;
 }
 
-module.exports = { login, register, createUser, getUserById, toPublicUser, AuthError };
+module.exports = { login, register, createGuest, createUser, getUserById, toPublicUser, AuthError };
