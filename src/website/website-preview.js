@@ -266,6 +266,7 @@
         if (c.id === ctx.selectedCardId) slot.classList.add('is-selected');
         slot.addEventListener('click', (e) => { e.stopPropagation(); ctx.onSelect(c.id); });
         slot.appendChild(ctx.toolbar(c.id, cards.indexOf(c), cards.length));
+        slot.appendChild(el('span', 'wsprev__cardtag', 'Card item'));
         slot.appendChild(card);
       }
       const imgBox = el('div', 'wsprev__cardimg' + (icon ? ' wsprev__cardimg--icon' : ''));
