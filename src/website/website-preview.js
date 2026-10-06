@@ -408,15 +408,17 @@
     // Footer panel) — not on every unrelated re-render, which would fight the
     // user's own scrolling. `undefined` until the first render.
     let lastHighlight;
+    let lastSelId = null; // selected section/element id on the previous render
+    let knownIds = null; // section/element ids from the previous render
 
     // Scroll the highlighted element (the section the current panel edits) fully
     // into view — so opening e.g. Footer scrolls the canvas down until the whole
     // footer is visible. Re-runs on every render (render() rebuilds the DOM and
     // fitZoom() resets the scroll) until the user pans or zooms the preview
     // themselves, after which we leave their view alone.
-    function scrollHighlightIntoView() {
-      if (!state.highlight || userZoomed || userPanned) return;
-      const hl = root.querySelector('.wsprev__hl');
+    function scrollHighlightIntoView(target) {
+      if (!target && (!state.highlight || userZoomed || userPanned)) return;
+      const hl = target || root.querySelector('.wsprev__hl');
       if (!hl) return;
       const pad = 24;                          // breathing room above/below the element
       const cr = canvas.getBoundingClientRect();
@@ -987,7 +989,7 @@
       // In the read-only (non-builder) view the logo + page links navigate the
       // preview between published pages; the homepage is the default.
       const live = !state.builder;
-      const goTo = (pageId) => { state.viewPageId = pageId; resetScrollNext = true; render(); };
+      const goTo = (pageId) => { state.viewPageId = pageId; resetScrollNext = true; knownIds = null; lastSelId = null; render(); };
       const homepage = (state.pages || []).find((p) => p.isHomepage) || (state.pages || [])[0];
       const viewId = currentViewPage() ? currentViewPage().id : null;
 
@@ -1179,6 +1181,20 @@
       if (toNewPage) { canvas.scrollTop = 0; canvas.scrollLeft = 0; }
       else { canvas.scrollTop = keepTop; canvas.scrollLeft = keepLeft; }
       if (highlightChanged || toNewPage) scrollHighlightIntoView();
+      // A newly added or newly selected section/element is scrolled into view
+      // (even if the user has panned or zoomed); otherwise the scroll is kept.
+      const ids = new Set();
+      ((state.builder && state.builder.sections) || []).forEach((sec) => {
+        ids.add(sec.id);
+        (sec.elements || []).forEach((e) => ids.add(e.id));
+      });
+      const selId = state.builder ? (state.builder.selectedElementId || state.builder.selectedSectionId) : null;
+      if (!toNewPage && knownIds && selId && selId !== lastSelId && ids.has(selId)) {
+        const target = root.querySelector('[data-id="' + String(selId).replace(/"/g, '\\"') + '"]');
+        if (target) scrollHighlightIntoView(target);
+      }
+      lastSelId = selId;
+      knownIds = ids;
     }
 
     // Instant-load cache: snapshot the saved website config (not the per-page
