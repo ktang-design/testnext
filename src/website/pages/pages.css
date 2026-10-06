@@ -240,4 +240,3 @@
   border: 0; outline: none; padding: 12px 14px;
   font: inherit; color: var(--gray-800); white-space: pre; overflow: auto; tab-size: 2;
 }
-.navtree__kebab:disabled { opacity: 0.35; cursor: not-allowed; }

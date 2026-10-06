@@ -40,6 +40,7 @@
   // panel tabs (Styling / Image settings / Color) is showing.
   let selectedCardId = null;
   let cardsTab = 'styling';
+  let sectionTree = null;
   const contentById = {};   // pageId -> { sections: [...] }
 
   const uid = (prefix) =>
@@ -421,6 +422,7 @@
     selectedSectionId = null;
     selectedElementId = null;
     selectedCardId = null;
+    if (sectionTree) { sectionTree.destroy(); sectionTree = null; }
     renderAll();
   }
   function selectSection(id) { selectedSectionId = id; selectedElementId = null; selectedCardId = null; renderAll(); }
@@ -471,6 +473,11 @@
     secs.splice(i, 1);
     if (selectedSectionId === id) { selectedSectionId = null; selectedElementId = null; }
     afterContentChange();
+  }
+  function reorderSections(orderedIds) {
+    const map = Object.fromEntries(getSections().map((s) => [s.id, s]));
+    getContent().sections = orderedIds.map((id) => map[id]).filter(Boolean);
+    afterFieldEdit();
   }
   // Discrete move-up/move-down (Figma 5944:65546's toolbar) — swap with the
   // adjacent section; a no-op at either end.
@@ -1481,20 +1488,10 @@
     return k;
   }
 
-  function rowArrow(label, name, paths, enabled, onClick) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'navtree__kebab';
-    b.setAttribute('aria-label', `${label}: ${name}`);
-    b.appendChild(svg(paths, { stroke: 1.4 }));
-    if (!enabled) b.disabled = true;
-    b.addEventListener('click', (e) => { e.stopPropagation(); if (enabled) onClick(); });
-    return b;
-  }
-
   // ---- builder panel renders ----
   function renderBuilderPanel() {
     builderView.innerHTML = '';
+    if (sectionTree) { sectionTree.destroy(); sectionTree = null; }
     if (selectedElementId) renderElementSettings();
     else if (selectedSectionId) renderSectionSettings();
     else renderSectionList();
@@ -1511,30 +1508,15 @@
     const mount = document.createElement('div');
     mount.className = 'navpanel__tree';
     builderView.appendChild(mount);
-    // Plain list (no drag grip): each row carries move up / move down arrows.
-    const ul = document.createElement('ul');
-    ul.className = 'navtree';
-    ul.setAttribute('aria-label', 'Sections');
-    secs.forEach((sec, i) => {
-      const name = sec.title || 'Untitled section';
-      const li = document.createElement('li');
-      li.className = 'navtree__item';
-      const row = document.createElement('div');
-      row.className = 'navtree__row';
-      const content = document.createElement('div');
-      content.className = 'navtree__content';
-      content.appendChild(rowLabel(name, () => selectSection(sec.id)));
-      const actions = document.createElement('div');
-      actions.className = 'navtree__actions';
-      actions.appendChild(rowArrow('Move up', name, '<path d="M8 13V3M4 6.5 8 3l4 3.5"/>', i > 0, () => moveSectionUp(sec.id)));
-      actions.appendChild(rowArrow('Move down', name, '<path d="M8 3v10M4 9.5 8 13l4-3.5"/>', i < secs.length - 1, () => moveSectionDown(sec.id)));
-      actions.appendChild(rowKebab(sec.title, [{ label: 'Edit', onSelect: () => selectSection(sec.id) }, { label: 'Delete', danger: true, onSelect: () => deleteSection(sec.id) }]));
-      row.appendChild(content);
-      row.appendChild(actions);
-      li.appendChild(row);
-      ul.appendChild(li);
+    sectionTree = window.SortableTree.create(mount, {
+      items: secs.map((s) => ({ id: s.id, children: [] })),
+      maxDepth: 1,
+      ariaLabel: 'Sections',
+      labelOf: (it) => { const s = findSection(it.id); return (s && s.title) || 'Untitled section'; },
+      renderContent: (it) => { const s = findSection(it.id); return rowLabel((s && s.title) || 'Untitled section', () => selectSection(it.id)); },
+      renderTrailing: (it) => { const s = findSection(it.id); return rowKebab(s && s.title, [{ label: 'Edit', onSelect: () => selectSection(it.id) }, { label: 'Delete', danger: true, onSelect: () => deleteSection(it.id) }]); },
+      onChange: () => reorderSections(sectionTree.getItems().map((it) => it.id)),
     });
-    mount.appendChild(ul);
   }
 
   function renderSectionSettings() {
