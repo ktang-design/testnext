@@ -671,7 +671,7 @@
           if (String(element.code || '').trim()) {
             elt.appendChild(buildCodeFrame(element));
           } else {
-            elt.appendChild(el('div', 'wsprev__codeempty', 'Your code will appear in the preview of this block'));
+            elt.appendChild(el('div', 'wsprev__codeempty', 'Your code will appear in the block preview. Select the edit icon to make changes.'));
           }
         } else if (element.type === 'cards') {
           // A selected card owns the toolbar; the element's is stood down.
