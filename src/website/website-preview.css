@@ -335,7 +335,6 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
    toolbar and its outline so only the card is marked (Figma 5621:73631). */
 .wsprev__el.has-cardsel > .wsprev__toolbar { opacity: 0; visibility: hidden; }
 .wsprev__el.has-cardsel { outline: none; box-shadow: none; }
-.wsprev__el.has-cardsel > .wsprev__eltag { opacity: 0; visibility: hidden; }
 .wsprev__tbbtn {
   display: inline-flex; align-items: center; justify-content: center;
   width: 32px; height: 32px; border: 0; border-radius: 4px; background: none;
@@ -369,6 +368,8 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
   opacity: 0; visibility: hidden;
 }
 .wsprev__el.is-selected > .wsprev__eltag { opacity: 1; visibility: visible; }
+/* A selected card owns the highlight; the parent's tag steps aside. */
+.wsprev__el.is-selected.has-cardsel > .wsprev__eltag { opacity: 0; visibility: hidden; }
 
 /* "Card item" tag — same treatment as the element tag, shown on the selected card. */
 .wsprev__cardtag {
