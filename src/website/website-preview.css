@@ -307,25 +307,17 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
    in JS); keep them looking like links without inviting a click. */
 .wsprev__cards:not(.wsprev__cards--edit) .wsprev__carddesc a { cursor: default; }
 /* In the builder each card is wrapped so it becomes its own click target: blue
-   outline when picked, dashed hint on hover, and a grip/edit/trash toolbar. The
+   outline when picked, dashed hint on hover, and a move/edit/trash toolbar. The
    wrapper carries these so the card keeps clipping its image to the corners. */
 .wsprev__cardwrap { position: relative; cursor: pointer; border-radius: 4px; }
 .wsprev__cardwrap.is-selected { outline: 2px solid #3e75cf; outline-offset: 2px; }
 .wsprev__cardwrap:hover:not(.is-selected) { outline: 1px dashed #cdd6e6; outline-offset: 2px; }
 .wsprev__cardwrap.is-selected > .wsprev__toolbar { opacity: 1; visibility: visible; }
-.wsprev__cardwrap.is-dragging { opacity: 0.5; }
-.wsprev__cardwrap.is-dropbefore::before,
-.wsprev__cardwrap.is-dropend::after {
-  content: ""; position: absolute; left: 0; right: 0; height: 3px;
-  background: #3e75cf; border-radius: 2px;
-}
-.wsprev__cardwrap.is-dropbefore::before { top: -18px; }
-.wsprev__cardwrap.is-dropend::after { bottom: -18px; }
 
 /* Floating toolbar (Figma component 83:5303 / mockup 666:12297) — horizontally
    centered and straddling the TOP edge of the block; shown only on the selected
    section/element. White, r4, 8px padding/gap; a section/element's buttons are
-   move-up/move-down/(edit)/trash — a card's toolbar still has a grip (below). */
+   move-up/move-down/(edit)/trash, and a card's toolbar is the same. */
 .wsprev__toolbar {
   position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); z-index: 3;
   display: inline-flex; align-items: center; gap: 8px;
@@ -343,13 +335,11 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
    toolbar and its outline so only the card is marked (Figma 5621:73631). */
 .wsprev__el.has-cardsel > .wsprev__toolbar { opacity: 0; visibility: hidden; }
 .wsprev__el.has-cardsel { outline: none; }
-.wsprev__tbgrip,
 .wsprev__tbbtn {
   display: inline-flex; align-items: center; justify-content: center;
   width: 32px; height: 32px; border: 0; border-radius: 4px; background: none;
   color: #55585d; cursor: pointer;
 }
-.wsprev__tbgrip { cursor: grab; }
 .wsprev__tbbtn:hover { background: var(--gray-100, #f5f5f5); }
 .wsprev__tbbtn svg { fill: none; }
 /* A move-up/move-down button disables at the first/last section (Figma

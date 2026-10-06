@@ -236,8 +236,7 @@
   // replaced.
   const CARD_RADIUS_PX = { none: 0, small: 6, medium: 12, large: 20 };
   // `ctx` is present only in the builder: { selectedCardId, toolbar, onSelect,
-  // onEdit, onDelete, onReorder } makes each card selectable, editable and
-  // draggable. Without it the cards render as a published grid.
+  // onEdit, onDelete } makes each card selectable and editable. Without it the cards render as a published grid.
   function buildCardsGrid(element, ctx) {
     const grid = el('div', 'wsprev__cards' + (ctx ? ' wsprev__cards--edit' : ''));
     const cards = element.cards || [];
@@ -266,7 +265,7 @@
         slot.dataset.cardId = c.id;
         if (c.id === ctx.selectedCardId) slot.classList.add('is-selected');
         slot.addEventListener('click', (e) => { e.stopPropagation(); ctx.onSelect(c.id); });
-        slot.appendChild(ctx.toolbar(c.id, slot, cards.length > 1));
+        slot.appendChild(ctx.toolbar(c.id, cards.indexOf(c), cards.length));
         slot.appendChild(card);
       }
       const imgBox = el('div', 'wsprev__cardimg' + (icon ? ' wsprev__cardimg--icon' : ''));
@@ -513,31 +512,12 @@
       b.addEventListener('click', (e) => { e.stopPropagation(); if (!disabled) onClick(); });
       return b;
     }
-    const GRIP = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><circle cx="5.5" cy="3" r="1.3"/><circle cx="10.5" cy="3" r="1.3"/><circle cx="5.5" cy="8" r="1.3"/><circle cx="10.5" cy="8" r="1.3"/><circle cx="5.5" cy="13" r="1.3"/><circle cx="10.5" cy="13" r="1.3"/></svg>';
     const PENCIL = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M10.8 2.6 13.4 5.2 5.4 13.2H2.8v-2.6z"/></svg>';
     const TRASH = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5h10M6 4.5V3h4v1.5M4.8 4.5 5.4 13h5.2l.6-8.5"/></svg>';
     const PLUSC = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6.4"/><path d="M8 5v6M5 8h6"/></svg>';
     const ARROW_UP = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V3M4 6.5 8 3l4 3.5"/></svg>';
     const ARROW_DOWN = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M4 9.5 8 13l4-3.5"/></svg>';
 
-    // `onEdit` may be null — a cards element has no single-content modal, so its
-    // toolbar is grip + trash only (Figma 5624:73770).
-    // `showGrip` is false when there is nothing to reorder (a lone element in a
-    // single-column section).
-    function blockToolbar(onEdit, onDelete, showGrip) {
-      const tb = el('div', 'wsprev__toolbar');
-      if (showGrip !== false) {
-        const grip = el('span', 'wsprev__tbgrip');
-        grip.innerHTML = GRIP;
-        // Native title here (not the styled tooltip): the preview is drawn inside a
-        // scaled canvas, where an absolutely-positioned bubble would scale/clip.
-        grip.title = 'Click to drag and reorder';
-        tb.appendChild(grip);
-      }
-      if (onEdit) tb.appendChild(iconBtn('wsprev__tbbtn', 'Edit', PENCIL, onEdit));
-      tb.appendChild(iconBtn('wsprev__tbbtn', 'Delete', TRASH, onDelete));
-      return tb;
-    }
     // A selected section's own toolbar: move up / move down / trash (Figma
     // 5944:65546).
     function sectionToolbar(onMoveUp, onMoveDown, onDelete, canMoveUp, canMoveDown) {
@@ -558,69 +538,14 @@
       tb.appendChild(iconBtn('wsprev__tbbtn', 'Delete', TRASH, onDelete));
       return tb;
     }
-    // A single card's toolbar: grip + edit + trash (Figma 5621:73657). The grip
-    // arms dragging on the card's wrapper, so cards reorder like elements do.
-    function cardToolbar(onEdit, onDelete, wrapper, canReorder) {
+    // A single card's toolbar: move up / move down / edit / trash.
+    function cardToolbar(onMoveUp, onMoveDown, onEdit, onDelete, canMoveUp, canMoveDown) {
       const tb = el('div', 'wsprev__toolbar wsprev__toolbar--card');
-      if (canReorder) {
-        const grip = el('span', 'wsprev__tbgrip');
-        grip.innerHTML = GRIP;
-        grip.title = 'Click to drag and reorder';
-        grip.addEventListener('mousedown', () => { wrapper.draggable = true; });
-        grip.addEventListener('mouseup', () => { wrapper.draggable = false; });
-        tb.appendChild(grip);
-      }
+      tb.appendChild(iconBtn('wsprev__tbbtn', 'Move card up', ARROW_UP, onMoveUp, !canMoveUp));
+      tb.appendChild(iconBtn('wsprev__tbbtn', 'Move card down', ARROW_DOWN, onMoveDown, !canMoveDown));
       tb.appendChild(iconBtn('wsprev__tbbtn', 'Edit card', PENCIL, onEdit));
       tb.appendChild(iconBtn('wsprev__tbbtn', 'Delete card', TRASH, onDelete));
       return tb;
-    }
-    // Drag-reorder cards inside one cards grid. Mirrors the element drag: the
-    // grip arms `draggable`, and the drop lands before whichever card the
-    // pointer is in the top half of.
-    function wireCardDrag(grid, onReorder) {
-      let dragId = null;
-      const wraps = () => Array.from(grid.querySelectorAll('.wsprev__cardwrap'));
-      const clearMarks = () => wraps().forEach((w) => w.classList.remove('is-dropbefore', 'is-dropend'));
-      const cardBefore = (x, y) => wraps().find((w) => {
-        if (w.dataset.cardId === dragId) return false;
-        const r = w.getBoundingClientRect();
-        // Stacked in the builder, so compare vertically; fall back to x when the
-        // pointer is level with the card (a side-by-side row).
-        return y < r.top + r.height / 2 || (y <= r.bottom && x < r.left + r.width / 2);
-      }) || null;
-      wraps().forEach((w) => {
-        w.addEventListener('dragstart', (e) => {
-          if (!w.draggable) return;
-          e.stopPropagation();
-          dragId = w.dataset.cardId;
-          if (e.dataTransfer) {
-            e.dataTransfer.effectAllowed = 'move';
-            try { e.dataTransfer.setData('text/plain', dragId); } catch (_) {}
-          }
-          w.classList.add('is-dragging');
-        });
-        w.addEventListener('dragend', () => {
-          dragId = null; w.draggable = false; w.classList.remove('is-dragging'); clearMarks();
-        });
-      });
-      grid.addEventListener('dragover', (e) => {
-        if (dragId == null) return;
-        e.preventDefault();
-        e.stopPropagation();
-        clearMarks();
-        const before = cardBefore(e.clientX, e.clientY);
-        if (before) before.classList.add('is-dropbefore');
-        else { const all = wraps(); if (all.length) all[all.length - 1].classList.add('is-dropend'); }
-      });
-      grid.addEventListener('drop', (e) => {
-        if (dragId == null) return;
-        e.preventDefault();
-        e.stopPropagation();
-        const before = cardBefore(e.clientX, e.clientY);
-        const id = dragId;
-        clearMarks();
-        onReorder(id, before ? before.dataset.cardId : null);
-      });
     }
     function cta(label, onClick) {
       // The whole call-to-action is a single button (full touch area).
@@ -678,18 +603,15 @@
           if ((element.cards || []).some((c) => c.id === blr.selectedCardId)) elt.classList.add('has-cardsel');
           const gridNode = buildCardsGrid(element, {
             selectedCardId: blr.selectedCardId,
-            // canReorder comes from the grid (false for a lone card) and must be
-            // forwarded — dropping it here left every card without a grip.
-            toolbar: (cardId, wrapper, canReorder) => cardToolbar(
+            toolbar: (cardId, index, count) => cardToolbar(
+              () => cb.onMoveCardUp && cb.onMoveCardUp(section.id, element.id, cardId),
+              () => cb.onMoveCardDown && cb.onMoveCardDown(section.id, element.id, cardId),
               () => cb.onEditCard && cb.onEditCard(section.id, element.id, cardId),
               () => cb.onDeleteCard && cb.onDeleteCard(section.id, element.id, cardId),
-              wrapper,
-              canReorder
+              index > 0,
+              index < count - 1
             ),
             onSelect: (cardId) => cb.onSelectCard && cb.onSelectCard(section.id, element.id, cardId),
-          });
-          wireCardDrag(gridNode, (draggedId, beforeId) => {
-            cb.onReorderCard && cb.onReorderCard(section.id, element.id, draggedId, beforeId);
           });
           applyCardsStyle(elt, gridNode, element.style);
           elt.appendChild(gridNode);
