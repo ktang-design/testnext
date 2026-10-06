@@ -1,0 +1,161 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R 6 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 2030 >>
+stream
+BT /F1 8 Tf 10 TL 40 750 Td
+/F1 11 Tf (Embed code: Become a library member) Tj T*
+/F1 8 Tf T*
+(<div style=") Tj T*
+(  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-ser) Tj T*
+(if;) Tj T*
+(  width: 100%;) Tj T*
+(  min-height: 280px;) Tj T*
+(  position: relative;) Tj T*
+(  overflow: hidden;) Tj T*
+(  box-sizing: border-box;) Tj T*
+(  background-image:) Tj T*
+(    linear-gradient\(rgba\(0, 0, 0, 0.58\), rgba\(0, 0, 0, 0.58\)\),) Tj T*
+(    url\('https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w) Tj T*
+(=1600&q=80'\);) Tj T*
+(  background-size: cover;) Tj T*
+(  background-position: center;) Tj T*
+(  color: #ffffff;) Tj T*
+(">) Tj T*
+() Tj T*
+(  <div style=") Tj T*
+(    position: relative;) Tj T*
+(    z-index: 1;) Tj T*
+(    display: flex;) Tj T*
+(    align-items: center;) Tj T*
+(    justify-content: space-between;) Tj T*
+(    gap: 48px;) Tj T*
+(    width: 100%;) Tj T*
+(    min-height: 280px;) Tj T*
+(    padding: 40px;) Tj T*
+(    box-sizing: border-box;) Tj T*
+(  ">) Tj T*
+() Tj T*
+(    <!-- Content -->) Tj T*
+(    <div style=") Tj T*
+(      flex: 1 1 auto;) Tj T*
+(      max-width: 680px;) Tj T*
+(    ">) Tj T*
+(      <h2 style=") Tj T*
+(        margin: 0 0 8px;) Tj T*
+(        font-size: 24px;) Tj T*
+(        line-height: 1.3;) Tj T*
+(        font-weight: 600;) Tj T*
+(        letter-spacing: -0.01em;) Tj T*
+(        color: #ffffff;) Tj T*
+(      ">) Tj T*
+(        Become a library member) Tj T*
+(      </h2>) Tj T*
+() Tj T*
+(      <p style=") Tj T*
+(        margin: 0;) Tj T*
+(        font-size: 16px;) Tj T*
+(        line-height: 1.5;) Tj T*
+(        color: #ffffff;) Tj T*
+(        max-width: 620px;) Tj T*
+(      ">) Tj T*
+(        Join and get access to books, digital resources,) Tj T*
+(        programs, and more. Give us a call and we'll help you get started.) Tj T*
+(      </p>) Tj T*
+(    </div>) Tj T*
+() Tj T*
+(    <!-- Actions -->) Tj T*
+(    <div style=") Tj T*
+(      display: flex;) Tj T*
+(      flex: 0 0 auto;) Tj T*
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 1570 >>
+stream
+BT /F1 8 Tf 10 TL 40 750 Td
+(      flex-wrap: wrap;) Tj T*
+(      gap: 12px;) Tj T*
+(      align-items: center;) Tj T*
+(      justify-content: flex-end;) Tj T*
+(    ">) Tj T*
+() Tj T*
+(      <a) Tj T*
+(        href="#") Tj T*
+(        style=") Tj T*
+(          display: inline-flex;) Tj T*
+(          align-items: center;) Tj T*
+(          justify-content: center;) Tj T*
+(          min-height: 44px;) Tj T*
+(          padding: 0 18px;) Tj T*
+(          border: 1px solid #ffffff;) Tj T*
+(          background: transparent;) Tj T*
+(          color: #ffffff;) Tj T*
+(          font-size: 15px;) Tj T*
+(          font-weight: 600;) Tj T*
+(          line-height: 1;) Tj T*
+(          text-decoration: none;) Tj T*
+(          box-sizing: border-box;) Tj T*
+(        ") Tj T*
+(      >) Tj T*
+(        Learn more) Tj T*
+(      </a>) Tj T*
+() Tj T*
+(      <a) Tj T*
+(        href="tel:+10000000000") Tj T*
+(        style=") Tj T*
+(          display: inline-flex;) Tj T*
+(          align-items: center;) Tj T*
+(          justify-content: center;) Tj T*
+(          min-height: 44px;) Tj T*
+(          padding: 0 18px;) Tj T*
+(          border: 1px solid #ffffff;) Tj T*
+(          background: #ffffff;) Tj T*
+(          color: #1a1a1a;) Tj T*
+(          font-size: 15px;) Tj T*
+(          font-weight: 600;) Tj T*
+(          line-height: 1;) Tj T*
+(          text-decoration: none;) Tj T*
+(          box-sizing: border-box;) Tj T*
+(        ") Tj T*
+(      >) Tj T*
+(        Call us) Tj T*
+(      </a>) Tj T*
+() Tj T*
+(    </div>) Tj T*
+() Tj T*
+(  </div>) Tj T*
+(</div>) Tj T*
+ET
+endstream
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000216 00000 n 
+0000000342 00000 n 
+0000002424 00000 n 
+0000002550 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+4172
+%%EOF
