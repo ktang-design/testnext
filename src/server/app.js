@@ -85,7 +85,9 @@ const PROTECTED_SECTIONS = new Set([
 // stay public, same as every other section's CSS/JS — so this can't join
 // PROTECTED_SECTIONS above, whose entries are also used as startsWith("base/")
 // prefixes to cover state carried deeper in a URL (see isProtectedPath).
-const PROTECTED_EXACT = new Set(['/website']);
+// /document.pdf is signed-in only (any role); it is a standalone file, so it
+// is an exact match too.
+const PROTECTED_EXACT = new Set(['/website', '/document.pdf']);
 
 function sectionOf(reqPath) {
   // Normalize "/branding", "/branding/", "/branding/index.html" -> "/branding"
@@ -134,6 +136,8 @@ app.use(express.static(SRC_DIR, {
     // chrome (e.g. an old side-nav order) when navigating between pages. CSS/JS/
     // images keep their default caching.
     if (filePath.endsWith('.html')) res.setHeader('Cache-Control', 'no-store, must-revalidate');
+    // The signed-in-only PDF must never be cached by a shared proxy/edge.
+    if (filePath.endsWith('document.pdf')) res.setHeader('Cache-Control', 'private, no-store');
   },
 }));
 
