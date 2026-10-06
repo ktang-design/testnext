@@ -429,8 +429,8 @@
   function selectElement(secId, elId) {
     // Moving to a different element resets its panel to the first tab. Clicking
     // the element ALWAYS clears the card selection — including when a card in
-    // this element was selected — so the element's own toolbar (and its reorder
-    // grip) comes back and the element can be moved within its section.
+    // this element was selected — so the element's own toolbar (with its move
+    // arrows) comes back and the element can be moved within its section.
     if (elId !== selectedElementId) cardsTab = 'styling';
     selectedSectionId = secId; selectedElementId = elId; selectedCardId = null;
     renderAll();
@@ -1187,18 +1187,15 @@
     selectedCardId = c.id;
     afterContentChange();
   }
-  // Drag-reorder within a cards element: drop `draggedId` before `beforeId`, or
-  // at the end when beforeId is null (mirrors moveElement).
-  function moveCard(secId, elId, draggedId, beforeId) {
+  // Move-up/move-down within a cards element; a no-op at either end.
+  function moveCardBy(secId, elId, cardId, delta) {
     const elc = findElement(secId, elId);
-    if (!elc || draggedId === beforeId) return;
+    if (!elc) return;
     const cards = elc.cards || [];
-    const from = cards.findIndex((c) => c.id === draggedId);
-    if (from === -1) return;
-    const [moved] = cards.splice(from, 1);
-    const at = beforeId ? cards.findIndex((c) => c.id === beforeId) : -1;
-    if (at === -1) cards.push(moved);
-    else cards.splice(at, 0, moved);
+    const i = cards.findIndex((c) => c.id === cardId);
+    const j = i + delta;
+    if (i === -1 || j < 0 || j >= cards.length) return;
+    [cards[i], cards[j]] = [cards[j], cards[i]];
     afterContentChange();
   }
   async function deleteCard(secId, elId, cardId) {
@@ -1678,7 +1675,8 @@
         onSelectCard: (sid, elId, cardId) => selectCard(sid, elId, cardId),
         onEditCard: (sid, elId, cardId) => openCardModal(sid, elId, cardId),
         onDeleteCard: (sid, elId, cardId) => deleteCard(sid, elId, cardId),
-        onReorderCard: (sid, elId, draggedId, beforeId) => moveCard(sid, elId, draggedId, beforeId),
+        onMoveCardUp: (sid, elId, cardId) => moveCardBy(sid, elId, cardId, -1),
+        onMoveCardDown: (sid, elId, cardId) => moveCardBy(sid, elId, cardId, 1),
       },
     });
   }
