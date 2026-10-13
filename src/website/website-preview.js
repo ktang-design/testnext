@@ -358,7 +358,7 @@
     if (r >= 2) { def = 320; max = 400; }
     else if (r >= 1) { def = 120; max = 200; }
     else { def = Math.round(120 * r); max = Math.round(200 * r); }
-    if (defOverride > 0) def = Math.min(max, Math.round(defOverride)); // account default (e.g. Guest access: 64)
+    if (defOverride > 0) def = Math.min(max, Math.round(defOverride)); // account default (e.g. Research participant: 64)
     return {
       def, max,
       clamp(v) {

@@ -196,7 +196,7 @@
   }
   // Logo width (px). Bounds depend on the logo's aspect ratio — see
   // WebsitePreview.logoSizing. Aspect ratio is always preserved (width only).
-  let defaultLogoWidth = null; // account-specific default from the server (e.g. Guest access: 64)
+  let defaultLogoWidth = null; // account-specific default from the server (e.g. Research participant: 64)
   let sizingFor = null; // logo data URL the current sizing was measured for
   let sizing = null;
   function renderWidth() {
