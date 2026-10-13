@@ -38,12 +38,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
+  <link rel="preload" as="image" href="/login/app-logo.png" />
   <link rel="stylesheet" href="login.css" />
 </head>
 <body>
   <main class="auth">
     <form class="auth-card" id="login-form" novalidate>
-      <img class="auth-card__logo" src="../site-details/assets/app-logo.png" alt="Stratum" width="48" height="48" />
+      <img class="auth-card__logo" src="/login/app-logo.png" alt="Stratum" width="48" height="48" fetchpriority="high" />
       <h1 class="auth-card__title">Sign in</h1>
 
       <!-- Form-level error (invalid credentials, locked, server/network) -->
