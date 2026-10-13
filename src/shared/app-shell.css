@@ -611,3 +611,7 @@ select.modal__control {
   to { background-position: 0 50%; }
 }
 @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
+
+/* Research participants: policy items shown as plain text, not links. */
+.sysfooter__link--static { text-decoration: none; cursor: default; }
+.sysfooter__link--static:hover { color: var(--gray-700, #3d3f42); }

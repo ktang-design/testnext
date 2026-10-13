@@ -430,34 +430,60 @@
   }
 
   // ---- System footer ----
-  // Sits at the very bottom of the page, reached by scrolling to the end.
-  const content = document.querySelector('.content');
-  if (content && content.querySelector('.pageactions') && !document.querySelector('.sysfooter')) {
+  // Research participants (incl. Guest access) get a reduced footer: no EBSCO
+  // Connect link, the policy items are plain text (not clickable), and the
+  // copyright line reads "Stratum Library. All rights reserved." Re-applied once
+  // the role is known (see the 'sn.role' cache / /api/auth/me below).
+  let sysFooterParts = null;
+  function applySysFooterRole(role) {
+    if (!sysFooterParts) return;
+    const research = role === 'Research participant';
     const LINKS = [
       ['EBSCO Connect', 'https://connect.ebsco.com'],
       ['Privacy Policy', 'https://www.ebsco.com/company/privacy-policy'],
       ['Terms of use', 'https://www.ebsco.com/terms-of-use'],
       ['Copyright', 'https://www.ebsco.com/terms-of-use'],
-    ];
+    ].filter(([label]) => !(research && label === 'EBSCO Connect'));
+    const { links, copy } = sysFooterParts;
+    links.textContent = '';
+    LINKS.forEach(([label, href]) => {
+      const a = document.createElement(research ? 'span' : 'a');
+      a.className = research ? 'sysfooter__link sysfooter__link--static' : 'sysfooter__link';
+      if (!research) { a.href = href; a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+      a.textContent = label;
+      links.appendChild(a);
+    });
+    copy.textContent = research
+      ? 'Stratum Library. All rights reserved.'
+      : `Software © ${new Date().getFullYear()} EBSCO Industries, LLC. All rights reserved`;
+  }
+  // Sits at the very bottom of the page, reached by scrolling to the end.
+  const content = document.querySelector('.content');
+  if (content && content.querySelector('.pageactions') && !document.querySelector('.sysfooter')) {
     const footer = document.createElement('footer');
     footer.className = 'sysfooter';
     const links = document.createElement('nav');
     links.className = 'sysfooter__links';
     links.setAttribute('aria-label', 'System');
-    LINKS.forEach(([label, href]) => {
-      const a = document.createElement('a');
-      a.className = 'sysfooter__link';
-      a.href = href;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      a.textContent = label;
-      links.appendChild(a);
-    });
     footer.appendChild(links);
     const copy = document.createElement('p');
     copy.className = 'sysfooter__copy';
-    copy.textContent = `Software © ${new Date().getFullYear()} EBSCO Industries, LLC. All rights reserved`;
     footer.appendChild(copy);
+    sysFooterParts = { links, copy };
+    // Role comes from the same 'sn.role' cache as the nav (so there's no flash of
+    // the full footer), then is confirmed against the server.
+    let footerRole = null;
+    try { footerRole = localStorage.getItem('sn.role'); } catch (_) { /* storage unavailable */ }
+    applySysFooterRole(footerRole);
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        const role = data && data.user && data.user.role;
+        if (!role) return;
+        try { localStorage.setItem('sn.role', role); } catch (_) { /* storage unavailable */ }
+        applySysFooterRole(role);
+      })
+      .catch(() => { /* offline: keep the cached/default footer */ });
     // On the Website builder the tool (.layout) is a viewport-height block pinned
     // under the system message; the footer goes in the page flow just below it, so
     // the panel + preview stay fixed during normal scrolling and the footer is
