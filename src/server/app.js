@@ -86,8 +86,8 @@ const PROTECTED_SECTIONS = new Set([
 // PROTECTED_SECTIONS above, whose entries are also used as startsWith("base/")
 // prefixes to cover state carried deeper in a URL (see isProtectedPath).
 // /document.pdf is signed-in only (any role); it is a standalone file, so it
-// is an exact match too.
-const PROTECTED_EXACT = new Set(['/website', '/document.pdf']);
+// is an exact match too. /embed-code-example is signed-in only (any role) as well.
+const PROTECTED_EXACT = new Set(['/website', '/document.pdf', '/embed-code-example']);
 
 function sectionOf(reqPath) {
   // Normalize "/branding", "/branding/", "/branding/index.html" -> "/branding"
