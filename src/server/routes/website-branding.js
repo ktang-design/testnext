@@ -67,7 +67,7 @@ router.get('/', requireApiAuth, ah(async (req, res) => {
   // The logo falls back to the live Platform-derived default whenever the
   // saved doc has none — this self-heals accounts saved before the two pages'
   // logos were kept in sync, rather than staying permanently blank.
-  const merge = (saved) => (saved ? { ...defaults, ...saved, logo: saved.logo || defaults.logo } : null);
+  const merge = (saved) => (saved ? { ...defaults, ...saved, logo: saved.logo || (saved.logoRemoved ? null : defaults.logo) } : null);
   res.json({ defaults, draft: merge(draft), published: merge(published) });
 }));
 
@@ -77,6 +77,12 @@ router.put('/', requireApiAuth, ah(async (req, res) => {
     return res.status(400).json({ error: 'INVALID_LOGO', message: 'Logo must be an image within 3 MB.' });
   }
   const config = { logo: b.logo || null };
+  // An explicit removal (saving no logo while Platform still has one) must stick:
+  // otherwise the read-side fallback to the Platform logo would bring it back.
+  if (!config.logo) {
+    const p = (await brandingRepository.get(req.session.userId)) || {};
+    if (isImageDataUrl(p.logo)) config.logoRemoved = true;
+  }
   // Logo width in px (page-builder preview only). Hard ceiling 400 = the widest
   // any logo may be; the per-ratio maximum is enforced client-side.
   const lw = Math.round(Number(b.logoWidth));
