@@ -352,12 +352,13 @@
   // 2:1 or wider: 320px default, 400px max width. Everything else (square,
   // near-square, portrait): 120px default, 200px max on the longest side —
   // expressed as a width, so a portrait logo's width is scaled by its ratio.
-  function logoSizing(ratio) {
+  function logoSizing(ratio, defOverride) {
     const r = ratio > 0 ? ratio : 1;
     let def, max;
     if (r >= 2) { def = 320; max = 400; }
     else if (r >= 1) { def = 120; max = 200; }
     else { def = Math.round(120 * r); max = Math.round(200 * r); }
+    if (defOverride > 0) def = Math.min(max, Math.round(defOverride)); // account default (e.g. Guest access: 64)
     return {
       def, max,
       clamp(v) {

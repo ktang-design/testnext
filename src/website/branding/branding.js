@@ -196,6 +196,7 @@
   }
   // Logo width (px). Bounds depend on the logo's aspect ratio — see
   // WebsitePreview.logoSizing. Aspect ratio is always preserved (width only).
+  let defaultLogoWidth = null; // account-specific default from the server (e.g. Guest access: 64)
   let sizingFor = null; // logo data URL the current sizing was measured for
   let sizing = null;
   function renderWidth() {
@@ -210,7 +211,7 @@
     if (sizingFor === config.logo && sizing) { paint(); return; }
     const img = new Image();
     img.onload = () => {
-      sizing = window.WebsitePreview.logoSizing(img.naturalWidth / img.naturalHeight);
+      sizing = window.WebsitePreview.logoSizing(img.naturalWidth / img.naturalHeight, defaultLogoWidth);
       sizingFor = config.logo;
       paint();
       if (config.logoWidth && sizing.clamp(config.logoWidth) !== config.logoWidth) { config.logoWidth = sizing.clamp(config.logoWidth); render(); }
@@ -358,6 +359,7 @@
   fetch('/api/website/branding', { credentials: 'include' })
     .then((r) => (r.ok ? r.json() : Promise.reject()))
     .then((data) => {
+      defaultLogoWidth = (data.defaults && data.defaults.logoWidth) || null;
       const draft = clone(data.draft || data.saved || data.defaults);
       const published = clone(data.published || draft);
       publishedConfig = { ...clone(colorDefaults), ...published };
