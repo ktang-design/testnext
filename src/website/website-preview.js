@@ -429,6 +429,8 @@
     let lastHighlight;
     let lastSelId = null; // selected section/element id on the previous render
     let lastFlashN = 0;   // last section/element add already flashed + scrolled to
+    let flashStart = 0;   // when that flash began (performance.now())
+    const FLASH_MS = 1800;
     let knownIds = null; // section/element ids from the previous render
 
     // Scroll the highlighted element (the section the current panel edits) fully
@@ -1162,21 +1164,29 @@
       // the user had panned/zoomed) and briefly flash the control that matters:
       // the new section's "Add element" button, or the new element's toolbar.
       const fl = state.builder && state.builder.flash;
-      if (fl && fl.n !== lastFlashN) {
-        lastFlashN = fl.n;
+      if (fl) {
         const q = (id) => root.querySelector('[data-id="' + String(id).replace(/"/g, '\\"') + '"]');
         const block = q(fl.id);
+        const isNew = fl.n !== lastFlashN;
+        if (isNew) { lastFlashN = fl.n; flashStart = performance.now(); }
         if (block) {
-          const mark = fl.kind === 'section'
-            ? block.querySelector('.wsprev__cta')
-            : block.querySelector(':scope > .wsprev__toolbar');
-          if (mark) {
-            mark.classList.add('is-flash');
-            setTimeout(() => mark.classList.remove('is-flash'), 1800);
+          // render() rebuilds the DOM on every update, so the glow is re-applied
+          // to the fresh node (resuming mid-animation) until it has finished.
+          const elapsed = performance.now() - flashStart;
+          if (elapsed < FLASH_MS) {
+            const mark = fl.kind === 'section'
+              ? block.querySelector('.wsprev__cta')
+              : block.querySelector(':scope > .wsprev__toolbar');
+            if (mark) {
+              mark.style.animationDelay = '-' + Math.round(elapsed) + 'ms';
+              mark.classList.add('is-flash');
+            }
           }
-          scrollHighlightIntoView(block);
-          // Images/embeds above can still be settling; align once more.
-          setTimeout(() => { if (block.isConnected) scrollHighlightIntoView(block); }, 250);
+          if (isNew) {
+            scrollHighlightIntoView(block);
+            // Images/embeds above can still be settling; align once more.
+            setTimeout(() => { if (block.isConnected) scrollHighlightIntoView(block); }, 250);
+          }
         }
       }
     }
