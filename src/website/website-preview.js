@@ -511,10 +511,14 @@
     }
 
     function effectiveLogo() {
-      return (state.branding && state.branding.logo) || state.platformLogo || DEFAULT_LOGO;
+      // No logo (e.g. the user removed it) means none is shown — no default
+      // fallback; the site name stands alone. Website branding already inherits
+      // the Platform logo, so Platform is only consulted before it has loaded.
+      return state.branding ? (state.branding.logo || null) : (state.platformLogo || null);
     }
     function logoImg() {
       const src = effectiveLogo();
+      if (!src) return null;
       const img = el('img', 'wsprev__logoimg');
       img.alt = '';
       img.src = src;
@@ -966,9 +970,11 @@
 
       const hLogo = el(live && homepage ? 'a' : 'span', 'wsprev__logo');
       if (live && homepage) { hLogo.href = '#'; hLogo.addEventListener('click', (e) => { e.preventDefault(); goTo(homepage.id); }); }
-      hLogo.appendChild(logoImg());
+      const hLogoImg = logoImg();
+      if (hLogoImg) hLogo.appendChild(hLogoImg);
       // Branding "Show site name beside logo" → the site name sits beside the logo.
-      if (state.showSiteName && state.siteName) {
+      // With no logo, the site name is all that's shown.
+      if (state.siteName && (state.showSiteName || !hLogoImg)) {
         const name = el('span', 'wsprev__sitename', state.siteName);
         name.style.color = textColor(h.siteName, rgba(HEADER_D.siteName));
         hLogo.appendChild(name);
@@ -1089,7 +1095,8 @@
       const fOptions = el('div', 'wsprev__foptions');
       if (f.showLogo) {
         const fLogo = el('span', 'wsprev__flogo');
-        fLogo.appendChild(logoImg());
+        const fImg = logoImg();
+        if (fImg) fLogo.appendChild(fImg);
         fOptions.appendChild(fLogo);
       }
       const fLabels = [];
