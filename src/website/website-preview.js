@@ -349,6 +349,26 @@
     padForStyle(elt, padded);
   }
 
+  // Logo width rules, from the logo's aspect ratio (width / height). Ratios of
+  // 2:1 or wider: 320px default, 400px max width. Everything else (square,
+  // near-square, portrait): 120px default, 200px max on the longest side —
+  // expressed as a width, so a portrait logo's width is scaled by its ratio.
+  function logoSizing(ratio) {
+    const r = ratio > 0 ? ratio : 1;
+    let def, max;
+    if (r >= 2) { def = 320; max = 400; }
+    else if (r >= 1) { def = 120; max = 200; }
+    else { def = Math.round(120 * r); max = Math.round(200 * r); }
+    return {
+      def, max,
+      clamp(v) {
+        const n = Math.round(Number(v));
+        if (!Number.isFinite(n) || n < 1) return def;
+        return Math.min(max, n);
+      },
+    };
+  }
+
   function create(container, opts) {
     const state = {
       // Which preview element to mark with the teal highlight (matches the section
@@ -498,7 +518,19 @@
       const img = el('img', 'wsprev__logoimg');
       img.alt = '';
       img.src = src;
-      if (src.startsWith('data:')) img.classList.add('wsprev__logoimg--custom');
+      if (src.startsWith('data:')) {
+        img.classList.add('wsprev__logoimg--custom');
+        // Aspect ratio is preserved: only the width is set, height follows.
+        // Never wider than the area it sits in.
+        const apply = () => {
+          if (!img.naturalWidth || !img.naturalHeight) return;
+          const w = logoSizing(img.naturalWidth / img.naturalHeight).clamp(state.branding && state.branding.logoWidth);
+          img.style.width = w + 'px';
+          img.style.height = 'auto';
+          img.style.maxWidth = '100%';
+        };
+        if (img.complete) apply(); else img.addEventListener('load', apply);
+      }
       return img;
     }
 
@@ -1213,5 +1245,5 @@
     };
   }
 
-  window.WebsitePreview = { create };
+  window.WebsitePreview = { create, logoSizing };
 })();

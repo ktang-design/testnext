@@ -25,3 +25,14 @@
 /* Brand colours */
 .wb-colors__heading { display: block; margin: 24px 0 8px; }
 .wb-colors { margin-top: 0; }
+
+/* Logo width (number field + px unit) */
+.wb-width { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.wb-width__input {
+  width: 96px; padding: 9px 12px;
+  font: 400 14px/21px var(--font); color: var(--gray-700);
+  background: #fff; border: 1px solid var(--gray-200); border-radius: 4px;
+}
+.wb-width__input:focus-visible { outline: none; border-color: var(--blue-500); box-shadow: 0 0 0 2px var(--blue-50); }
+.wb-width__unit { font-size: 14px; color: var(--gray-500); }
+#logo-width-help { margin: 6px 0 0; }

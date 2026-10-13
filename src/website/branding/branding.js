@@ -17,6 +17,9 @@
   const logoRemove = $('[data-logo-remove]');
   const logoInput = $('[data-logo-input]');
   const logoError = $('[data-logo-error]');
+  const widthField = $('[data-logo-width-field]');
+  const widthInput = $('[data-logo-width]');
+  const widthHelp = $('[data-logo-width-help]');
 
   const AUTO_SAVE_DELAY = 2000; // ms of idle time after the last edit before auto-saving
 
@@ -191,7 +194,45 @@
     img.onerror = () => cb(false);
     img.src = dataUrl;
   }
+  // Logo width (px). Bounds depend on the logo's aspect ratio — see
+  // WebsitePreview.logoSizing. Aspect ratio is always preserved (width only).
+  let sizingFor = null; // logo data URL the current sizing was measured for
+  let sizing = null;
+  function renderWidth() {
+    if (!config.logo) { hide(widthField); return; }
+    const paint = () => {
+      show(widthField);
+      widthInput.max = sizing.max;
+      widthInput.placeholder = String(sizing.def);
+      if (document.activeElement !== widthInput) widthInput.value = sizing.clamp(config.logoWidth);
+      widthHelp.textContent = 'Default ' + sizing.def + 'px. Maximum ' + sizing.max + 'px. Height adjusts to keep the logo’s proportions.';
+    };
+    if (sizingFor === config.logo && sizing) { paint(); return; }
+    const img = new Image();
+    img.onload = () => {
+      sizing = window.WebsitePreview.logoSizing(img.naturalWidth / img.naturalHeight);
+      sizingFor = config.logo;
+      paint();
+      if (config.logoWidth && sizing.clamp(config.logoWidth) !== config.logoWidth) { config.logoWidth = sizing.clamp(config.logoWidth); render(); }
+    };
+    img.src = config.logo;
+  }
+  widthInput.addEventListener('input', () => {
+    if (!sizing) return;
+    const raw = widthInput.value.trim();
+    if (raw === '') { delete config.logoWidth; }
+    else {
+      const n = Math.round(Number(raw));
+      if (!Number.isFinite(n) || n < 1) return;
+      config.logoWidth = Math.min(sizing.max, n);
+      if (n > sizing.max) widthInput.value = sizing.max; // clamp as they type
+    }
+    onEdit();
+  });
+  widthInput.addEventListener('blur', () => { if (sizing) widthInput.value = sizing.clamp(config.logoWidth); });
+
   function renderLogo() {
+    renderWidth();
     if (config.logo) {
       logoImg.src = config.logo;
       show(logoPreview);
@@ -211,13 +252,13 @@
     hide(logoError);
     if (file.size > LOGO_MAX) { logoError.textContent = 'Logo must be 3 MB or smaller.'; show(logoError); return; }
     const reader = new FileReader();
-    reader.onload = () => { config.logo = reader.result; renderLogo(); onEdit(); };
+    reader.onload = () => { config.logo = reader.result; delete config.logoWidth; renderLogo(); onEdit(); };
     reader.onerror = () => { logoError.textContent = 'Couldn’t read that file. Try another.'; show(logoError); };
     reader.readAsDataURL(file);
   });
   logoChoose.addEventListener('click', pickLogo);
   logoReplace.addEventListener('click', pickLogo);
-  logoRemove.addEventListener('click', () => { config.logo = null; hide(logoError); renderLogo(); onEdit(); });
+  logoRemove.addEventListener('click', () => { config.logo = null; delete config.logoWidth; hide(logoError); renderLogo(); onEdit(); });
 
   // ---------- render ----------
   function applyToControls() {
