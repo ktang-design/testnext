@@ -12,6 +12,7 @@ const express = require('express');
 const { requireApiAuth } = require('../auth/authGuard');
 const { websiteBrandingRepository } = require('../website/WebsiteBrandingRepository');
 const { brandingRepository } = require('../settings/BrandingRepository');
+const { userRepository } = require('../auth/repository');
 const { WEBSITE_BRANDING_DEFAULTS, WEBSITE_BRANDING_COLORS } = require('../website/defaults');
 
 const router = express.Router();
@@ -34,13 +35,23 @@ const isImageDataUrl = (v) => typeof v === 'string' && v.startsWith('data:image/
 // palette, so configuring Platform flows down as the Website defaults. The
 // logo is the same one Platform manages — not an independent image — so the
 // two pages always show/upload the same file (see syncLogo below).
+// Guest access accounts (created by the login page's Guest access button) start
+// with a 64px logo; everyone else gets the per-aspect-ratio default client-side.
+const GUEST_LOGO_WIDTH = 64;
+async function isGuestAccount(userId) {
+  const user = await userRepository.findById(userId);
+  return Boolean(user && /@guest\.stratum\.app$/i.test(user.email || ''));
+}
+
 async function brandingDefaults(userId) {
   const p = (await brandingRepository.get(userId)) || {};
   const primary = HEX.test(str(p.primaryColor)) ? p.primaryColor.toUpperCase() : WEBSITE_BRANDING_DEFAULTS.primary.color;
   const secondary = HEX.test(str(p.secondaryColor)) ? p.secondaryColor.toUpperCase() : WEBSITE_BRANDING_DEFAULTS.secondary.color;
   const action = HEX.test(str(p.actionColor)) ? p.actionColor.toUpperCase() : WEBSITE_BRANDING_DEFAULTS.action.color;
+  const guest = await isGuestAccount(userId);
   return {
     logo: isImageDataUrl(p.logo) ? p.logo : null,
+    ...(guest ? { logoWidth: GUEST_LOGO_WIDTH } : {}),
     primary: { color: primary, opacity: cleanOpacity(p.primaryOpacity, WEBSITE_BRANDING_DEFAULTS.primary.opacity) },
     secondary: { color: secondary, opacity: cleanOpacity(p.secondaryOpacity, WEBSITE_BRANDING_DEFAULTS.secondary.opacity) },
     action: { color: action, opacity: cleanOpacity(p.actionOpacity, WEBSITE_BRANDING_DEFAULTS.action.opacity) },
