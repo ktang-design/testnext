@@ -1217,7 +1217,7 @@
       if (header) state.header = header.saved || header.defaults || HEADER_D;
       if (footer) state.footer = footer.saved || footer.defaults || FOOTER_D;
       if (typo) state.typography = typo.saved || typo.defaults || TYPO_D;
-      if (wbrand) state.branding = wbrand.saved || wbrand.defaults || BRAND_D;
+      if (wbrand) state.branding = wbrand.draft || wbrand.saved || wbrand.defaults || BRAND_D;
       if (search) state.search = search.saved || search.defaults || SEARCH_D;
       state.platformLogo = (pbrand && pbrand.saved && pbrand.saved.logo) || null;
       state.showSiteName = !!(pbrand && pbrand.saved && pbrand.saved.showSiteName);
