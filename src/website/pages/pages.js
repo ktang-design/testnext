@@ -40,6 +40,7 @@
   let flash = null; // { kind: 'section' | 'element', id, n }
   let flashN = 0;
   let panelFlashN = 0;
+  let panelFlashStart = 0;
   let selectedSectionId = null;
   let selectedElementId = null;
   // Cards element: which card is picked in the canvas, and which of the three
@@ -1538,13 +1539,15 @@
     ]));
     const head = buildHead(sec.title || 'Section', 'Add element', () => addElement(sec.id));
     builderView.appendChild(head);
-    // A section was just added: briefly flash its "Add element" button.
-    if (flash && flash.kind === 'section' && flash.id === sec.id && flash.n !== panelFlashN) {
-      panelFlashN = flash.n;
+    // A section was just added: briefly flash its "Add element" button. The panel
+    // can re-render during the flash, so resume it mid-animation until it ends.
+    if (flash && flash.kind === 'section' && flash.id === sec.id) {
+      if (flash.n !== panelFlashN) { panelFlashN = flash.n; panelFlashStart = performance.now(); }
+      const elapsed = performance.now() - panelFlashStart;
       const addBtnEl = head.querySelector('.pgb__add');
-      if (addBtnEl) {
+      if (addBtnEl && elapsed < 1800) {
+        addBtnEl.style.animationDelay = '-' + Math.round(elapsed) + 'ms';
         addBtnEl.classList.add('is-flash');
-        setTimeout(() => addBtnEl.classList.remove('is-flash'), 1800);
       }
     }
     builderView.appendChild(buildHelper('Add elements to this section to build your content. You can reorder, edit, or remove them.'));
