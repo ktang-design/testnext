@@ -428,6 +428,7 @@
     // user's own scrolling. `undefined` until the first render.
     let lastHighlight;
     let lastSelId = null; // selected section/element id on the previous render
+    let lastFlashN = 0;   // last section/element add already flashed + scrolled to
     let knownIds = null; // section/element ids from the previous render
 
     // Scroll the highlighted element (the section the current panel edits) fully
@@ -1156,6 +1157,28 @@
       }
       lastSelId = selId;
       knownIds = ids;
+
+      // A section/element was just added: scroll it into view (always — even if
+      // the user had panned/zoomed) and briefly flash the control that matters:
+      // the new section's "Add element" button, or the new element's toolbar.
+      const fl = state.builder && state.builder.flash;
+      if (fl && fl.n !== lastFlashN) {
+        lastFlashN = fl.n;
+        const q = (id) => root.querySelector('[data-id="' + String(id).replace(/"/g, '\\"') + '"]');
+        const block = q(fl.id);
+        if (block) {
+          const mark = fl.kind === 'section'
+            ? block.querySelector('.wsprev__cta')
+            : block.querySelector(':scope > .wsprev__toolbar');
+          if (mark) {
+            mark.classList.add('is-flash');
+            setTimeout(() => mark.classList.remove('is-flash'), 1800);
+          }
+          scrollHighlightIntoView(block);
+          // Images/embeds above can still be settling; align once more.
+          setTimeout(() => { if (block.isConnected) scrollHighlightIntoView(block); }, 250);
+        }
+      }
     }
 
     // Instant-load cache: snapshot the saved website config (not the per-page

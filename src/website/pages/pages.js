@@ -34,6 +34,12 @@
 
   let view = 'list';        // 'list' | 'builder'
   let builderPageId = null;
+  // The most recent add, so the panel and canvas can briefly flash what just
+  // appeared. `n` makes each add unique: a consumer flashes only when it sees a
+  // token it hasn't shown yet, so later re-renders don't re-trigger it.
+  let flash = null; // { kind: 'section' | 'element', id, n }
+  let flashN = 0;
+  let panelFlashN = 0;
   let selectedSectionId = null;
   let selectedElementId = null;
   // Cards element: which card is picked in the canvas, and which of the three
@@ -456,6 +462,7 @@
     secs.push(s);
     selectedSectionId = s.id;
     selectedElementId = null;
+    flash = { kind: 'section', id: s.id, n: ++flashN };
     afterContentChange();
   }
   async function deleteSection(id) {
@@ -522,6 +529,7 @@
     sec.elements.push(e);
     selectedSectionId = sectionId;
     selectedElementId = e.id;
+    flash = { kind: 'element', id: e.id, n: ++flashN };
     afterContentChange();
   }
   // Edit icon opens the element's focused content modal (richtext or code).
@@ -1528,7 +1536,17 @@
       { label: page ? page.title : 'Page', onClick: backToSectionList },
       { label: sec.title || 'Section' },
     ]));
-    builderView.appendChild(buildHead(sec.title || 'Section', 'Add element', () => addElement(sec.id)));
+    const head = buildHead(sec.title || 'Section', 'Add element', () => addElement(sec.id));
+    builderView.appendChild(head);
+    // A section was just added: briefly flash its "Add element" button.
+    if (flash && flash.kind === 'section' && flash.id === sec.id && flash.n !== panelFlashN) {
+      panelFlashN = flash.n;
+      const addBtnEl = head.querySelector('.pgb__add');
+      if (addBtnEl) {
+        addBtnEl.classList.add('is-flash');
+        setTimeout(() => addBtnEl.classList.remove('is-flash'), 1800);
+      }
+    }
     builderView.appendChild(buildHelper('Add elements to this section to build your content. You can reorder, edit, or remove them.'));
 
     const settings = document.createElement('div');
@@ -1657,7 +1675,7 @@
     if (!preview) return;
     if (view !== 'builder') { preview.update({ builder: null, pages: livePages() }); return; }
     preview.update({
-      builder: { sections: getSections(), selectedSectionId, selectedElementId, selectedCardId, maxCards: MAX_CARDS },
+      builder: { sections: getSections(), selectedSectionId, selectedElementId, selectedCardId, maxCards: MAX_CARDS, flash },
       pages: livePages(),
       builderCallbacks: {
         onAddSection: addSection,
