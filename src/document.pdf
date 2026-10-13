@@ -12,14 +12,13 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
 endobj
 5 0 obj
-<< /Length 2030 >>
+<< /Length 2303 >>
 stream
-BT /F1 8 Tf 10 TL 40 750 Td
+BT /F1 7.5 Tf 10 TL 40 752 Td
 /F1 11 Tf (Embed code: Become a library member) Tj T*
-/F1 8 Tf T*
+/F1 7.5 Tf
 (<div style=") Tj T*
-(  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-ser) Tj T*
-(if;) Tj T*
+(  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;) Tj T*
 (  width: 100%;) Tj T*
 (  min-height: 280px;) Tj T*
 (  position: relative;) Tj T*
@@ -27,13 +26,12 @@ BT /F1 8 Tf 10 TL 40 750 Td
 (  box-sizing: border-box;) Tj T*
 (  background-image:) Tj T*
 (    linear-gradient\(rgba\(0, 0, 0, 0.58\), rgba\(0, 0, 0, 0.58\)\),) Tj T*
-(    url\('https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w) Tj T*
-(=1600&q=80'\);) Tj T*
+(    url\('https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1600&q=80'\);) Tj T*
 (  background-size: cover;) Tj T*
 (  background-position: center;) Tj T*
 (  color: #ffffff;) Tj T*
 (">) Tj T*
-() Tj T*
+T*
 (  <div style=") Tj T*
 (    position: relative;) Tj T*
 (    z-index: 1;) Tj T*
@@ -46,7 +44,7 @@ BT /F1 8 Tf 10 TL 40 750 Td
 (    padding: 40px;) Tj T*
 (    box-sizing: border-box;) Tj T*
 (  ">) Tj T*
-() Tj T*
+T*
 (    <!-- Content -->) Tj T*
 (    <div style=") Tj T*
 (      flex: 1 1 auto;) Tj T*
@@ -62,7 +60,7 @@ BT /F1 8 Tf 10 TL 40 750 Td
 (      ">) Tj T*
 (        Become a library member) Tj T*
 (      </h2>) Tj T*
-() Tj T*
+T*
 (      <p style=") Tj T*
 (        margin: 0;) Tj T*
 (        font-size: 16px;) Tj T*
@@ -70,15 +68,26 @@ BT /F1 8 Tf 10 TL 40 750 Td
 (        color: #ffffff;) Tj T*
 (        max-width: 620px;) Tj T*
 (      ">) Tj T*
-(        Join and get access to books, digital resources,) Tj T*
+(        Join your local library and get access to books, digital resources,) Tj T*
 (        programs, and more. Give us a call and we'll help you get started.) Tj T*
 (      </p>) Tj T*
 (    </div>) Tj T*
-() Tj T*
+T*
 (    <!-- Actions -->) Tj T*
 (    <div style=") Tj T*
 (      display: flex;) Tj T*
 (      flex: 0 0 auto;) Tj T*
+(      flex-wrap: wrap;) Tj T*
+(      gap: 12px;) Tj T*
+(      align-items: center;) Tj T*
+(      justify-content: flex-end;) Tj T*
+(    ">) Tj T*
+T*
+(      <a) Tj T*
+(        href="#") Tj T*
+(        style=") Tj T*
+(          display: inline-flex;) Tj T*
+(          align-items: center;) Tj T*
 ET
 endstream
 endobj
@@ -86,20 +95,9 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
 endobj
 7 0 obj
-<< /Length 1570 >>
+<< /Length 1253 >>
 stream
-BT /F1 8 Tf 10 TL 40 750 Td
-(      flex-wrap: wrap;) Tj T*
-(      gap: 12px;) Tj T*
-(      align-items: center;) Tj T*
-(      justify-content: flex-end;) Tj T*
-(    ">) Tj T*
-() Tj T*
-(      <a) Tj T*
-(        href="#") Tj T*
-(        style=") Tj T*
-(          display: inline-flex;) Tj T*
-(          align-items: center;) Tj T*
+BT /F1 7.5 Tf 10 TL 40 752 Td
 (          justify-content: center;) Tj T*
 (          min-height: 44px;) Tj T*
 (          padding: 0 18px;) Tj T*
@@ -115,7 +113,7 @@ BT /F1 8 Tf 10 TL 40 750 Td
 (      >) Tj T*
 (        Learn more) Tj T*
 (      </a>) Tj T*
-() Tj T*
+T*
 (      <a) Tj T*
 (        href="tel:+10000000000") Tj T*
 (        style=") Tj T*
@@ -136,9 +134,9 @@ BT /F1 8 Tf 10 TL 40 750 Td
 (      >) Tj T*
 (        Call us) Tj T*
 (      </a>) Tj T*
-() Tj T*
+T*
 (    </div>) Tj T*
-() Tj T*
+T*
 (  </div>) Tj T*
 (</div>) Tj T*
 ET
@@ -152,10 +150,10 @@ xref
 0000000121 00000 n 
 0000000216 00000 n 
 0000000342 00000 n 
-0000002424 00000 n 
-0000002550 00000 n 
+0000002697 00000 n 
+0000002823 00000 n 
 trailer
 << /Size 8 /Root 1 0 R >>
 startxref
-4172
+4128
 %%EOF
