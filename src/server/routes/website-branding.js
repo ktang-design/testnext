@@ -77,6 +77,10 @@ router.put('/', requireApiAuth, ah(async (req, res) => {
     return res.status(400).json({ error: 'INVALID_LOGO', message: 'Logo must be an image within 3 MB.' });
   }
   const config = { logo: b.logo || null };
+  // Logo width in px (page-builder preview only). Hard ceiling 400 = the widest
+  // any logo may be; the per-ratio maximum is enforced client-side.
+  const lw = Math.round(Number(b.logoWidth));
+  if (config.logo && Number.isFinite(lw) && lw >= 1) config.logoWidth = Math.min(400, lw);
   WEBSITE_BRANDING_COLORS.forEach((key) => {
     config[key] = cleanColor(b[key], WEBSITE_BRANDING_DEFAULTS[key]);
   });
