@@ -12,9 +12,8 @@
 // The site is drawn at a fixed desktop width inside a pan/zoom canvas: scroll to
 // pan, hold Space and scroll to zoom (like a design tool), double-click to fit.
 //
-// Logo precedence: Website branding logo → Platform branding logo → default.
+// Logo: the Website branding logo (inherited from Platform); none if removed.
 (function () {
-  const DEFAULT_LOGO = '/website/assets/stratum-logo.png';
   const DEVICE_W = 1280;            // desktop canvas width
   const MIN_Z = 0.1, MAX_Z = 2.5;
 
