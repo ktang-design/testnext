@@ -94,8 +94,13 @@
   function findById(items, id) { return items.find((p) => p.id === id) || null; }
 
   // ---- auto-save (draft only) ----
+  // Bumped on every edit. A save remembers the version it sent; if the version
+  // moved while it was in flight, its response is stale (it predates a later
+  // edit, e.g. a delete) and must not overwrite the local content.
+  let editVersion = 0;
   function onEdit() {
     touched = true;
+    editVersion++;
     saveState = 'pending';
     scheduleAutoSave();
   }
@@ -111,8 +116,9 @@
     return Promise.resolve();
   }
   function autoSave() {
-    if (saving) return Promise.resolve();
+    if (saving) return Promise.resolve(); // the in-flight save re-runs itself if edits landed meanwhile
     saving = true;
+    const sentVersion = editVersion;
     updateSaveBar();
     return fetch('/api/website/pages', {
       method: 'PUT',
@@ -124,6 +130,15 @@
       return res.json();
     }).then((data) => {
       saving = false;
+      if (editVersion !== sentVersion) {
+        // Edited while saving: keep the local (newer) content rather than the
+        // older server copy — which would bring deleted sections/elements back —
+        // and save again so the latest edit is persisted.
+        saveState = 'pending';
+        updateSaveBar();
+        scheduleAutoSave();
+        return;
+      }
       saveState = 'saved';
       const saved = data.saved || [];
       Object.keys(contentById).forEach((k) => delete contentById[k]);
