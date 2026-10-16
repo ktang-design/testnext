@@ -95,6 +95,8 @@
   const DEFAULT_CONFIG = { fontFamily: 'Inter', headingSize: '24', headingWeight: '600', bodySize: '16', bodyWeight: '400' };
 
   // Initial paint from the local cache (instant), then hydrate/revalidate.
+  const loadPane = document.querySelector('.navpanel');
+  const setPaneLoading = (on) => { if (loadPane) { loadPane.classList.toggle('is-loading', on); loadPane.setAttribute('aria-busy', on ? 'true' : 'false'); } };
   const cached = readCache();
   if (cached) {
     config = clone(cached);
@@ -140,9 +142,11 @@
     }
   });
 
+  if (!cached) setPaneLoading(true); // first visit: skeleton until the saved config arrives
   fetch('/api/website/typography', { credentials: 'include' })
     .then((r) => (r.ok ? r.json() : Promise.reject()))
     .then((data) => {
+      setPaneLoading(false);
       const draft = clone(data.saved || data.defaults || DEFAULT_CONFIG);
       const published = clone(data.published || draft);
       publishedConfig = published;
@@ -154,6 +158,7 @@
       refresh();
     })
     .catch(() => {
+      setPaneLoading(false);
       loaded = true;
       if (config) { publishedConfig = clone(config); refresh(); return; } // cache already painted something usable
       config = clone(DEFAULT_CONFIG);

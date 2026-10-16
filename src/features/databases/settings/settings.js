@@ -281,7 +281,12 @@
     });
   });
 
+  // Skeleton in place of the form until the saved config arrives.
+  var loadPane = document.querySelector('main.platform-page');
+  function setPaneLoading(on) { if (loadPane) { loadPane.classList.toggle('is-loading', on); loadPane.setAttribute('aria-busy', on ? 'true' : 'false'); } }
+  setPaneLoading(true);
   window.DatabasesResource.load().then(function (data) {
+    setPaneLoading(false);
     draft = clone(data.draft || data.defaults || DEFAULTS);
     wasConfigured = !!draft.configured;
     if (wasConfigured) saveContinueBtn.querySelector('.btn__label').textContent = 'Save changes';

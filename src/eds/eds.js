@@ -144,6 +144,9 @@ document.addEventListener('DOMContentLoaded', () => {
   baseline = current();
   refreshCounts();
   render();
+  const loadPane = document.querySelector('main.platform-page');
+  const setPaneLoading = (on) => { if (loadPane) { loadPane.classList.toggle('is-loading', on); loadPane.setAttribute('aria-busy', on ? 'true' : 'false'); } };
+  setPaneLoading(true); // skeleton until the saved EDS settings arrive
   (async () => {
     try {
       const res = await fetch(ENDPOINT, { credentials: 'include' });
@@ -155,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setInputs(baseline);
       reflectPasswordState();
       render();
-    } catch (_) { /* keep the seeded defaults */ }
+    } catch (_) { /* keep the seeded defaults */ } finally { setPaneLoading(false); }
   })();
 
   // ---- unsaved-changes navigation guard ----

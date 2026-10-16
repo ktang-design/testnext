@@ -155,6 +155,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   render();
 
+  const loadPane = document.querySelector('main.site-details');
+  const setPaneLoading = (on) => { if (loadPane) { loadPane.classList.toggle('is-loading', on); loadPane.setAttribute('aria-busy', on ? 'true' : 'false'); } };
+  if (!cached) setPaneLoading(true); // first visit: skeleton until the saved details arrive
   (async () => {
     try {
       const res = await fetch('/api/site-settings', { credentials: 'include' });
@@ -168,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
       render();
     } catch (_) {
       /* keep the cached/fallback view */
-    }
+    } finally { setPaneLoading(false); }
   })();
 
   // ---- Unpublished-changes navigation guard -----------------------------

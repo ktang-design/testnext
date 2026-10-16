@@ -374,6 +374,9 @@ document.addEventListener('DOMContentLoaded', () => {
     applyConfig(systemDefault);
   }
   render();
+  const loadPane = document.querySelector('main.branding');
+  const setPaneLoading = (on) => { if (loadPane) { loadPane.classList.toggle('is-loading', on); loadPane.setAttribute('aria-busy', on ? 'true' : 'false'); } };
+  if (!cached) setPaneLoading(true); // first visit: skeleton until the saved branding arrives
   (async () => {
     try {
       const res = await fetch('/api/branding', { credentials: 'include' });
@@ -385,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (touched) return; // the user already started editing — keep their work
       applyConfig(baseline());
       render();
-    } catch (_) { /* keep the cached/fallback view */ }
+    } catch (_) { /* keep the cached/fallback view */ } finally { setPaneLoading(false); }
   })();
 
   // ---- Browser-tab (favicon) preview title ----

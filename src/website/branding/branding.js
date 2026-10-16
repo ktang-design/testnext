@@ -314,6 +314,8 @@
   buildColorRows();
 
   // Paint the last-known draft colours immediately from cache (revalidated by the fetch).
+  const loadPane = document.querySelector('.navpanel');
+  const setPaneLoading = (on) => { if (loadPane) { loadPane.classList.toggle('is-loading', on); loadPane.setAttribute('aria-busy', on ? 'true' : 'false'); } };
   const cached = readCache();
   if (cached) { config = { ...clone(colorDefaults), ...clone(cached) }; applyToControls(); }
 
@@ -356,9 +358,11 @@
     }
   });
 
+  if (!cached) setPaneLoading(true); // first visit: skeleton until the saved config arrives
   fetch('/api/website/branding', { credentials: 'include' })
     .then((r) => (r.ok ? r.json() : Promise.reject()))
     .then((data) => {
+      setPaneLoading(false);
       defaultLogoWidth = (data.defaults && data.defaults.logoWidth) || null;
       const draft = clone(data.draft || data.saved || data.defaults);
       const published = clone(data.published || draft);
@@ -370,6 +374,7 @@
       applyToControls();
     })
     .catch(() => {
+      setPaneLoading(false);
       loaded = true;
       if (touched) { render(); return; }
       config = clone({ logo: null, primary: { color: '#255096', opacity: 100 }, secondary: { color: '#3D3F42', opacity: 100 }, action: { color: '#255096', opacity: 100 }, heading: { color: '#3D3F42', opacity: 100 }, body: { color: '#55585D', opacity: 100 } });

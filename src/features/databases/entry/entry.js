@@ -265,7 +265,12 @@
     });
   });
 
+  // Skeleton in place of the form until the saved config arrives.
+  var loadPane = document.querySelector('main.platform-page');
+  function setPaneLoading(on) { if (loadPane) { loadPane.classList.toggle('is-loading', on); loadPane.setAttribute('aria-busy', on ? 'true' : 'false'); } }
+  setPaneLoading(true);
   window.DatabasesResource.load().then(function (data) {
+    setPaneLoading(false);
     draft = JSON.parse(JSON.stringify(data.draft || data.defaults || DEFAULTS));
     if (!draft.configured) { window.location.replace('../settings/'); return; }
     if (editId) {
