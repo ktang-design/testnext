@@ -84,7 +84,7 @@ module.exports.RESEARCH_PARTICIPANT_DATABASES_DEFAULTS = {
     },
   ],
   categories: [
-    { id: 'cat_subject', name: 'Subject', terms: ['Health & Medicine', 'Psychology', 'Nursing', 'Social Sciences', 'Health & Wellness'] },
+    { id: 'cat_subject', name: 'Subject', terms: ['Health & Medicine', 'Psychology', 'Nursing', 'Social Sciences', 'Health & Wellness', 'Healthcare'] },
     { id: 'cat_database_type', name: 'Database type', terms: ['Research database', 'Reference database', 'Index & abstracts'] },
   ],
   display: { azIndex: true, filters: true, filterCounts: true, sortOrder: 'title', groupBy: 'none', resultsPerPage: 25 },
