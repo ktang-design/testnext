@@ -472,3 +472,6 @@ a.wsprev__navlink.is-current { text-decoration: underline; text-underline-offset
 }
 .wsprev__cta.is-flash,
 .wsprev__toolbar.is-flash { animation: wsprev-flash 1.8s ease-out 1; }
+
+/* Loading skeleton shown in the body until the pages are known */
+.wsprev__skel { display: flex; flex-direction: column; gap: 14px; padding: 48px; box-sizing: border-box; }

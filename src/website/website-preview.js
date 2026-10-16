@@ -76,7 +76,12 @@
       if (lite.branding) lite.branding.logo = null;
       if (lite.header) lite.header.headerImage = null;
       lite.platformLogo = null;
-      lite.pages = null; // page content can be large (code/richtext) — drop it first
+      // Page content can be large (code/richtext) — keep only the homepage (the
+      // only body the preview paints) so it still appears instantly.
+      const pg = Array.isArray(lite.pages) ? lite.pages : [];
+      const home = pg.find((p) => p.isHomepage) || pg[0];
+      lite.pages = home ? [home] : null;
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify(lite)); return; } catch (_) { lite.pages = null; }
       localStorage.setItem(CACHE_KEY, JSON.stringify(lite));
     } catch (_) { /* give up — fall back to the lazy load */ }
   }
@@ -394,6 +399,9 @@
     // panels it stays false, so the fetched (authoritative) pages always win over
     // the instant-load cache.
     let hostProvidedPages = false;
+    // False until real pages are known (cache, host push or fetch); drives the
+    // body skeleton so the canvas never looks empty/broken while loading.
+    let pagesReady = false;
 
     // ---- Canvas scaffold: viewport > sizer > site mock, plus a HUD overlay ----
     container.innerHTML = '';
@@ -764,6 +772,17 @@
 
     // The page the read-only preview currently shows: the chosen one, else the
     // homepage, else the first page.
+    function renderBodySkeleton(body) {
+      body.setAttribute('aria-busy', 'true');
+      const wrap = el('div', 'wsprev__skel');
+      [['60%', 36], ['100%', 14], ['85%', 14], ['100%', 160], ['45%', 14]].forEach(([w, h]) => {
+        const b = el('span', 'skeleton');
+        b.style.cssText = `width:${w};max-width:100%;height:${h}px;border-radius:6px;display:block`;
+        wrap.appendChild(b);
+      });
+      body.appendChild(wrap);
+    }
+
     function currentViewPage() {
       const pages = viewPages();
       if (!pages.length) return null;
@@ -1082,6 +1101,7 @@
         const page = currentViewPage();
         if (page && page.isBento) { body.classList.add('wsprev__body--bento'); renderBentoBody(body, state.bentoBlocks || []); }
         else if (page && page.content && page.content.sections) renderPublishedBody(body, page.content.sections);
+        else if (!pagesReady) renderBodySkeleton(body);
       }
       root.appendChild(body);
 
@@ -1228,7 +1248,7 @@
       if ('platformLogo' in cached) state.platformLogo = cached.platformLogo;
       if ('siteName' in cached) state.siteName = cached.siteName;
       if ('showSiteName' in cached) state.showSiteName = cached.showSiteName;
-      if (Array.isArray(cached.pages)) state.pages = cached.pages;
+      if (Array.isArray(cached.pages) && cached.pages.length) { state.pages = cached.pages; pagesReady = true; }
       if (Array.isArray(cached.bentoBlocks)) state.bentoBlocks = cached.bentoBlocks;
     }
     render();
@@ -1260,6 +1280,7 @@
       // fetched set unless the host has already provided one this session. (The
       // instant-load cache may have pre-populated state.pages, but the fetch is
       // authoritative, so a cache alone must not block it.)
+      pagesReady = true; // fetch settled (success or failure): stop the skeleton
       if (pages && Array.isArray(pages.pages) && !hostProvidedPages) state.pages = pages.pages;
       state.bentoBlocks = (bento && bento.published && Array.isArray(bento.published.blocks)) ? bento.published.blocks : [];
       ensureBentoSearch(!!(bento && bento.integrationConfigured && state.bentoBlocks.length));
@@ -1269,7 +1290,7 @@
 
     return {
       update(partial) {
-        if (partial && 'pages' in partial) hostProvidedPages = true;
+        if (partial && 'pages' in partial) { hostProvidedPages = true; if (partial.pages && partial.pages.length) pagesReady = true; }
         Object.assign(state, partial || {});
         render();
         scheduleCacheWrite(); // keep the instant-load cache current with live edits/saves
