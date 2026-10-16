@@ -544,7 +544,8 @@ body.is-locked { overflow: hidden; }
   background: #3e75cf; border: 0; color: #fff;
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.15);
 }
-.modal__btn--primary:hover { background: #356bc4; }
+.modal__btn--primary:hover:not(:disabled) { background: #356bc4; }
+.modal__btn--primary:disabled { background: var(--gray-100, #f5f5f5); border: 1px solid var(--gray-200); color: var(--gray-500); box-shadow: none; cursor: not-allowed; }
 .modal__btn--danger {
   background: #d71818; border: 0; color: #fff;
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.15);
