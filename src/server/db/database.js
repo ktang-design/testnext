@@ -219,6 +219,7 @@ function migrate() {
     _ready = (async () => {
       await client.batch(SCHEMA, 'write');
       await ensureColumns();
+      await require('./dataMigrations').runDataMigrations({ get, all, run });
     })();
   }
   return _ready;
