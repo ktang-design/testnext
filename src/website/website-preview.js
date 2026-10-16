@@ -517,7 +517,17 @@
 
     let ro = null;
     if (window.ResizeObserver) {
-      ro = new ResizeObserver(() => { if (!userZoomed) { fitZoom(); scrollHighlightIntoView(); } });
+      ro = new ResizeObserver(() => {
+        if (userZoomed) return;
+        // Re-fit (e.g. a scrollbar appearing/disappearing after a publish or
+        // re-render changes the canvas width) without losing the reader's place:
+        // keep the same spot of the page in view, scaled to the new zoom.
+        const before = zoom, top = canvas.scrollTop, left = canvas.scrollLeft;
+        fitZoom();
+        const k = before ? zoom / before : 1;
+        canvas.scrollTop = top * k; canvas.scrollLeft = left * k;
+        if (!userPanned && top === 0) scrollHighlightIntoView();
+      });
       ro.observe(canvas);
     }
 
