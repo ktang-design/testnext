@@ -210,6 +210,8 @@
   // — setupColor's .set() would then throw reading config[key].color, which
   // (being uncaught, synchronous, top-level) aborts the rest of this script,
   // including the fetch below that would otherwise have self-corrected it.
+  const loadPane = document.querySelector('.navpanel');
+  const setPaneLoading = (on) => { if (loadPane) { loadPane.classList.toggle('is-loading', on); loadPane.setAttribute('aria-busy', on ? 'true' : 'false'); } };
   const cached = readCache();
   if (cached) {
     config = { ...clone(DEFAULTS), ...clone(cached) };
@@ -255,10 +257,12 @@
     }
   });
 
+  if (!cached) setPaneLoading(true); // first visit: skeleton until the saved config arrives
   fetch('/api/website/header', { credentials: 'include' })
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null)
     .then((hdr) => {
+      setPaneLoading(false);
       const draft = clone((hdr && (hdr.draft || hdr.defaults)) || DEFAULTS);
       const published = clone((hdr && hdr.published) || draft);
       publishedConfig = { ...clone(DEFAULTS), ...published };

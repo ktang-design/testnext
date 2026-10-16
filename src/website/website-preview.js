@@ -424,6 +424,20 @@
     container.appendChild(canvas);
     container.appendChild(hud);
 
+    // Nothing cached yet (first visit): cover the canvas with a skeleton instead
+    // of flashing the default header/footer, until the saved config arrives.
+    let loadingEl = null;
+    if (!readCache()) {
+      loadingEl = el('div', 'wsprev-loading');
+      loadingEl.setAttribute('aria-hidden', 'true');
+      [['100%', 56], ['100%', 200], ['70%', 18], ['90%', 14], ['80%', 14], ['100%', 120]].forEach(([w, h]) => {
+        const b = el('span', 'skeleton');
+        b.style.cssText = `width:${w};max-width:100%;height:${h}px;border-radius:6px`;
+        loadingEl.appendChild(b);
+      });
+      container.appendChild(loadingEl);
+    }
+
     let zoom = 1, naturalH = 600, userZoomed = false, spaceDown = false, hovering = false;
     let userPanned = false; // set once the user scrolls/pans the canvas themselves
     // render() rebuilds the canvas and re-fits the zoom, which resets the scroll.
@@ -1296,6 +1310,7 @@
       ensureBentoSearch(!!(bento && bento.integrationConfigured && state.bentoBlocks.length));
       render();
       writeCache(cacheSnapshot());
+      if (loadingEl) { loadingEl.remove(); loadingEl = null; }
     });
 
     return {

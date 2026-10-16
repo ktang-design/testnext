@@ -616,3 +616,18 @@ select.modal__control {
 /* Research participants: policy items shown as plain text, not links. */
 .sysfooter__link--static { text-decoration: none; cursor: default; }
 .sysfooter__link--static:hover { color: var(--gray-700, #3d3f42); }
+
+/* Form panels (Branding, Site details, EDS, Website > Header/Typography/Branding)
+   with nothing cached yet: keep the title + description, hide the not-yet-loaded
+   fields and show shimmering label/field bars in their place until the first
+   fetch settles. Toggle with .is-loading (and aria-busy) on the panel. */
+.is-loading > *:not(.navpanel__title):not(.navpanel__desc):not(.section-heading) { display: none; }
+.is-loading::after {
+  content: ''; display: block; width: 100%; max-width: 480px; height: 420px; margin-top: 24px;
+  background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 37%, var(--gray-100) 63%);
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+  -webkit-mask: repeating-linear-gradient(to bottom, #000 0 12px, transparent 12px 20px, #000 20px 60px, transparent 60px 84px);
+  mask: repeating-linear-gradient(to bottom, #000 0 12px, transparent 12px 20px, #000 20px 60px, transparent 60px 84px);
+}
+@media (prefers-reduced-motion: reduce) { .is-loading::after { animation: none; } }
