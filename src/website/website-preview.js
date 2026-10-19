@@ -1317,6 +1317,10 @@
       update(partial) {
         if (partial && 'pages' in partial) { hostProvidedPages = true; if (partial.pages && partial.pages.length) pagesReady = true; }
         Object.assign(state, partial || {});
+        // The user just added a section/element: reveal the canvas now, rather
+        // than leaving what they added hidden behind the first-visit skeleton
+        // until the slowest of the config fetches settles.
+        if (loadingEl && partial && partial.builder && partial.builder.flash) { loadingEl.remove(); loadingEl = null; }
         render();
         scheduleCacheWrite(); // keep the instant-load cache current with live edits/saves
       },
