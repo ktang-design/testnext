@@ -3,10 +3,9 @@
 
 const crypto = require('crypto');
 const express = require('express');
-const { login, register, createGuest, getUserById, AuthError } = require('../auth/authService');
+const { login, register, getUserById, AuthError } = require('../auth/authService');
 const { requireApiAuth } = require('../auth/authGuard');
 const { isProd } = require('../config');
-const { get, run } = require('../db/database');
 
 const router = express.Router();
 
@@ -74,38 +73,12 @@ router.post('/login', throttle, async (req, res) => {
   }
 });
 
-// Guest access: one click creates a Research participant account and signs in.
-// Each visitor (identified by a hash of their IP) gets GUEST_MAX_USES guest
-// sign-ins, ever. Uses are stored in the database so restarts don't reset them.
-const GUEST_MAX_USES = 10;
-const ipHash = (req) => crypto.createHash('sha256').update(String(req.ip || 'unknown')).digest('hex');
-
-router.post('/guest', async (req, res) => {
-  try {
-    const hash = ipHash(req);
-    const used = await get('SELECT COUNT(*) AS n FROM guest_access_log WHERE ip_hash = ?', [hash]);
-    if (used && Number(used.n) >= GUEST_MAX_USES) {
-      return res.status(429).json({
-        error: 'GUEST_LIMIT_REACHED',
-        message: 'Guest access limit reached. Sign in with your email and password.',
-      });
-    }
-    const user = await createGuest();
-    await run('INSERT INTO guest_access_log (ip_hash, created_at) VALUES (?, ?)', [hash, new Date().toISOString()]);
-    req.session.regenerate((err) => {
-      if (err) {
-        return res.status(500).json({ error: 'SERVER_ERROR', message: 'Could not start session.' });
-      }
-      req.session.userId = user.id;
-      require('../auth/repository').userRepository.touchLastAccessed(user.id);
-      return res.status(201).json({ user });
-    });
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error('[auth] guest error', err);
-    return res.status(500).json({ error: 'SERVER_ERROR', message: 'Something went wrong.' });
-  }
-});
+// Guest access is closed to new visitors. Existing guest accounts and their
+// data are untouched; they simply can no longer be created.
+router.post('/guest', (req, res) => res.status(410).json({
+  error: 'GUEST_ACCESS_DISABLED',
+  message: 'Guest access is no longer available. Sign in with your email and password.',
+}));
 
 router.post('/register', throttle, async (req, res) => {
   if (!signupAllowed(req)) {
